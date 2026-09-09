@@ -1,0 +1,143 @@
+:host {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: #151715;
+  color: #f4f5f1;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #343834;
+
+  h1 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  input,
+  button {
+    min-height: 42px;
+    border-radius: 8px;
+    font: inherit;
+  }
+
+  input {
+    width: min(350px, 40vw);
+    padding: 0 0.75rem;
+    border: 1px solid #464b46;
+    background: #232623;
+    color: inherit;
+  }
+
+  button {
+    padding: 0 1rem;
+    border: 0;
+    background: #c9ff55;
+    color: #161a11;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
+.workspace {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.reference {
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  place-items: center;
+  gap: 0.75rem;
+
+  img {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - 210px);
+    object-fit: contain;
+    border-radius: 4px;
+    background: var(--average-color);
+  }
+
+  figcaption {
+    color: #a8aea8;
+    font-size: 0.875rem;
+  }
+
+  a {
+    color: #d9ddd8;
+  }
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem;
+  border-top: 1px solid #343834;
+
+  button {
+    min-height: 42px;
+    padding: 0 1rem;
+    border: 1px solid #464b46;
+    border-radius: 8px;
+    background: #232623;
+    color: inherit;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.message {
+  color: #bfc5bf;
+}
+
+.error {
+  color: #ff9292;
+}
+
+@media (max-width: 700px) {
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .search {
+    display: grid;
+    grid-template-columns: 1fr auto;
+
+    label {
+      grid-column: 1 / -1;
+    }
+
+    input {
+      width: 100%;
+    }
+  }
+
+  .reference img {
+    max-height: calc(100vh - 300px);
+  }
+}
