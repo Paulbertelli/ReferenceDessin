@@ -1,12 +1,15 @@
 using Microsoft.Extensions.Options;
 using ReferenceDessin.Application.Photos;
 using ReferenceDessin.Infrastructure.Pexels;
+using ReferenceDessin.Api.Errors;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ExternalApiExceptionHandler>();
 
 builder.Services
     .AddOptions<PexelsOptions>()
@@ -52,8 +55,11 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 
 app.MapControllers();
 
 app.Run();
+
+public partial class Program;

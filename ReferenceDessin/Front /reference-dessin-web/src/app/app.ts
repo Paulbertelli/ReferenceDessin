@@ -13,6 +13,7 @@ import {
   LucideMaximize2,
   LucideX
 } from '@lucide/angular';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   imports: [
@@ -115,9 +116,13 @@ export class App implements OnDestroy {
 
           this.loadSelectedImage();
         },
-        error: () => {
+        error: (response: HttpErrorResponse) => {
+          const detail = response.error?.detail;
+
           this.error.set(
-            'Impossible de récupérer les photos.'
+            typeof detail === 'string' && detail.trim().length > 0
+              ? detail
+              : 'Impossible de récupérer les photos.'
           );
         }
       });

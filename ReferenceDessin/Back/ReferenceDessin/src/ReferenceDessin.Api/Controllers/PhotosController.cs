@@ -5,7 +5,8 @@ namespace ReferenceDessin.Api.Controllers;
 
 [ApiController]
 [Route("api/photos")]
-public sealed class PhotosController(IPhotoProvider photoProvider): ControllerBase
+public sealed class PhotosController(IPhotoProvider photoProvider)
+    : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyCollection<PhotoReference>>> Get(
