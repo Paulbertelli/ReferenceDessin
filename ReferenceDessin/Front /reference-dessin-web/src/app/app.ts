@@ -59,7 +59,7 @@ export class App implements OnDestroy {
       return;
     }
 
-    this.currentIndex.update(index => index - 1);
+    this.selectPhoto(this.currentIndex() - 1);
     this.restartTimerForCurrentPhoto();
   }
 
@@ -68,7 +68,7 @@ export class App implements OnDestroy {
       return;
     }
 
-    this.currentIndex.update(index => index + 1);
+    this.selectPhoto(this.currentIndex() + 1);
     this.restartTimerForCurrentPhoto();
   }
 
@@ -86,6 +86,7 @@ export class App implements OnDestroy {
   private loadPhotos(query: string = ''): void {
     this.loading.set(true);
     this.error.set('');
+    this.imageRequestId++;
 
     this.photoService
       .getPhotos(query)
@@ -94,13 +95,25 @@ export class App implements OnDestroy {
         next: photos => {
           this.photos.set(photos);
           this.currentIndex.set(0);
+
+          this.displayedPhoto.set(null);
+          this.displayedIndex.set(0);
+
+          this.imageLoading.set(false);
+          this.imageError.set(false);
+
+          this.preloadedImages.clear();
           this.resetTimer();
 
           if (photos.length === 0) {
             this.error.set(
               'Aucune photo trouvée pour cette recherche.'
             );
+
+            return;
           }
+
+          this.loadSelectedImage();
         },
         error: () => {
           this.error.set(
@@ -198,7 +211,7 @@ export class App implements OnDestroy {
       return;
     }
 
-    this.currentIndex.update(index => index + 1);
+    this.selectPhoto(this.currentIndex() + 1);
     this.remainingSeconds.set(this.getDurationInSeconds());
   }
 
@@ -228,7 +241,7 @@ export class App implements OnDestroy {
       this.closeImageOverlay();
       return;
     }
-    
+
     const target = event.target as HTMLElement | null;
 
     if (target?.tagName === 'INPUT') {
@@ -254,7 +267,7 @@ export class App implements OnDestroy {
   protected readonly imageExpanded = signal(false);
 
   protected openImageOverlay(): void {
-    if (this.currentPhoto()) {
+    if (this.displayedPhoto()) {
       this.imageExpanded.set(true);
     }
   }
@@ -262,4 +275,130 @@ export class App implements OnDestroy {
   protected closeImageOverlay(): void {
     this.imageExpanded.set(false);
   }
+
+  // état pour le chargement 
+  protected readonly displayedPhoto = signal<PhotoReference | null>(null);
+  protected readonly displayedIndex = signal(0);
+  protected readonly imageLoading = signal(false);
+  protected readonly imageError = signal(false);
+
+  private imageRequestId = 0;
+
+  private readonly preloadedImages =
+    new Map<string, HTMLImageElement>();
+  
+  private selectPhoto(index: number): void {
+    if (index < 0 || index >= this.photos().length) {
+      return;
+    }
+
+    this.currentIndex.set(index);
+    this.loadSelectedImage();
+  }
+
+  
+  private loadSelectedImage(): void {
+    const photo = this.currentPhoto();
+
+    if (!photo) {
+      this.displayedPhoto.set(null);
+      this.imageLoading.set(false);
+      return;
+    }
+
+    const requestedIndex = this.currentIndex();
+    const requestId = ++this.imageRequestId;
+    const cachedImage = this.preloadedImages.get(photo.imageUrl);
+    const image = cachedImage ?? new Image();
+
+    this.imageLoading.set(true);
+    this.imageError.set(false);
+
+    const handleSuccess = (): void => {
+      if (requestId !== this.imageRequestId) {
+        return;
+      }
+
+      this.displayedPhoto.set(photo);
+      this.displayedIndex.set(requestedIndex);
+      this.imageLoading.set(false);
+      this.imageError.set(false);
+
+      this.preloadNextImage(requestedIndex);
+    };
+
+    const handleError = (): void => {
+      if (requestId !== this.imageRequestId) {
+        return;
+      }
+
+      this.preloadedImages.delete(photo.imageUrl);
+      this.imageLoading.set(false);
+      this.imageError.set(true);
+    };
+
+    image.onload = handleSuccess;
+    image.onerror = handleError;
+
+    if (cachedImage) {
+      if (image.complete) {
+        if (image.naturalWidth > 0) {
+          handleSuccess();
+        } else {
+          handleError();
+        }
+      }
+
+      return;
+    }
+
+    image.decoding = 'async';
+    image.src = photo.imageUrl;
+  }
+
+  private preloadNextImage(currentIndex: number): void {
+    const nextPhoto = this.photos()[currentIndex + 1];
+
+    if (
+      !nextPhoto ||
+      this.preloadedImages.has(nextPhoto.imageUrl)
+    ) {
+      return;
+    }
+
+    const image = new Image();
+
+    image.decoding = 'async';
+
+    image.onload = () => {
+      this.preloadedImages.set(nextPhoto.imageUrl, image);
+    };
+
+    image.onerror = () => {
+      this.preloadedImages.delete(nextPhoto.imageUrl);
+    };
+
+    image.src = nextPhoto.imageUrl;
+
+    this.preloadedImages.set(nextPhoto.imageUrl, image);
+  }
+
+  protected retryCurrentImage(): void {
+    const photo = this.currentPhoto();
+
+    if (!photo) {
+      return;
+    }
+
+    this.preloadedImages.delete(photo.imageUrl);
+    this.loadSelectedImage();
+  }
+
+  protected skipCurrentImage(): void {
+    if (this.currentIndex() < this.photos().length - 1) {
+      this.next();
+    }
+  }
+
+  
 }

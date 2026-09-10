@@ -548,3 +548,70 @@ figcaption {
     transition-duration: 0.01ms !important;
   }
 }
+
+.image-status {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+
+  background: rgb(17 19 18 / 55%);
+  color: var(--text);
+  font-size: 0.875rem;
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+
+.image-status-error {
+  flex-direction: column;
+  background: rgb(17 19 18 / 82%);
+  pointer-events: auto;
+
+  p {
+    margin: 0;
+    color: var(--danger);
+  }
+}
+
+.image-error-actions {
+  display: flex;
+  gap: 0.75rem;
+
+  button {
+    min-height: 36px;
+    padding: 0 0.9rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--accent);
+    }
+  }
+}
+
+.expand-button {
+  z-index: 3;
+}
+
+.state-action {
+  min-height: 38px;
+  padding: 0 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--accent);
+  }
+}

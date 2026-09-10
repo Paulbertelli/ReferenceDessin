@@ -1,6 +1,13 @@
 <header class="header">
   <a class="brand" href="/" aria-label="Référence Dessin — Accueil">
-    <img class="brand-logo" src="/logo.png" alt="">
+    <img
+      class="brand-logo"
+      src="/logo.png"
+      width="32"
+      height="32"
+      alt=""
+    >
+
     <span>Référence Dessin</span>
   </a>
 
@@ -36,7 +43,7 @@
 
 <main
   class="workspace"
-  [attr.aria-busy]="loading()"
+  [attr.aria-busy]="loading() || imageLoading()"
   aria-live="polite"
 >
   @if (loading()) {
@@ -48,7 +55,7 @@
     <div class="state state-error">
       <p>{{ error() }}</p>
     </div>
-  } @else if (currentPhoto(); as photo) {
+  } @else if (displayedPhoto(); as photo) {
     <figure class="reference">
       <div class="image-container">
         <button
@@ -79,6 +86,37 @@
             aria-hidden="true"
           ></svg>
         </button>
+
+        @if (imageLoading()) {
+          <div class="image-status">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Chargement de l’image…</span>
+          </div>
+        }
+
+        @if (imageError()) {
+          <div class="image-status image-status-error">
+            <p>Cette image n’a pas pu être chargée.</p>
+
+            <div class="image-error-actions">
+              <button
+                type="button"
+                (click)="retryCurrentImage()"
+              >
+                Réessayer
+              </button>
+
+              @if (currentIndex() < photos().length - 1) {
+                <button
+                  type="button"
+                  (click)="skipCurrentImage()"
+                >
+                  Image suivante
+                </button>
+              }
+            </div>
+          </div>
+        }
       </div>
 
       <figcaption>
@@ -102,14 +140,31 @@
         </span>
 
         <span class="photo-counter">
-          {{ currentIndex() + 1 }} / {{ photos().length }}
+          {{ displayedIndex() + 1 }} / {{ photos().length }}
         </span>
       </figcaption>
     </figure>
+  } @else if (imageLoading()) {
+    <div class="state">
+      <span class="spinner" aria-hidden="true"></span>
+      <p>Chargement de l’image…</p>
+    </div>
+  } @else if (imageError()) {
+    <div class="state state-error">
+      <p>Cette image n’a pas pu être chargée.</p>
+
+      <button
+        type="button"
+        class="state-action"
+        (click)="retryCurrentImage()"
+      >
+        Réessayer
+      </button>
+    </div>
   }
 </main>
 
-@if (imageExpanded() && currentPhoto(); as photo) {
+@if (imageExpanded() && displayedPhoto(); as photo) {
   <div
     class="image-overlay"
     role="dialog"
@@ -169,13 +224,17 @@
       type="button"
       class="icon-button timer-action"
       (click)="toggleTimer()"
-      [disabled]="!currentPhoto()"
+      [disabled]="!displayedPhoto()"
       [attr.aria-label]="
         timerRunning()
           ? 'Mettre le minuteur en pause'
           : 'Démarrer le minuteur'
       "
-      [title]="timerRunning() ? 'Mettre en pause' : 'Démarrer'"
+      [title]="
+        timerRunning()
+          ? 'Mettre en pause'
+          : 'Démarrer'
+      "
     >
       @if (timerRunning()) {
         <svg
@@ -209,6 +268,7 @@
           (change)="resetTimer()"
           aria-label="Durée en minutes"
         >
+
         <span>min</span>
       </span>
     </label>
