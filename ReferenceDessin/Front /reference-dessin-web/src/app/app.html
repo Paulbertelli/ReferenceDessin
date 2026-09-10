@@ -1,7 +1,13 @@
 <header class="header">
-  <h1>Référence Dessin</h1>
+  <a class="brand" href="/" aria-label="Référence Dessin — Accueil">
+    <img class="brand-logo" src="/logo.png" alt="">
+    <span>Référence Dessin</span>
+  </a>
 
   <form class="search" (ngSubmit)="search()">
+    <label class="sr-only" for="search-query">
+      Rechercher un thème
+    </label>
 
     <input
       id="search-query"
@@ -9,46 +15,78 @@
       type="search"
       [(ngModel)]="searchQuery"
       placeholder="Portrait, animal, architecture…"
+      autocomplete="off"
     >
 
-    <button type="submit" [disabled]="loading()">
-      Rechercher
+    <button
+      type="submit"
+      class="icon-button search-button"
+      [disabled]="loading()"
+      aria-label="Rechercher"
+      title="Rechercher"
+    >
+      <svg
+        lucideSearch
+        [size]="20"
+        aria-hidden="true"
+      ></svg>
     </button>
   </form>
+
+  
 </header>
 
-<main class="workspace">
+<main
+  class="workspace"
+  [attr.aria-busy]="loading()"
+  aria-live="polite"
+>
   @if (loading()) {
-    <p class="message">Chargement des références...</p>
+    <div class="state">
+      <span class="spinner" aria-hidden="true"></span>
+      <p>Chargement des références…</p>
+    </div>
   } @else if (error()) {
-    <p class="message error">{{ error() }}</p>
+    <div class="state state-error">
+      <p>{{ error() }}</p>
+    </div>
   } @else if (currentPhoto(); as photo) {
     <figure
       class="reference"
       [style.--average-color]="photo.averageColor"
     >
-      <img
-        [src]="photo.imageUrl"
-        [alt]="photo.description"
-      >
+      <div class="image-container">
+        <img
+          class="reference-image"
+          [src]="photo.imageUrl"
+          [alt]="photo.description"
+          draggable="false"
+        >
+      </div>
 
       <figcaption>
-        Photo par
-        <a
-          [href]="photo.photographerUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {{ photo.photographer }}
-        </a>
-        sur
-        <a
-          [href]="photo.pexelsUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Pexels
-        </a>
+        <span class="photo-credit">
+          Photo par
+          <a
+            [href]="photo.photographerUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ photo.photographer }}
+          </a>
+          sur
+          <a
+            [href]="photo.pexelsUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Pexels
+          </a>
+        </span>
+
+        <span class="photo-counter">
+          {{ currentIndex() + 1 }} / {{ photos().length }}
+        </span>
       </figcaption>
     </figure>
   }
@@ -57,23 +95,108 @@
 <footer class="controls">
   <button
     type="button"
+    class="icon-button navigation-button previous-button"
     (click)="previous()"
     [disabled]="currentIndex() === 0"
+    aria-label="Image précédente"
+    title="Image précédente"
   >
-    ← Précédente
+    <svg
+      lucideChevronLeft
+      [size]="22"
+      aria-hidden="true"
+    ></svg>
   </button>
 
-  <span>
-    {{ photos().length ? currentIndex() + 1 : 0 }}
-    /
-    {{ photos().length }}
-  </span>
+  <div class="timer">
+    <div
+      class="timer-progress"
+      [style.width.%]="timerProgress()"
+      aria-hidden="true"
+    ></div>
+
+    <button
+      type="button"
+      class="icon-button timer-action"
+      (click)="toggleTimer()"
+      [disabled]="!currentPhoto()"
+      [attr.aria-label]="
+        timerRunning()
+          ? 'Mettre le minuteur en pause'
+          : 'Démarrer le minuteur'
+      "
+      [title]="
+        timerRunning()
+          ? 'Mettre en pause'
+          : 'Démarrer'
+      "
+    >
+      @if (timerRunning()) {
+        <svg
+          lucidePause
+          [size]="19"
+          aria-hidden="true"
+        ></svg>
+      } @else {
+        <svg
+          lucidePlay
+          [size]="19"
+          aria-hidden="true"
+        ></svg>
+      }
+    </button>
+
+    <output
+      class="timer-value"
+      aria-label="Temps restant"
+    >
+      {{ formattedTime() }}
+    </output>
+
+    <label class="duration">
+      <span>Durée</span>
+
+      <span class="duration-input">
+        <input
+          type="number"
+          min="0.1"
+          max="60"
+          step="0.5"
+          [(ngModel)]="durationMinutes"
+          (change)="resetTimer()"
+          aria-label="Durée en minutes"
+        >
+        <span>min</span>
+      </span>
+    </label>
+
+    <button
+      type="button"
+      class="icon-button reset-button"
+      (click)="resetTimer()"
+      aria-label="Réinitialiser le minuteur"
+      title="Réinitialiser"
+    >
+      <svg
+        lucideRotateCcw
+        [size]="18"
+        aria-hidden="true"
+      ></svg>
+    </button>
+  </div>
 
   <button
     type="button"
+    class="icon-button navigation-button next-button"
     (click)="next()"
     [disabled]="currentIndex() >= photos().length - 1"
+    aria-label="Image suivante"
+    title="Image suivante"
   >
-    Suivante →
+    <svg
+      lucideChevronRight
+      [size]="22"
+      aria-hidden="true"
+    ></svg>
   </button>
 </footer>

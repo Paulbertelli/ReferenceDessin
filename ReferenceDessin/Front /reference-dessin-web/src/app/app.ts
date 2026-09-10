@@ -1,16 +1,33 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, HostListener, OnDestroy, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { PhotoReference } from './core/models/photo-reference.model';
 import { PhotoService } from './core/services/photo.service';
+import {
+  LucideChevronLeft,
+  LucideChevronRight,
+  LucidePause,
+  LucidePlay,
+  LucideRotateCcw,
+  LucideSearch
+} from '@lucide/angular';
 
 @Component({
-  imports: [FormsModule],
+  imports: [
+    FormsModule,
+    LucideChevronLeft,
+    LucideChevronRight,
+    LucidePause,
+    LucidePlay,
+    LucideRotateCcw,
+    LucideSearch
+  ],
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
-export class App {
+export class App implements OnDestroy {
+  
   private readonly photoService = inject(PhotoService);
 
   protected readonly photos = signal<PhotoReference[]>([]);
@@ -33,14 +50,31 @@ export class App {
   }
 
   protected previous(): void {
-    if (this.currentIndex() > 0) {
-      this.currentIndex.update(index => index - 1);
+    if (this.currentIndex() === 0) {
+      return;
     }
+
+    this.currentIndex.update(index => index - 1);
+    this.restartTimerForCurrentPhoto();
   }
 
   protected next(): void {
-    if (this.currentIndex() < this.photos().length - 1) {
-      this.currentIndex.update(index => index + 1);
+    if (this.currentIndex() >= this.photos().length - 1) {
+      return;
+    }
+
+    this.currentIndex.update(index => index + 1);
+    this.restartTimerForCurrentPhoto();
+  }
+
+  private restartTimerForCurrentPhoto(): void {
+    const shouldContinue = this.timerRunning();
+
+    this.stopTimer();
+    this.remainingSeconds.set(this.getDurationInSeconds());
+
+    if (shouldContinue) {
+      this.startTimer();
     }
   }
 
@@ -55,6 +89,7 @@ export class App {
         next: photos => {
           this.photos.set(photos);
           this.currentIndex.set(0);
+          this.resetTimer();
 
           if (photos.length === 0) {
             this.error.set(
@@ -68,5 +103,136 @@ export class App {
           );
         }
       });
+  }
+
+  private timerId?: ReturnType<typeof setInterval>;
+
+  protected durationMinutes = 2;
+
+  protected readonly remainingSeconds = signal(120);
+  protected readonly timerRunning = signal(false);
+
+  protected readonly formattedTime = computed(() => {
+    const remaining = this.remainingSeconds();
+    const minutes = Math.floor(remaining / 60)
+      .toString()
+      .padStart(2, '0');
+
+    const seconds = (remaining % 60)
+      .toString()
+      .padStart(2, '0');
+
+    return `${minutes}:${seconds}`;
+  });
+
+  protected readonly timerProgress = computed(() => {
+    const total = this.getDurationInSeconds();
+
+    if (total === 0) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      Math.min(100, (this.remainingSeconds() / total) * 100)
+    );
+  });
+
+  protected toggleTimer(): void {
+    if (this.timerRunning()) {
+      this.stopTimer();
+    } else {
+      this.startTimer();
+    }
+  }
+
+  protected resetTimer(): void {
+    this.stopTimer();
+    this.remainingSeconds.set(this.getDurationInSeconds());
+  }
+
+  private startTimer(): void {
+    if (!this.currentPhoto()) {
+      return;
+    }
+
+    if (this.remainingSeconds() <= 0) {
+      this.remainingSeconds.set(this.getDurationInSeconds());
+    }
+
+    this.timerRunning.set(true);
+
+    this.timerId = setInterval(() => {
+      if (this.remainingSeconds() > 1) {
+        this.remainingSeconds.update(value => value - 1);
+        return;
+      }
+
+      this.moveToNextPhotoAutomatically();
+    }, 1000);
+  }
+
+  private stopTimer(): void {
+    if (this.timerId !== undefined) {
+      clearInterval(this.timerId);
+      this.timerId = undefined;
+    }
+
+    this.timerRunning.set(false);
+  }
+
+  private moveToNextPhotoAutomatically(): void {
+    const hasNextPhoto =
+      this.currentIndex() < this.photos().length - 1;
+
+    if (!hasNextPhoto) {
+      this.remainingSeconds.set(0);
+      this.stopTimer();
+      return;
+    }
+
+    this.currentIndex.update(index => index + 1);
+    this.remainingSeconds.set(this.getDurationInSeconds());
+  }
+
+  private getDurationInSeconds(): number {
+    const duration = Number(this.durationMinutes);
+
+    if (!Number.isFinite(duration)) {
+      return 120;
+    }
+
+    const safeDuration = Math.min(
+      60,
+      Math.max(0.1, duration)
+    );
+
+    return Math.round(safeDuration * 60);
+  }
+
+  ngOnDestroy(): void {
+    this.stopTimer();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  protected handleKeyboard(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+
+    if (target?.tagName === 'INPUT') {
+      return;
+    }
+
+    if (event.key === 'ArrowLeft') {
+      this.previous();
+    }
+
+    if (event.key === 'ArrowRight') {
+      this.next();
+    }
+
+    if (event.code === 'Space') {
+      event.preventDefault();
+      this.toggleTimer();
+    }
   }
 }
