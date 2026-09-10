@@ -32,8 +32,6 @@
       ></svg>
     </button>
   </form>
-
-  
 </header>
 
 <main
@@ -51,17 +49,36 @@
       <p>{{ error() }}</p>
     </div>
   } @else if (currentPhoto(); as photo) {
-    <figure
-      class="reference"
-      [style.--average-color]="photo.averageColor"
-    >
+    <figure class="reference">
       <div class="image-container">
-        <img
-          class="reference-image"
-          [src]="photo.imageUrl"
-          [alt]="photo.description"
-          draggable="false"
+        <button
+          type="button"
+          class="image-button"
+          (click)="openImageOverlay()"
+          aria-label="Agrandir l’image"
+          title="Agrandir l’image"
         >
+          <img
+            class="reference-image"
+            [src]="photo.imageUrl"
+            [alt]="photo.description"
+            draggable="false"
+          >
+        </button>
+
+        <button
+          type="button"
+          class="icon-button expand-button"
+          (click)="openImageOverlay()"
+          aria-label="Afficher l’image en plein écran"
+          title="Agrandir"
+        >
+          <svg
+            lucideMaximize2
+            [size]="18"
+            aria-hidden="true"
+          ></svg>
+        </button>
       </div>
 
       <figcaption>
@@ -92,10 +109,43 @@
   }
 </main>
 
+@if (imageExpanded() && currentPhoto(); as photo) {
+  <div
+    class="image-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Image agrandie"
+    (click)="closeImageOverlay()"
+  >
+    <button
+      type="button"
+      class="icon-button overlay-close"
+      (click)="closeImageOverlay()"
+      aria-label="Fermer l’image agrandie"
+      title="Fermer"
+    >
+      <svg
+        lucideX
+        [size]="24"
+        aria-hidden="true"
+      ></svg>
+    </button>
+
+    <div class="overlay-content">
+      <img
+        [src]="photo.imageUrl"
+        [alt]="photo.description"
+        draggable="false"
+        (click)="$event.stopPropagation()"
+      >
+    </div>
+  </div>
+}
+
 <footer class="controls">
   <button
     type="button"
-    class="icon-button navigation-button previous-button"
+    class="icon-button previous-button"
     (click)="previous()"
     [disabled]="currentIndex() === 0"
     aria-label="Image précédente"
@@ -125,11 +175,7 @@
           ? 'Mettre le minuteur en pause'
           : 'Démarrer le minuteur'
       "
-      [title]="
-        timerRunning()
-          ? 'Mettre en pause'
-          : 'Démarrer'
-      "
+      [title]="timerRunning() ? 'Mettre en pause' : 'Démarrer'"
     >
       @if (timerRunning()) {
         <svg
@@ -146,10 +192,7 @@
       }
     </button>
 
-    <output
-      class="timer-value"
-      aria-label="Temps restant"
-    >
+    <output class="timer-value" aria-label="Temps restant">
       {{ formattedTime() }}
     </output>
 
@@ -187,7 +230,7 @@
 
   <button
     type="button"
-    class="icon-button navigation-button next-button"
+    class="icon-button next-button"
     (click)="next()"
     [disabled]="currentIndex() >= photos().length - 1"
     aria-label="Image suivante"

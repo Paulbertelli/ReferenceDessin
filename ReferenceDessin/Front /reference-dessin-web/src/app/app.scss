@@ -10,6 +10,7 @@
   --accent-hover: #d7ff80;
   --danger: #ff8f8f;
 
+  width: 100%;
   height: 100dvh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -21,23 +22,22 @@
 /* En-tête */
 
 .header {
-  min-height: 68px;
+  min-height: 64px;
   display: grid;
-  grid-template-columns: minmax(max-content, 1fr) minmax(280px, 560px) minmax(max-content, 1fr);
+  grid-template-columns: auto minmax(280px, 560px);
   align-items: center;
+  justify-content: space-between;
   gap: 2rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.65rem 1.5rem;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
 }
 
 .brand {
-  justify-self: start;
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
   color: var(--text);
-  font-size: 1rem;
   font-weight: 700;
   text-decoration: none;
   letter-spacing: -0.015em;
@@ -90,80 +90,94 @@
   }
 }
 
-.pexels-provider {
-  justify-self: end;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  text-decoration: none;
-
-  &:hover {
-    color: var(--text);
-    text-decoration: underline;
-  }
-}
-
-/* Zone principale */
+/* Image */
 
 .workspace {
   min-width: 0;
   min-height: 0;
-  position: relative;
+  display: grid;
+  place-items: center;
   overflow: hidden;
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.5rem;
 }
 
 .reference {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.image-container {
   position: relative;
   width: 100%;
   height: 100%;
   min-width: 0;
   min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding-bottom: 2rem;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
 }
 
-
-.image-container {
+.image-button {
   width: 100%;
   height: 100%;
   min-width: 0;
   min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  cursor: zoom-in;
+
+  &:focus-visible {
+    border-radius: 8px;
+    outline: 3px solid rgb(201 255 85 / 30%);
+    outline-offset: 3px;
+  }
 }
 
 .reference-image {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
   display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
   object-fit: contain;
   object-position: center;
   border-radius: 6px;
-  background: var(--average-color, var(--surface));
-  box-shadow: 0 18px 50px rgb(0 0 0 / 28%);
   user-select: none;
 }
 
+.expand-button {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  background: rgb(17 19 18 / 80%);
+  border-color: rgb(255 255 255 / 20%);
+  backdrop-filter: blur(6px);
+
+  &:hover:not(:disabled) {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgb(17 19 18 / 95%);
+  }
+}
+
+/* Légende */
 
 figcaption {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-
   min-height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
-
+  gap: 1.25rem;
   color: var(--text-muted);
   font-size: 0.8125rem;
   line-height: 1.4;
@@ -179,58 +193,13 @@ figcaption {
 }
 
 .photo-counter {
-  padding-left: 1.5rem;
+  padding-left: 1.25rem;
   border-left: 1px solid var(--border);
   color: #cbd0cb;
   font-variant-numeric: tabular-nums;
 }
 
-/* États */
-
-.state {
-  display: grid;
-  justify-items: center;
-  gap: 0.75rem;
-  color: var(--text-muted);
-  text-align: center;
-
-  p {
-    margin: 0;
-  }
-}
-
-.state-error {
-  color: var(--danger);
-}
-
-.spinner {
-  width: 28px;
-  height: 28px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 700ms linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Barre de contrôle */
-
-.controls {
-  min-height: 76px;
-  display: grid;
-  grid-template-columns: 44px minmax(0, auto) 44px;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 0.75rem 1.5rem;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-}
+/* Boutons */
 
 .icon-button {
   width: 42px;
@@ -270,23 +239,65 @@ figcaption {
   }
 }
 
-.search-button,
-.timer-action {
+.search-button {
+  width: 38px;
+  height: 38px;
   border-color: var(--accent);
+  border-radius: 7px;
   background: var(--accent);
   color: #151811;
 
   &:hover:not(:disabled) {
     border-color: var(--accent-hover);
     background: var(--accent-hover);
-    color: #151811;
   }
 }
 
-.search-button {
-  width: 38px;
-  height: 38px;
-  border-radius: 7px;
+/* États */
+
+.state {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+.state-error {
+  color: var(--danger);
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Contrôles */
+
+.controls {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, auto) 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .timer {
@@ -309,6 +320,18 @@ figcaption {
   height: 3px;
   background: var(--accent);
   transition: width 300ms linear;
+}
+
+.timer-action {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #151811;
+
+  &:hover:not(:disabled) {
+    border-color: var(--accent-hover);
+    background: var(--accent-hover);
+    color: #151811;
+  }
 }
 
 .timer-value {
@@ -360,6 +383,62 @@ figcaption {
   border-color: transparent;
 }
 
+/* Overlay */
+
+.image-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(5 7 6 / 60%);
+  backdrop-filter: blur(4px);
+  cursor: zoom-out;
+  animation: overlay-appear 150ms ease-out;
+}
+
+.overlay-content {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+
+  img {
+    width: auto;
+    height: auto;
+    max-width: calc(100vw - 3rem);
+    max-height: calc(100dvh - 3rem);
+    display: block;
+    object-fit: contain;
+    pointer-events: auto;
+    cursor: default;
+    user-select: none;
+  }
+}
+
+.overlay-close {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1001;
+  width: 44px;
+  height: 44px;
+  background: rgb(24 27 25 / 88%);
+  border-color: rgb(255 255 255 / 20%);
+}
+
+@keyframes overlay-appear {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 /* Accessibilité */
 
 .sr-only {
@@ -374,41 +453,33 @@ figcaption {
   border: 0;
 }
 
-/* Tablette et mobile */
+/* Mobile */
 
 @media (max-width: 760px) {
-  :host {
-    overflow: auto;
-  }
-
   .header {
-    grid-template-columns: 1fr auto;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    padding: 0.65rem 1rem;
   }
 
   .search {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-
-  .pexels-provider {
-    font-size: 0.75rem;
+    width: 100%;
   }
 
   .workspace {
-    min-height: 360px;
-    padding: 1rem;
+    padding: 0.75rem;
   }
-
-  .reference {
-    padding-bottom: 2.5rem;
-  }
-
 
   figcaption {
     justify-content: space-between;
     gap: 0.75rem;
+  }
+
+  .photo-credit {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .photo-counter {
@@ -419,8 +490,8 @@ figcaption {
 
   .controls {
     grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    gap: 0.65rem;
+    padding: 0.65rem 1rem;
   }
 
   .timer {
@@ -437,15 +508,16 @@ figcaption {
   .next-button {
     justify-self: start;
   }
+
+  .expand-button {
+    right: 0.5rem;
+    bottom: 0.5rem;
+  }
 }
 
 @media (max-width: 480px) {
   .brand span {
     font-size: 0.9375rem;
-  }
-
-  .workspace {
-    min-height: 300px;
   }
 
   .timer {
@@ -458,8 +530,13 @@ figcaption {
     padding: 0.25rem 0;
   }
 
-  .photo-credit {
-    max-width: 75%;
+  .image-overlay {
+    padding: 0.75rem;
+  }
+
+  .overlay-content img {
+    max-width: calc(100vw - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
   }
 }
 
@@ -467,7 +544,6 @@ figcaption {
   *,
   *::before,
   *::after {
-    scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }

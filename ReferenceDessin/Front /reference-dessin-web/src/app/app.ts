@@ -9,7 +9,9 @@ import {
   LucidePause,
   LucidePlay,
   LucideRotateCcw,
-  LucideSearch
+  LucideSearch,
+  LucideMaximize2,
+  LucideX
 } from '@lucide/angular';
 
 @Component({
@@ -20,7 +22,9 @@ import {
     LucidePause,
     LucidePlay,
     LucideRotateCcw,
-    LucideSearch
+    LucideSearch,
+    LucideMaximize2,
+    LucideX
   ],
   selector: 'app-root',
   styleUrl: './app.scss',
@@ -28,6 +32,7 @@ import {
 })
 export class App implements OnDestroy {
   
+  // Logique chargement images, précèdent/suivant
   private readonly photoService = inject(PhotoService);
 
   protected readonly photos = signal<PhotoReference[]>([]);
@@ -104,6 +109,8 @@ export class App implements OnDestroy {
         }
       });
   }
+
+  // Logique chronomètre 
 
   private timerId?: ReturnType<typeof setInterval>;
 
@@ -216,6 +223,12 @@ export class App implements OnDestroy {
 
   @HostListener('window:keydown', ['$event'])
   protected handleKeyboard(event: KeyboardEvent): void {
+
+    if (event.key === 'Escape' && this.imageExpanded()) {
+      this.closeImageOverlay();
+      return;
+    }
+    
     const target = event.target as HTMLElement | null;
 
     if (target?.tagName === 'INPUT') {
@@ -234,5 +247,19 @@ export class App implements OnDestroy {
       event.preventDefault();
       this.toggleTimer();
     }
+  }
+
+  // Expenssion de l'image 
+
+  protected readonly imageExpanded = signal(false);
+
+  protected openImageOverlay(): void {
+    if (this.currentPhoto()) {
+      this.imageExpanded.set(true);
+    }
+  }
+
+  protected closeImageOverlay(): void {
+    this.imageExpanded.set(false);
   }
 }
