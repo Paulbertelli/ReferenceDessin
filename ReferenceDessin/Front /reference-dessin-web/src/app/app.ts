@@ -14,15 +14,14 @@ import {
   LucideX
 } from '@lucide/angular';
 import { HttpErrorResponse } from '@angular/common/http';
+import { MinuteurComponent } from './features/sceance-dessin/minuteur/minuteur';
 
 @Component({
   imports: [
     FormsModule,
+    MinuteurComponent,
     LucideChevronLeft,
     LucideChevronRight,
-    LucidePause,
-    LucidePlay,
-    LucideRotateCcw,
     LucideSearch,
     LucideMaximize2,
     LucideX
