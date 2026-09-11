@@ -15,10 +15,19 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('doit afficher le nom de l’application', async () => {
     const fixture = TestBed.createComponent(App);
+
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, reference-dessin-web');
+
+    const element = fixture.nativeElement as HTMLElement;
+    const nomApplication = element.querySelector(
+      '.brand span'
+    );
+
+    expect(nomApplication).not.toBeNull();
+    expect(nomApplication?.textContent?.trim()).toBe(
+      'Référence Dessin'
+    );
   });
 });

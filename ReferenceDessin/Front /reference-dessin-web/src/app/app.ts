@@ -14,7 +14,7 @@ import {
   LucideX
 } from '@lucide/angular';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MinuteurComponent } from './features/sceance-dessin/minuteur/minuteur';
+import { MinuteurComponent } from './features/seance-dessin/minuteur/minuteur';
 
 @Component({
   imports: [
