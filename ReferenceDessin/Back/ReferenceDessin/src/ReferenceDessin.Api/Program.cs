@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
+builder.Services.AddHealthChecks();
 builder.Services.AddExceptionHandler<ExternalApiExceptionHandler>();
 
 builder.Services
@@ -62,6 +63,7 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.MapFallbackToFile("index.html");
 
