@@ -1,0 +1,6 @@
+@ReferenceDessin.Api_HostAddress = http://localhost:5183
+
+GET {{ReferenceDessin.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

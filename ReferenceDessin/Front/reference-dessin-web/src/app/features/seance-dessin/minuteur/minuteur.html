@@ -1,0 +1,78 @@
+<div class="minuteur">
+  <div
+    class="progression"
+    [style.width.%]="progression"
+    aria-hidden="true"
+  ></div>
+
+  <button
+    type="button"
+    class="bouton-icone action-principale"
+    (click)="demandeLecturePause.emit()"
+    [disabled]="desactive"
+    [attr.aria-label]="
+      enCours
+        ? 'Mettre le minuteur en pause'
+        : 'Démarrer le minuteur'
+    "
+    [title]="
+      enCours
+        ? 'Mettre en pause'
+        : 'Démarrer'
+    "
+  >
+    @if (enCours) {
+      <svg
+        lucidePause
+        [size]="19"
+        aria-hidden="true"
+      ></svg>
+    } @else {
+      <svg
+        lucidePlay
+        [size]="19"
+        aria-hidden="true"
+      ></svg>
+    }
+  </button>
+
+  <output
+    class="temps"
+    aria-label="Temps restant"
+  >
+    {{ tempsFormate }}
+  </output>
+
+  <label class="duree">
+    <span>Durée</span>
+
+    <span class="saisie-duree">
+      <input
+        type="number"
+        min="0.1"
+        max="60"
+        step="0.5"
+        [ngModel]="dureeMinutes"
+        (ngModelChange)="modifierDuree($event)"
+        (change)="demandeReinitialisation.emit()"
+        aria-label="Durée en minutes"
+      >
+
+      <span>min</span>
+    </span>
+  </label>
+
+  <button
+    type="button"
+    class="bouton-icone bouton-reinitialisation"
+    (click)="demandeReinitialisation.emit()"
+    aria-label="Réinitialiser le minuteur"
+    title="Réinitialiser"
+  >
+    <svg
+      lucideRotateCcw
+      [size]="18"
+      aria-hidden="true"
+    ></svg>
+  </button>
+</div>

@@ -1,0 +1,240 @@
+<header class="header">
+  <a class="brand" href="/" aria-label="Référence Dessin — Accueil">
+    <img
+      class="brand-logo"
+      src="/logo-32.png?v=2"
+      width="32"
+      height="32"
+      alt=""
+    >
+
+    <span>Référence Dessin</span>
+  </a>
+
+  <form class="search" (ngSubmit)="search()">
+    <label class="sr-only" for="search-query">
+      Rechercher un thème
+    </label>
+
+    <input
+      id="search-query"
+      name="search-query"
+      type="search"
+      [(ngModel)]="searchQuery"
+      placeholder="Portrait, animal, architecture…"
+      autocomplete="off"
+    >
+
+    <button
+      type="submit"
+      class="icon-button search-button"
+      [disabled]="loading()"
+      aria-label="Rechercher"
+      title="Rechercher"
+    >
+      <svg
+        lucideSearch
+        [size]="20"
+        aria-hidden="true"
+      ></svg>
+    </button>
+  </form>
+</header>
+
+<main
+  class="workspace"
+  [attr.aria-busy]="loading() || imageLoading()"
+  aria-live="polite"
+>
+  @if (loading()) {
+    <div class="state">
+      <span class="spinner" aria-hidden="true"></span>
+      <p>Chargement des références…</p>
+    </div>
+  } @else if (error()) {
+    <div class="state state-error">
+      <p>{{ error() }}</p>
+    </div>
+  } @else if (displayedPhoto(); as photo) {
+    <figure class="reference">
+      <div class="image-container">
+        <button
+          type="button"
+          class="image-button"
+          (click)="openImageOverlay()"
+          aria-label="Agrandir l’image"
+          title="Agrandir l’image"
+        >
+          <img
+            class="reference-image"
+            [src]="photo.imageUrl"
+            [alt]="photo.description"
+            draggable="false"
+          >
+        </button>
+
+        <button
+          type="button"
+          class="icon-button expand-button"
+          (click)="openImageOverlay()"
+          aria-label="Afficher l’image en plein écran"
+          title="Agrandir"
+        >
+          <svg
+            lucideMaximize2
+            [size]="18"
+            aria-hidden="true"
+          ></svg>
+        </button>
+
+        @if (imageLoading()) {
+          <div class="image-status">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Chargement de l’image…</span>
+          </div>
+        }
+
+        @if (imageError()) {
+          <div class="image-status image-status-error">
+            <p>Cette image n’a pas pu être chargée.</p>
+
+            <div class="image-error-actions">
+              <button
+                type="button"
+                (click)="retryCurrentImage()"
+              >
+                Réessayer
+              </button>
+
+              @if (currentIndex() < photos().length - 1) {
+                <button
+                  type="button"
+                  (click)="skipCurrentImage()"
+                >
+                  Image suivante
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <figcaption>
+        <span class="photo-credit">
+          Photo par
+          <a
+            [href]="photo.photographerUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ photo.photographer }}
+          </a>
+          sur
+          <a
+            [href]="photo.pexelsUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Pexels
+          </a>
+        </span>
+
+        <span class="photo-counter">
+          {{ displayedIndex() + 1 }} / {{ photos().length }}
+        </span>
+      </figcaption>
+    </figure>
+  } @else if (imageLoading()) {
+    <div class="state">
+      <span class="spinner" aria-hidden="true"></span>
+      <p>Chargement de l’image…</p>
+    </div>
+  } @else if (imageError()) {
+    <div class="state state-error">
+      <p>Cette image n’a pas pu être chargée.</p>
+
+      <button
+        type="button"
+        class="state-action"
+        (click)="retryCurrentImage()"
+      >
+        Réessayer
+      </button>
+    </div>
+  }
+</main>
+
+@if (imageExpanded() && displayedPhoto(); as photo) {
+  <div
+    class="image-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Image agrandie"
+    (click)="closeImageOverlay()"
+  >
+    <button
+      type="button"
+      class="icon-button overlay-close"
+      (click)="closeImageOverlay()"
+      aria-label="Fermer l’image agrandie"
+      title="Fermer"
+    >
+      <svg
+        lucideX
+        [size]="24"
+        aria-hidden="true"
+      ></svg>
+    </button>
+
+    <div class="overlay-content">
+      <img
+        [src]="photo.imageUrl"
+        [alt]="photo.description"
+        draggable="false"
+        (click)="$event.stopPropagation()"
+      >
+    </div>
+  </div>
+}
+
+<footer class="controls">
+  <button
+    type="button"
+    class="icon-button previous-button"
+    (click)="previous()"
+    [disabled]="currentIndex() === 0"
+    aria-label="Image précédente"
+    title="Image précédente"
+  >
+    <svg
+      lucideChevronLeft
+      [size]="22"
+      aria-hidden="true"
+    ></svg>
+  </button>
+
+  <app-minuteur
+  [(dureeMinutes)]="durationMinutes"
+  [enCours]="timerRunning()"
+  [desactive]="!displayedPhoto()"
+  [tempsFormate]="formattedTime()"
+  [progression]="timerProgress()"
+  (demandeLecturePause)="toggleTimer()"
+  (demandeReinitialisation)="resetTimer()"
+  />
+
+  <button
+    type="button"
+    class="icon-button next-button"
+    (click)="next()"
+    [disabled]="currentIndex() >= photos().length - 1"
+    aria-label="Image suivante"
+    title="Image suivante"
+  >
+    <svg
+      lucideChevronRight
+      [size]="22"
+      aria-hidden="true"
+    ></svg>
+  </button>
+</footer>

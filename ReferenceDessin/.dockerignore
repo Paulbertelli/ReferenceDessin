@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.angular/
+**/.DS_Store
+**/*.user
+**/*.suo
+.idea/
+.git/
+.env
+.env.*
