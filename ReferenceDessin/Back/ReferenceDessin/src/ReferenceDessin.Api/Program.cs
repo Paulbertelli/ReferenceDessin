@@ -1,7 +1,9 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ReferenceDessin.Application.Photos;
 using ReferenceDessin.Infrastructure.Pexels;
 using ReferenceDessin.Api.Errors;
+using ReferenceDessin.Infrastructure.Persistance;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +44,17 @@ builder.Services.AddHttpClient<IPhotoProvider, PexelsPhotoProvider>(
     });
 
 builder.Services.AddControllers();
+
+var chaineConnexion =
+    builder.Configuration.GetConnectionString("BaseDeDonnees")
+    ?? throw new InvalidOperationException(
+        "La chaîne de connexion à la base de données est absente.");
+
+builder.Services.AddDbContext<ContexteReferenceDessin>(
+    options =>
+    {
+        options.UseNpgsql(chaineConnexion);
+    });
 
 var app = builder.Build();
 
