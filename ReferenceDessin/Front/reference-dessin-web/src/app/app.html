@@ -1,4 +1,7 @@
+<app-notification />
+
 <header class="header">
+  
   <a class="brand" href="/" aria-label="Référence Dessin — Accueil">
     <img
       class="brand-logo"
@@ -7,7 +10,6 @@
       height="32"
       alt=""
     >
-
     <span>Référence Dessin</span>
   </a>
 
@@ -39,6 +41,40 @@
       ></svg>
     </button>
   </form>
+  
+  @if (etatAuthentificationService.etat(); as etatAuthentification) {
+    @switch (etatAuthentification.statut) {
+      @case ('chargement') {
+        <p>Chargement du compte…</p>
+      }
+
+      @case ('connecte') {
+        <div class="compte-connecte">
+          <span>
+            {{ etatAuthentification.compte.nomAffiche }}
+          </span>
+          <button type="button" (click)="etatAuthentificationService.deconnecter()">
+            Se déconnecter
+          </button>
+        </div>
+      }
+      @case ('deconnexion') {
+        <button type="button" disabled>
+          Déconnexion…
+        </button>
+      }
+
+      @case ('deconnecte') {
+        <a href="/api/auth/google">
+          Se connecter avec Google
+        </a>
+      }
+
+      @case ('erreur') {
+        <p>Compte indisponible</p>
+      }
+    }
+  }
 </header>
 
 <main
