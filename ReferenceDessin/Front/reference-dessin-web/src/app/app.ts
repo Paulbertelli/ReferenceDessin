@@ -15,11 +15,14 @@ import {
 } from '@lucide/angular';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MinuteurComponent } from './features/seance-dessin/minuteur/minuteur';
+import { EtatAuthentificationService } from './core/services/etat-authentification.service';
+import { NotificationComposant } from './shared/composants/notification/notification';
 
 @Component({
   imports: [
     FormsModule,
     MinuteurComponent,
+    NotificationComposant,
     LucideChevronLeft,
     LucideChevronRight,
     LucideSearch,
@@ -34,6 +37,7 @@ export class App implements OnDestroy {
   
   // Logique chargement images, précèdent/suivant
   private readonly photoService = inject(PhotoService);
+  protected readonly etatAuthentificationService = inject(EtatAuthentificationService);
 
   protected readonly photos = signal<PhotoReference[]>([]);
   protected readonly currentIndex = signal(0);
@@ -47,8 +51,11 @@ export class App implements OnDestroy {
   );
 
   constructor() {
+    this.etatAuthentificationService.chargerCompte();
     this.loadPhotos();
   }
+
+  
 
   protected search(): void {
     this.loadPhotos(this.searchQuery);

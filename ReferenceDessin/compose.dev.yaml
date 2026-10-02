@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: reference-dessin-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: reference_dessin
+      POSTGRES_USER: reference_dessin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - donnees-postgres-reference-dessin:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U reference_dessin -d reference_dessin"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  donnees-postgres-reference-dessin:
