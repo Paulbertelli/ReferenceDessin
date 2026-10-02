@@ -4,11 +4,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ReferenceDessin.Application.Photos;
-using Xunit;
 
 namespace ReferenceDessin.Api.Tests.Integration;
 
@@ -56,17 +54,33 @@ public sealed class PhotosApiFactory
     protected override void ConfigureWebHost(
         IWebHostBuilder builder)
     {
-        builder.ConfigureAppConfiguration((_, configuration) =>
-        {
-            configuration.AddInMemoryCollection(
-                new Dictionary<string, string?>
-                {
-                    ["Pexels:BaseUrl"] =
-                        "https://api.pexels.com/v1/",
-                    ["Pexels:ApiKey"] =
-                        "integration-test-key"
-                });
-        });
+        builder.UseEnvironment("Testing");
+        
+        builder.UseSetting(
+            "ConnectionStrings:BaseDeDonnees",
+            "Host=localhost;Port=5432;" +
+            "Database=reference_dessin_tests;" +
+            "Username=tests;Password=tests");
+
+        builder.UseSetting(
+            "Authentification:Google:IdentifiantClient",
+            "client-google-tests");
+
+        builder.UseSetting(
+            "Authentification:Google:SecretClient",
+            "secret-google-tests");
+
+        builder.UseSetting(
+            "Pexels:BaseUrl",
+            "https://api.pexels.com/v1/");
+
+        builder.UseSetting(
+            "Pexels:ApiKey",
+            "integration-test-key");
+
+        builder.UseSetting(
+            "ApplicationCliente:Url",
+            "http://localhost");
 
         builder.ConfigureTestServices(services =>
         {
