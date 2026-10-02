@@ -13,6 +13,23 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-XSRF-TOKEN";
+
+    options.Cookie.Name =
+        "ReferenceDessin.Antiforgery";
+
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+
+    options.Cookie.SecurePolicy =
+        builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
+});
+
 builder.Services.AddHealthChecks();
 builder.Services.AddExceptionHandler<ExternalApiExceptionHandler>();
 
@@ -45,7 +62,7 @@ builder.Services.AddHttpClient<IPhotoProvider, PexelsPhotoProvider>(
         client.Timeout = TimeSpan.FromSeconds(10);
     });
 
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
 
 var chaineConnexion =
     builder.Configuration.GetConnectionString("BaseDeDonnees")
