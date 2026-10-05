@@ -6,28 +6,27 @@ import { PhotoService } from './core/services/photo.service';
 import {
   LucideChevronLeft,
   LucideChevronRight,
-  LucidePause,
-  LucidePlay,
-  LucideRotateCcw,
   LucideSearch,
   LucideMaximize2,
   LucideX
 } from '@lucide/angular';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MinuteurComponent } from './features/seance-dessin/minuteur/minuteur';
+import { MinuteurComposant } from './features/seance-dessin/minuteur/minuteur';
 import { EtatAuthentificationService } from './core/services/etat-authentification.service';
 import { NotificationComposant } from './shared/composants/notification/notification';
+import { ConfirmationSuppressionCompte } from './features/compte/confirmation-suppression-compte/confirmation-suppression-compte';
 
 @Component({
   imports: [
     FormsModule,
-    MinuteurComponent,
+    MinuteurComposant,
     NotificationComposant,
     LucideChevronLeft,
     LucideChevronRight,
     LucideSearch,
     LucideMaximize2,
-    LucideX
+    LucideX,
+    ConfirmationSuppressionCompte
   ],
   selector: 'app-root',
   styleUrl: './app.scss',
@@ -38,6 +37,8 @@ export class App implements OnDestroy {
   // Logique chargement images, précèdent/suivant
   private readonly photoService = inject(PhotoService);
   protected readonly etatAuthentificationService = inject(EtatAuthentificationService);
+
+  protected readonly confirmationSuppressionCompteOuverte = signal(false);
 
   protected readonly photos = signal<PhotoReference[]>([]);
   protected readonly currentIndex = signal(0);
@@ -55,7 +56,19 @@ export class App implements OnDestroy {
     this.loadPhotos();
   }
 
-  
+  protected ouvrirConfirmationSuppressionCompte(): void {
+    this.confirmationSuppressionCompteOuverte.set(true);
+  }
+
+  protected annulerSuppressionCompte(): void {
+    this.confirmationSuppressionCompteOuverte.set(false);
+  }
+
+  protected confirmerSuppressionCompte(): void {
+    this.confirmationSuppressionCompteOuverte.set(false);
+
+    this.etatAuthentificationService.supprimerCompte();
+  }
 
   protected search(): void {
     this.loadPhotos(this.searchQuery);

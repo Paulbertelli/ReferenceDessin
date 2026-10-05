@@ -13,6 +13,7 @@ export class CompteService {
     private readonly apiJetonUrl = '/api/securite/jeton-antifalsification';
     private readonly apiDeconnexionUrl = '/api/auth/deconnexion';
 
+
     getCompte(): Observable<CompteUtilisateur> {
         return this.httpClient.get<CompteUtilisateur>(
             this.apiCompteUrl
@@ -30,5 +31,15 @@ export class CompteService {
                 )
             )
         );
+    }
+
+    supprimerCompte(): Observable<void> {
+        return this.httpClient
+            .get<void>(this.apiJetonUrl)
+            .pipe(
+                switchMap(() =>
+                    this.httpClient.delete<void>(this.apiCompteUrl)
+                )
+            );
     }
 }

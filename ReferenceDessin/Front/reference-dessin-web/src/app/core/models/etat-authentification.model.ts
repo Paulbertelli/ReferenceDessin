@@ -5,4 +5,5 @@ export type EtatAuthentification =
     | { statut: 'deconnecte'; }
     | { statut: 'connecte'; compte: CompteUtilisateur; }
     | { statut: 'deconnexion'; }
-    | { statut: 'erreur'; };
+    | { statut: 'erreur'; }
+    | { statut: 'suppression'; };

@@ -56,6 +56,9 @@
           <button type="button" (click)="etatAuthentificationService.deconnecter()">
             Se déconnecter
           </button>
+          <button type="button" class="supprimer-compte" (click)="ouvrirConfirmationSuppressionCompte()">
+            Supprimer mon compte
+          </button>
         </div>
       }
       @case ('deconnexion') {
@@ -73,9 +76,20 @@
       @case ('erreur') {
         <p>Compte indisponible</p>
       }
+
+      @case ('suppression') {
+        <p>Suppression du compte…</p>
+      }
     }
   }
 </header>
+
+@if (confirmationSuppressionCompteOuverte()) {
+  <app-confirmation-suppression-compte
+    (annuler)="annulerSuppressionCompte()"
+    (confirmer)="confirmerSuppressionCompte()"
+  />
+}
 
 <main
   class="workspace"

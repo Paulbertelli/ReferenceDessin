@@ -1,0 +1,41 @@
+<div
+  class="fond-dialogue"
+  (click)="annulerSuppression()"
+>
+  <section
+    class="dialogue"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="titre-suppression"
+    aria-describedby="description-suppression"
+    (click)="$event.stopPropagation()"
+  >
+    <h2 id="titre-suppression">
+      Supprimer votre compte ?
+    </h2>
+
+    <p id="description-suppression">
+      Cette action supprimera définitivement votre compte et les
+      données qui lui sont associées. Elle ne pourra pas être annulée.
+    </p>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="bouton bouton-secondaire"
+        autofocus
+        (click)="annulerSuppression()"
+      >
+        Annuler
+      </button>
+
+      <button
+        type="button"
+        class="bouton bouton-danger"
+        (click)="confirmerSuppression()"
+      >
+        Supprimer définitivement
+      </button>
+    </div>
+  </section>
+</div>
