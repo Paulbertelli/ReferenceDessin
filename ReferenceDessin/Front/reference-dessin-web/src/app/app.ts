@@ -11,7 +11,7 @@ import {
   LucideX
 } from '@lucide/angular';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MinuteurComposant } from './features/seance-dessin/minuteur/minuteur';
+import { MinuteurComponent } from './features/seance-dessin/minuteur/minuteur';
 import { EtatAuthentificationService } from './core/services/etat-authentification.service';
 import { NotificationComposant } from './shared/composants/notification/notification';
 import { ConfirmationSuppressionCompte } from './features/compte/confirmation-suppression-compte/confirmation-suppression-compte';
@@ -19,7 +19,7 @@ import { ConfirmationSuppressionCompte } from './features/compte/confirmation-su
 @Component({
   imports: [
     FormsModule,
-    MinuteurComposant,
+    MinuteurComponent,
     NotificationComposant,
     LucideChevronLeft,
     LucideChevronRight,
