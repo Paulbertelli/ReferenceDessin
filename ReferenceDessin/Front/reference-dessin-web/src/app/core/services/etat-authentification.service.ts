@@ -92,4 +92,55 @@ export class EtatAuthentificationService {
             }
         });
     }
+
+    supprimerCompte(): void {
+        const etatAvantSuppression =
+            this.etatAuthentification();
+
+        if (etatAvantSuppression.statut !== 'connecte') {
+            return;
+        }
+
+        this.etatAuthentification.set({
+            statut: 'suppression'
+        });
+
+        this.compteService.supprimerCompte().subscribe({
+            next: () => {
+                this.etatAuthentification.set({
+                    statut: 'deconnecte'
+                });
+
+                this.notificationService.afficherSucces(
+                    'Votre compte et ses données ont été supprimés.'
+                );
+            },
+
+            error: (erreur: HttpErrorResponse) => {
+                if (erreur.status === 401) {
+                    this.etatAuthentification.set({
+                        statut: 'deconnecte'
+                    });
+
+                    return;
+                }
+
+                this.etatAuthentification.set(
+                    etatAvantSuppression
+                );
+
+                if (erreur.status === 0) {
+                    this.notificationService.afficherErreur(
+                        'Le serveur est actuellement inaccessible.'
+                    );
+
+                    return;
+                }
+
+                this.notificationService.afficherErreur(
+                    'Impossible de supprimer votre compte.'
+                );
+            }
+        });
+    }
 }
