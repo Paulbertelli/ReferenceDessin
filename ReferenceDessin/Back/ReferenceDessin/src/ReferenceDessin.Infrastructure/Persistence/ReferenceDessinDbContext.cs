@@ -2,17 +2,17 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ReferenceDessin.Infrastructure.Identity;
 
-namespace ReferenceDessin.Infrastructure.Persistance;
+namespace ReferenceDessin.Infrastructure.Persistence;
 
-public sealed class ContexteReferenceDessin(DbContextOptions<ContexteReferenceDessin> options) 
+public sealed class ReferenceDessinDbContext(DbContextOptions<ReferenceDessinDbContext> options) 
     : IdentityUserContext<ApplicationUser, Guid>(options)
 {
     protected override void OnModelCreating(
-        ModelBuilder constructeur)
+        ModelBuilder builder)
     {
-        base.OnModelCreating(constructeur);  
+        base.OnModelCreating(builder);  
         
-        constructeur.Entity<ApplicationUser>(entite =>
+        builder.Entity<ApplicationUser>(entite =>
         {
             entite.Property(utilisateur => utilisateur.NomAffiche)
                 .HasMaxLength(100);

@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using ReferenceDessin.Infrastructure.Persistance;
+using ReferenceDessin.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace ReferenceDessin.Infrastructure.Persistance.Migrations
+namespace ReferenceDessin.Infrastructure.Persistence.Migrations
 {
-    [DbContext(typeof(ContexteReferenceDessin))]
-    partial class ContexteReferenceDessinModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ReferenceDessinDbContext))]
+    partial class ReferenceDessinDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

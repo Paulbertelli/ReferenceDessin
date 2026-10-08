@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using ReferenceDessin.Infrastructure.Persistance;
+using ReferenceDessin.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace ReferenceDessin.Infrastructure.Persistance.Migrations
+namespace ReferenceDessin.Infrastructure.Persistence.Migrations
 {
-    [DbContext(typeof(ContexteReferenceDessin))]
+    [DbContext(typeof(ReferenceDessinDbContext))]
     [Migration("20260927153959_IdentiteInitiale")]
     partial class IdentiteInitiale
     {

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using ReferenceDessin.Api.Errors;
 using ReferenceDessin.Application.Photos;
 using ReferenceDessin.Infrastructure.Identity;
-using ReferenceDessin.Infrastructure.Persistance;
+using ReferenceDessin.Infrastructure.Persistence;
 using ReferenceDessin.Infrastructure.Pexels;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,7 +69,7 @@ var chaineConnexion =
     ?? throw new InvalidOperationException(
         "La chaîne de connexion à la base de données est absente.");
 
-builder.Services.AddDbContext<ContexteReferenceDessin>(
+builder.Services.AddDbContext<ReferenceDessinDbContext>(
     options =>
     {
         options.UseNpgsql(chaineConnexion);
@@ -122,7 +122,7 @@ builder.Services
         options.User.RequireUniqueEmail = true;
     })
     .AddSignInManager()
-    .AddEntityFrameworkStores<ContexteReferenceDessin>();
+    .AddEntityFrameworkStores<ReferenceDessinDbContext>();
 
 builder.Services.ConfigureExternalCookie(options =>
 {
