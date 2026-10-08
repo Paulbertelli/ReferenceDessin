@@ -7,17 +7,17 @@ namespace ReferenceDessin.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/securite")]
-public sealed class SecuriteController(
+public sealed class SecurityController(
     IAntiforgery antiforgery, 
-    IWebHostEnvironment environnement) 
+    IWebHostEnvironment environment) 
     : ControllerBase
 {
     [HttpGet("jeton-antifalsification")]
-    public IActionResult ObtenirJetonAntifalsification()
+    public IActionResult GetAntiforgeryToken()
     {
-        var jetons = antiforgery.GetAndStoreTokens(HttpContext);
+        var tokens = antiforgery.GetAndStoreTokens(HttpContext);
 
-        if (string.IsNullOrWhiteSpace(jetons.RequestToken))
+        if (string.IsNullOrWhiteSpace(tokens.RequestToken))
         {
             return Problem(
                 title: "Impossible de générer un jeton de sécurité.",
@@ -26,11 +26,11 @@ public sealed class SecuriteController(
         
         Response.Cookies.Append(
             "XSRF-TOKEN",
-            jetons.RequestToken,
+            tokens.RequestToken,
             new CookieOptions
             {
                 HttpOnly = false,
-                Secure = !environnement.IsDevelopment(),
+                Secure = !environment.IsDevelopment(),
                 SameSite = SameSiteMode.Strict,
                 Path = "/"
             });

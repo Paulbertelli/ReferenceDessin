@@ -57,17 +57,17 @@ public sealed class PhotosApiFactory
         builder.UseEnvironment("Testing");
         
         builder.UseSetting(
-            "ConnectionStrings:BaseDeDonnees",
+            "ConnectionStrings:Database",
             "Host=localhost;Port=5432;" +
             "Database=reference_dessin_tests;" +
             "Username=tests;Password=tests");
 
         builder.UseSetting(
-            "Authentification:Google:IdentifiantClient",
+            "Authentication:Google:ClientId",
             "client-google-tests");
 
         builder.UseSetting(
-            "Authentification:Google:SecretClient",
+            "Authentication:Google:ClientSecret",
             "secret-google-tests");
 
         builder.UseSetting(

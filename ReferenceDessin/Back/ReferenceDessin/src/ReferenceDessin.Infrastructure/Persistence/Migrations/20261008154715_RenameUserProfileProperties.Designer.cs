@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using ReferenceDessin.Infrastructure.Persistance;
+using ReferenceDessin.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace ReferenceDessin.Infrastructure.Persistance.Migrations
+namespace ReferenceDessin.Infrastructure.Persistence.Migrations
 {
-    [DbContext(typeof(ContexteReferenceDessin))]
-    partial class ContexteReferenceDessinModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ReferenceDessinDbContext))]
+    [Migration("20261008154715_RenameUserProfileProperties")]
+    partial class RenameUserProfileProperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -86,7 +89,7 @@ namespace ReferenceDessin.Infrastructure.Persistance.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ReferenceDessin.Infrastructure.Identite.Utilisateur", b =>
+            modelBuilder.Entity("ReferenceDessin.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -99,8 +102,13 @@ namespace ReferenceDessin.Infrastructure.Persistance.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("CreeLeUtc")
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -114,11 +122,6 @@ namespace ReferenceDessin.Infrastructure.Persistance.Migrations
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("NomAffiche")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -161,7 +164,7 @@ namespace ReferenceDessin.Infrastructure.Persistance.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
-                    b.HasOne("ReferenceDessin.Infrastructure.Identite.Utilisateur", null)
+                    b.HasOne("ReferenceDessin.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -170,7 +173,7 @@ namespace ReferenceDessin.Infrastructure.Persistance.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
-                    b.HasOne("ReferenceDessin.Infrastructure.Identite.Utilisateur", null)
+                    b.HasOne("ReferenceDessin.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -179,7 +182,7 @@ namespace ReferenceDessin.Infrastructure.Persistance.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.HasOne("ReferenceDessin.Infrastructure.Identite.Utilisateur", null)
+                    b.HasOne("ReferenceDessin.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

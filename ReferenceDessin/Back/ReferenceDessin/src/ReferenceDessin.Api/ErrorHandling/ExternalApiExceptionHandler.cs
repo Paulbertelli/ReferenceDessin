@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ReferenceDessin.Api.Errors;
+namespace ReferenceDessin.Api.ErrorHandling;
 
 public sealed class ExternalApiExceptionHandler(
     ILogger<ExternalApiExceptionHandler> logger,
