@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using ReferenceDessin.Application.Photos;
+using ReferenceDessin.Application.Photos.GetPhotos;
 
 namespace ReferenceDessin.Api.Controllers;
 
 [ApiController]
 [Route("api/photos")]
-public sealed class PhotosController(IPhotoProvider photoProvider)
-    : ControllerBase
+public sealed class PhotosController(GetPhotosHandler getPhotosHandler) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyCollection<PhotoReference>>> Get(
@@ -14,17 +14,24 @@ public sealed class PhotosController(IPhotoProvider photoProvider)
         [FromQuery] int count = 30,
         CancellationToken cancellationToken = default)
     {
-        if (count is < 1 or > 80)
-        {
-            return BadRequest(
-                "Le nombre de photos doit être compris entre 1 et 80.");
-        }
-
-        var photos = await photoProvider.GetPhotosAsync(
-            query,
-            count,
+        var result = await getPhotosHandler.HandleAsync(
+            new GetPhotosQuery(query, count),
             cancellationToken);
 
-        return Ok(photos);
+        if (!result.IsSuccess)
+        {
+            return result.Error switch
+            {
+                GetPhotosError.InvalidCount => BadRequest(
+                    "Le nombre de photos doit être compris entre 1 et 80."),
+
+                _ => Problem(
+                    title: "Impossible de récupérer les photos.",
+                    statusCode:
+                    StatusCodes.Status500InternalServerError)
+            };
+        }
+
+        return Ok(result.Photos);
     }
 }
