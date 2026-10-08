@@ -9,50 +9,50 @@ namespace ReferenceDessin.Api.Controllers;
 [Route("api/compte")]
 [Authorize]
 public sealed class AccountController(
-    UserManager<ApplicationUser> gestionnaireUtilisateurs,
-    SignInManager<ApplicationUser> gestionnaireConnexion,
-    ILogger<AccountController> journal)
+    UserManager<ApplicationUser> userManager,
+    SignInManager<ApplicationUser> signInManager,
+    ILogger<AccountController> logger)
     : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> Obtenir()
+    public async Task<IActionResult> Get()
     {
-        var utilisateur =
-            await gestionnaireUtilisateurs.GetUserAsync(User);
+        var user =
+            await userManager.GetUserAsync(User);
 
-        if (utilisateur is null) return Unauthorized();
+        if (user is null) return Unauthorized();
 
         return Ok(new
         {
             estAuthentifie = true,
-            nomAffiche = utilisateur.NomAffiche,
-            email = utilisateur.Email,
-            creeLeUtc = utilisateur.CreeLeUtc
+            nomAffiche = user.NomAffiche,
+            email = user.Email,
+            creeLeUtc = user.CreeLeUtc
         });
     }
 
     [HttpDelete]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Supprimer()
+    public async Task<IActionResult> Delete()
     {
-        var utilisateur =
-            await gestionnaireUtilisateurs.GetUserAsync(User);
+        var user =
+            await userManager.GetUserAsync(User);
 
-        if (utilisateur is null) return NotFound();
+        if (user is null) return NotFound();
 
-        var resultatSuppression = await gestionnaireUtilisateurs.DeleteAsync(utilisateur);
+        var deletionResult = await userManager.DeleteAsync(user);
 
-        if (!resultatSuppression.Succeeded)
+        if (!deletionResult.Succeeded)
         {
-            var erreurs = string.Join(
+            var errors = string.Join(
                 ", ",
-                resultatSuppression.Errors.Select(erreur =>
-                    $"{erreur.Code}: {erreur.Description}"));
+                deletionResult.Errors.Select(error =>
+                    $"{error.Code}: {error.Description}"));
 
-            journal.LogError(
+            logger.LogError(
                 "Erreur lors de la suppression de l'utilisateur {UtilisateurId} : {Erreurs}",
-                utilisateur.Id,
-                erreurs);
+                user.Id,
+                errors);
 
             return Problem(
                 title: "Impossible de supprimer le compte.",
@@ -60,7 +60,7 @@ public sealed class AccountController(
                 StatusCodes.Status500InternalServerError);
         }
 
-        await gestionnaireConnexion.SignOutAsync();
+        await signInManager.SignOutAsync();
 
         Response.Cookies.Delete("XSRF-TOKEN");
         Response.Cookies.Delete("ReferenceDessin.Antiforgery");

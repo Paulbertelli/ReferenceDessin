@@ -11,90 +11,72 @@ namespace ReferenceDessin.Api.Controllers;
 [ApiController]
 [Route("api/auth")]
 public sealed class AuthenticationController(
-    SignInManager<ApplicationUser> gestionnaireConnexion,
-    UserManager<ApplicationUser> gestionnaireUtilisateurs,
+    SignInManager<ApplicationUser> signInManager,
+    UserManager<ApplicationUser> userManager,
     IConfiguration configuration,
-    ILogger<AuthenticationController> journal)
+    ILogger<AuthenticationController> logger)
     : ControllerBase
 {
    [AllowAnonymous]
     [HttpGet("google")]
-    public IActionResult ConnexionGoogle()
+    public IActionResult GoogleLogin()
     {
-        // Génère l'adresse correspondant à l'action RetourGoogle : /api/auth/google/retour
-        var urlRetour = Url.Action(
-            nameof(RetourGoogle),
+        var callbackUrl = Url.Action(
+            nameof(GoogleCallback),
             "Authentication");
         
-        // On traite tout de même proprement le cas d'un échec.
-        if (urlRetour is null)
+        if (callbackUrl is null)
         {
             return Problem(
                 title: "Impossible de préparer la connexion Google.",
                 statusCode: StatusCodes.Status500InternalServerError);
         }
 
-        // Cette méthode crée les informations nécessaires au cookie de corrélation,
-        // et après /signin-google ,ASP.NET redirigera vers urlRetour.
-        var proprietes =
-            gestionnaireConnexion
-                .ConfigureExternalAuthenticationProperties(
-                    GoogleDefaults.AuthenticationScheme,
-                    urlRetour);
+        var authenticationProperties = 
+            signInManager.ConfigureExternalAuthenticationProperties(
+                GoogleDefaults.AuthenticationScheme, 
+                callbackUrl);
 
         return Challenge(
-            proprietes,
+            authenticationProperties,
             GoogleDefaults.AuthenticationScheme);
     }
 
     [AllowAnonymous]
     [HttpGet("google/retour")]
-    public async Task<IActionResult> RetourGoogle()
+    public async Task<IActionResult> GoogleCallback()
     {
-        // Récupère les informations placées par le middleware Google dans le cookie externe temporaire.
-        var informationsConnexion =
-            await gestionnaireConnexion
+        var externalLoginInfo =
+            await signInManager
                 .GetExternalLoginInfoAsync();
         
-        // Si ces informations sont absentes, le parcours Google est incomplet, expiré ou invalide.
-        if (informationsConnexion is null)
+        if (externalLoginInfo is null)
         {
             return Problem(
                 title: "La réponse de Google est invalide.",
                 statusCode: StatusCodes.Status401Unauthorized);
         }
 
-        // Tente de retrouver un utilisateur déjà associé au compte Google.
-        // Identity recherche principalement dans la table AspNetUserLogins avec :
-        // - LoginProvider = "Google"
-        // - ProviderKey = identifiant Google stable
-        var resultatConnexion =
-            await gestionnaireConnexion
+        var signInResult =
+            await signInManager
                 .ExternalLoginSignInAsync(
-                    informationsConnexion.LoginProvider,
-                    informationsConnexion.ProviderKey,
+                    externalLoginInfo.LoginProvider,
+                    externalLoginInfo.ProviderKey,
                     isPersistent: true,
                     bypassTwoFactor: true);
 
-        // Si l'association Google existe déjà,
-        // Identity a créé le cookie final de connexion.
-        if (resultatConnexion.Succeeded)
+        if (signInResult.Succeeded)
         {
-            // Le cookie externe temporaire n'est plus utile.
             await HttpContext.SignOutAsync(
                 IdentityConstants.ExternalScheme);
             
-            // Retour vers l'application Angular.
-            return RedirigerVersApplication();
+            return RedirectToApplication();
         }
 
-        // Si l'association n'existe pas, il s'agit d'une première connexion.
-        // On récupère l'adresse e-mail dans les claims Google.
         var email =
-            informationsConnexion.Principal
+            externalLoginInfo.Principal
                 .FindFirstValue(ClaimTypes.Email);
 
-        // Sans adresse e-mail, nous ne pouvons pas créer correctement le compte local.
         if (string.IsNullOrWhiteSpace(email))
         {
             return Problem(
@@ -102,46 +84,38 @@ public sealed class AuthenticationController(
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        // Cherche si un utilisateur possède déjà cette adresse afin d'éviter les doublons.
-        var utilisateur =
-            await gestionnaireUtilisateurs
+        var user =
+            await userManager
                 .FindByEmailAsync(email);
 
-        // utilisateurCree permettra de savoir si nous devons supprimer l'utilisateur en cas d'échec de l'association Google.
-        var utilisateurCree = false;
+        var userCreated = false;
 
-        // Si aucun compte local n'existe, il faut en créer un.
-        if (utilisateur is null)
+        if (user is null)
         {
-            // Récupère le nom complet fourni par Google.
-            var nomAffiche =
-                informationsConnexion.Principal
+            var displayName =
+                externalLoginInfo.Principal
                     .FindFirstValue(ClaimTypes.Name);
 
-            // Création d'une instance de notre entité Utilisateur.
-            utilisateur = new ApplicationUser
+            user = new ApplicationUser
             {
-                // Comme nous n'avons pas de pseudonyme, nous utilisons l'adresse e-mail.
                 UserName = email,
                 Email = email,
                 EmailConfirmed = true,
-                //Pareil ici, si Google ne donne aucun nom, on utilise l'e-mail comme solution de secours.
-                NomAffiche = string.IsNullOrWhiteSpace(nomAffiche)
+                NomAffiche = string.IsNullOrWhiteSpace(displayName)
                     ? email
-                    : nomAffiche,
+                    : displayName,
                 CreeLeUtc = DateTimeOffset.UtcNow
             };
 
-            //crée le compte dans la base de données.
-            var resultatCreation =
-                await gestionnaireUtilisateurs
-                    .CreateAsync(utilisateur);
+            var creationResult =
+                await userManager
+                    .CreateAsync(user);
             
-            if (!resultatCreation.Succeeded)
+            if (!creationResult.Succeeded)
             {
-                JournaliserErreurs(
+                LogErrors(
                     "création de l’utilisateur",
-                    resultatCreation.Errors);
+                    creationResult.Errors);
 
                 return Problem(
                     title: "Impossible de créer le compte.",
@@ -149,30 +123,24 @@ public sealed class AuthenticationController(
                         StatusCodes.Status500InternalServerError);
             }
 
-            utilisateurCree = true;
+            userCreated = true;
         }
 
-        // Associe maintenant le compte Google
-        // au compte Référence Dessin.
-        // Cela crée une ligne dans AspNetUserLogins.
-        var resultatAssociation =
-            await gestionnaireUtilisateurs.AddLoginAsync(
-                utilisateur,
-                informationsConnexion);
+        var loginAssociationResult =
+            await userManager.AddLoginAsync(
+                user,
+                externalLoginInfo);
 
-        if (!resultatAssociation.Succeeded)
+        if (!loginAssociationResult.Succeeded)
         {
-            JournaliserErreurs(
+            LogErrors(
                 "association du compte Google",
-                resultatAssociation.Errors);
-
-            // Si nous venons juste de créer l'utilisateur,
-            // mais que l'association Google échoue,
-            // nous supprimons ce compte incomplet.
-            if (utilisateurCree)
+                loginAssociationResult.Errors);
+            
+            if (userCreated)
             {
-                await gestionnaireUtilisateurs
-                    .DeleteAsync(utilisateur);
+                await userManager
+                    .DeleteAsync(user);
             }
 
             return Problem(
@@ -181,63 +149,51 @@ public sealed class AuthenticationController(
                     StatusCodes.Status500InternalServerError);
         }
         
-        // L'utilisateur et son association Google existent.
-        // Cette méthode crée le cookie final : ReferenceDessin.Authentification
-        await gestionnaireConnexion.SignInAsync(
-            utilisateur,
+        await signInManager.SignInAsync(
+            user,
             isPersistent: true);
         
-        // Supprime le cookie Identity.External, devenu inutile.
         await HttpContext.SignOutAsync(
             IdentityConstants.ExternalScheme);
         
-        // Redirige le navigateur vers Angular.
-        return RedirigerVersApplication();
+        return RedirectToApplication();
     }
 
     [Authorize]
     [HttpPost("deconnexion")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Deconnexion()
+    public async Task<IActionResult> Logout()
     {
-        // Supprime le cookie principal d'authentification.
-        await gestionnaireConnexion.SignOutAsync();
+        await signInManager.SignOutAsync();
 
-        // Supprime également un éventuel cookie externe restant.
         await HttpContext.SignOutAsync(
             IdentityConstants.ExternalScheme);
 
         return NoContent();
     }
 
-    private IActionResult RedirigerVersApplication()
+    private IActionResult RedirectToApplication()
     {
-        // Récupère l'adresse du frontend depuis la configuration.
-        // En développement : http://localhost:4200
-        // En production :
-        var urlApplication =
+        var applicationUrl =
             configuration["ApplicationCliente:Url"];
 
-        // Solution de secours si le paramètre est absent.
-        if (string.IsNullOrWhiteSpace(urlApplication))
+        if (string.IsNullOrWhiteSpace(applicationUrl))
         {
-            urlApplication = "/";
+            applicationUrl = "/";
         }
 
-        return Redirect(urlApplication);
+        return Redirect(applicationUrl);
     }
 
-    private void JournaliserErreurs(
+    private void LogErrors(
         string operation,
-        IEnumerable<IdentityError> erreurs)
+        IEnumerable<IdentityError> errors)
     {
-        journal.LogError(
+        logger.LogError(
             "Échec pendant {Operation} : {Erreurs}",
             operation,
-            // Transforme la collection d'erreurs en une chaîne :
-            // "Erreur 1, Erreur 2, Erreur 3"
             string.Join(
                 ", ",
-                erreurs.Select(erreur => erreur.Description)));
+                errors.Select(error => error.Description)));
     }
 }

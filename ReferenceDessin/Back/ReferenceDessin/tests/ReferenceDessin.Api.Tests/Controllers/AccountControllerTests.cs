@@ -14,10 +14,10 @@ namespace ReferenceDessin.Api.Tests.Controllers;
 public sealed class AccountControllerTests
 {
     [Fact]
-    public async Task Supprimer_UtilisateurConnecte_SupprimeEtDeconnecte()
+    public async Task Delete_WhenUserIsAuthenticated_DeletesUserAndSignsOut()
     {
         // Arrange
-        var utilisateur = new ApplicationUser
+        var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
             UserName = "paul@example.com",
@@ -25,28 +25,28 @@ public sealed class AccountControllerTests
             NomAffiche = "Paul"
         };
 
-        var gestionnaireUtilisateurs =
-            CreerGestionnaireUtilisateurs();
+        var userManager =
+            CreateUserManager();
 
-        gestionnaireUtilisateurs
+        userManager
             .GetUserAsync(Arg.Any<ClaimsPrincipal>())
-            .Returns(utilisateur);
+            .Returns(user);
 
-        gestionnaireUtilisateurs
-            .DeleteAsync(utilisateur)
+        userManager
+            .DeleteAsync(user)
             .Returns(IdentityResult.Success);
 
-        var gestionnaireConnexion =
-            CreerGestionnaireConnexion(
-                gestionnaireUtilisateurs);
+        var signInManager =
+            CreateSignInManager(
+                userManager);
 
-        gestionnaireConnexion
+        signInManager
             .SignOutAsync()
             .Returns(Task.CompletedTask);
 
-        var controleur = new AccountController(
-            gestionnaireUtilisateurs,
-            gestionnaireConnexion,
+        var controller = new AccountController(
+            userManager,
+            signInManager,
             Substitute.For<ILogger<AccountController>>())
         {
             ControllerContext = new ControllerContext
@@ -56,27 +56,27 @@ public sealed class AccountControllerTests
         };
 
         // Act
-        var resultat = await controleur.Supprimer();
+        var result = await controller.Delete();
 
         // Assert
-        Assert.IsType<NoContentResult>(resultat);
+        Assert.IsType<NoContentResult>(result);
 
-        await gestionnaireUtilisateurs
+        await userManager
             .Received(1)
-            .DeleteAsync(utilisateur);
+            .DeleteAsync(user);
 
-        await gestionnaireConnexion
+        await signInManager
             .Received(1)
             .SignOutAsync();
     }
 
-    private static AccountController CreerControleur(
-        UserManager<ApplicationUser> gestionnaireUtilisateurs,
-        SignInManager<ApplicationUser> gestionnaireConnexion)
+    private static AccountController CreateController(
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager)
     {
         return new AccountController(
-            gestionnaireUtilisateurs,
-            gestionnaireConnexion,
+            userManager,
+            signInManager,
             Substitute.For<ILogger<AccountController>>())
         {
             ControllerContext = new ControllerContext
@@ -87,7 +87,7 @@ public sealed class AccountControllerTests
     }
 
     private static UserManager<ApplicationUser>
-        CreerGestionnaireUtilisateurs()
+        CreateUserManager()
     {
         return Substitute.For<UserManager<ApplicationUser>>(
             Substitute.For<IUserStore<ApplicationUser>>(),
@@ -104,11 +104,11 @@ public sealed class AccountControllerTests
     }
 
     private static SignInManager<ApplicationUser>
-        CreerGestionnaireConnexion(
-            UserManager<ApplicationUser> gestionnaireUtilisateurs)
+        CreateSignInManager(
+            UserManager<ApplicationUser> userManager)
     {
         return Substitute.For<SignInManager<ApplicationUser>>(
-            gestionnaireUtilisateurs,
+            userManager,
             Substitute.For<IHttpContextAccessor>(),
             Substitute.For<
                 IUserClaimsPrincipalFactory<ApplicationUser>>(),
@@ -121,46 +121,46 @@ public sealed class AccountControllerTests
     }
 
     [Fact]
-    public async Task Supprimer_UtilisateurIntrouvable_Retourne404()
+    public async Task Delete_WhenUserIsNotFound_ReturnsNotFound()
     {
         // Arrange
-        var gestionnaireUtilisateurs =
-            CreerGestionnaireUtilisateurs();
+        var userManager =
+            CreateUserManager();
 
-        gestionnaireUtilisateurs
+        userManager
             .GetUserAsync(
                 Arg.Any<
                     ClaimsPrincipal>())
             .Returns((ApplicationUser?)null);
 
-        var gestionnaireConnexion =
-            CreerGestionnaireConnexion(
-                gestionnaireUtilisateurs);
+        var signInManager =
+            CreateSignInManager(
+                userManager);
 
-        var controleur = CreerControleur(
-            gestionnaireUtilisateurs,
-            gestionnaireConnexion);
+        var controller = CreateController(
+            userManager,
+            signInManager);
 
         // Act
-        var resultat = await controleur.Supprimer();
+        var result = await controller.Delete();
 
         // Assert
-        Assert.IsType<NotFoundResult>(resultat);
+        Assert.IsType<NotFoundResult>(result);
 
-        await gestionnaireUtilisateurs
+        await userManager
             .DidNotReceiveWithAnyArgs()
             .DeleteAsync(default!);
 
-        await gestionnaireConnexion
+        await signInManager
             .DidNotReceive()
             .SignOutAsync();
     }
 
     [Fact]
-    public async Task Supprimer_EchecIdentity_Retourne500SansDeconnecter()
+    public async Task Delete_WhenIdentityFails_ReturnsProblemWithoutSigningOut()
     {
         // Arrange
-        var utilisateur = new ApplicationUser
+        var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
             UserName = "paul@example.com",
@@ -168,17 +168,17 @@ public sealed class AccountControllerTests
             NomAffiche = "Paul"
         };
 
-        var gestionnaireUtilisateurs =
-            CreerGestionnaireUtilisateurs();
+        var userManager =
+            CreateUserManager();
 
-        gestionnaireUtilisateurs
+        userManager
             .GetUserAsync(
                 Arg.Any<
                     ClaimsPrincipal>())
-            .Returns(utilisateur);
+            .Returns(user);
 
-        gestionnaireUtilisateurs
-            .DeleteAsync(utilisateur)
+        userManager
+            .DeleteAsync(user)
             .Returns(
                 IdentityResult.Failed(
                     new IdentityError
@@ -190,34 +190,34 @@ public sealed class AccountControllerTests
                 )
             );
 
-        var gestionnaireConnexion =
-            CreerGestionnaireConnexion(
-                gestionnaireUtilisateurs);
+        var signInManager =
+            CreateSignInManager(
+                userManager);
 
-        var controleur = CreerControleur(
-            gestionnaireUtilisateurs,
-            gestionnaireConnexion);
+        var controller = CreateController(
+            userManager,
+            signInManager);
 
         // Act
-        var resultat = await controleur.Supprimer();
+        var result = await controller.Delete();
 
         // Assert
-        var resultatErreur =
-            Assert.IsType<ObjectResult>(resultat);
+        var errorResult =
+            Assert.IsType<ObjectResult>(result);
 
         Assert.Equal(
             StatusCodes.Status500InternalServerError,
-            resultatErreur.StatusCode);
+            errorResult.StatusCode);
 
-        var probleme =
+        var problem =
             Assert.IsType<ProblemDetails>(
-                resultatErreur.Value);
+                errorResult.Value);
 
         Assert.Equal(
             "Impossible de supprimer le compte.",
-            probleme.Title);
+            problem.Title);
 
-        await gestionnaireConnexion
+        await signInManager
             .DidNotReceive()
             .SignOutAsync();
     }
