@@ -14,10 +14,10 @@ public sealed class ReferenceDessinDbContext(DbContextOptions<ReferenceDessinDbC
         
         builder.Entity<ApplicationUser>(entite =>
         {
-            entite.Property(utilisateur => utilisateur.NomAffiche)
+            entite.Property(user => user.DisplayName)
                 .HasMaxLength(100);
             
-            entite.Property(utilisateur => utilisateur.CreeLeUtc)
+            entite.Property(user => user.CreatedAtUtc)
                 .IsRequired();
         });
     }

@@ -22,7 +22,7 @@ public sealed class AccountControllerTests
             Id = Guid.NewGuid(),
             UserName = "paul@example.com",
             Email = "paul@example.com",
-            NomAffiche = "Paul"
+            DisplayName = "Paul"
         };
 
         var userManager =
@@ -165,7 +165,7 @@ public sealed class AccountControllerTests
             Id = Guid.NewGuid(),
             UserName = "paul@example.com",
             Email = "paul@example.com",
-            NomAffiche = "Paul"
+            DisplayName = "Paul"
         };
 
         var userManager =

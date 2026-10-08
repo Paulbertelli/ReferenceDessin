@@ -25,9 +25,9 @@ public sealed class AccountController(
         return Ok(new
         {
             estAuthentifie = true,
-            nomAffiche = user.NomAffiche,
+            nomAffiche = user.DisplayName,
             email = user.Email,
-            creeLeUtc = user.CreeLeUtc
+            creeLeUtc = user.CreatedAtUtc
         });
     }
 

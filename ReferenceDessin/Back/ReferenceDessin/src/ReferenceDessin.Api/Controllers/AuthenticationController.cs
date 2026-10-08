@@ -101,10 +101,10 @@ public sealed class AuthenticationController(
                 UserName = email,
                 Email = email,
                 EmailConfirmed = true,
-                NomAffiche = string.IsNullOrWhiteSpace(displayName)
+                DisplayName = string.IsNullOrWhiteSpace(displayName)
                     ? email
                     : displayName,
-                CreeLeUtc = DateTimeOffset.UtcNow
+                CreatedAtUtc = DateTimeOffset.UtcNow
             };
 
             var creationResult =
