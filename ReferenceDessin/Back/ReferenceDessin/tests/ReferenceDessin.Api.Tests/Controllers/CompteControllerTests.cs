@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using ReferenceDessin.Api.Controllers;
-using ReferenceDessin.Infrastructure.Identite;
+using ReferenceDessin.Infrastructure.Identity;
 
 namespace ReferenceDessin.Api.Tests.Controllers;
 
@@ -17,7 +17,7 @@ public sealed class CompteControllerTests
     public async Task Supprimer_UtilisateurConnecte_SupprimeEtDeconnecte()
     {
         // Arrange
-        var utilisateur = new Utilisateur
+        var utilisateur = new ApplicationUser
         {
             Id = Guid.NewGuid(),
             UserName = "paul@example.com",
@@ -71,8 +71,8 @@ public sealed class CompteControllerTests
     }
 
     private static CompteController CreerControleur(
-        UserManager<Utilisateur> gestionnaireUtilisateurs,
-        SignInManager<Utilisateur> gestionnaireConnexion)
+        UserManager<ApplicationUser> gestionnaireUtilisateurs,
+        SignInManager<ApplicationUser> gestionnaireConnexion)
     {
         return new CompteController(
             gestionnaireUtilisateurs,
@@ -86,37 +86,37 @@ public sealed class CompteControllerTests
         };
     }
 
-    private static UserManager<Utilisateur>
+    private static UserManager<ApplicationUser>
         CreerGestionnaireUtilisateurs()
     {
-        return Substitute.For<UserManager<Utilisateur>>(
-            Substitute.For<IUserStore<Utilisateur>>(),
+        return Substitute.For<UserManager<ApplicationUser>>(
+            Substitute.For<IUserStore<ApplicationUser>>(),
             Options.Create(new IdentityOptions()),
-            Substitute.For<IPasswordHasher<Utilisateur>>(),
-            Array.Empty<IUserValidator<Utilisateur>>(),
-            Array.Empty<IPasswordValidator<Utilisateur>>(),
+            Substitute.For<IPasswordHasher<ApplicationUser>>(),
+            Array.Empty<IUserValidator<ApplicationUser>>(),
+            Array.Empty<IPasswordValidator<ApplicationUser>>(),
             Substitute.For<ILookupNormalizer>(),
             new IdentityErrorDescriber(),
             Substitute.For<IServiceProvider>(),
             Substitute.For<
-                ILogger<UserManager<Utilisateur>>>()
+                ILogger<UserManager<ApplicationUser>>>()
         );
     }
 
-    private static SignInManager<Utilisateur>
+    private static SignInManager<ApplicationUser>
         CreerGestionnaireConnexion(
-            UserManager<Utilisateur> gestionnaireUtilisateurs)
+            UserManager<ApplicationUser> gestionnaireUtilisateurs)
     {
-        return Substitute.For<SignInManager<Utilisateur>>(
+        return Substitute.For<SignInManager<ApplicationUser>>(
             gestionnaireUtilisateurs,
             Substitute.For<IHttpContextAccessor>(),
             Substitute.For<
-                IUserClaimsPrincipalFactory<Utilisateur>>(),
+                IUserClaimsPrincipalFactory<ApplicationUser>>(),
             Options.Create(new IdentityOptions()),
             Substitute.For<
-                ILogger<SignInManager<Utilisateur>>>(),
+                ILogger<SignInManager<ApplicationUser>>>(),
             Substitute.For<IAuthenticationSchemeProvider>(),
-            Substitute.For<IUserConfirmation<Utilisateur>>()
+            Substitute.For<IUserConfirmation<ApplicationUser>>()
         );
     }
 
@@ -131,7 +131,7 @@ public sealed class CompteControllerTests
             .GetUserAsync(
                 Arg.Any<
                     ClaimsPrincipal>())
-            .Returns((Utilisateur?)null);
+            .Returns((ApplicationUser?)null);
 
         var gestionnaireConnexion =
             CreerGestionnaireConnexion(
@@ -160,7 +160,7 @@ public sealed class CompteControllerTests
     public async Task Supprimer_EchecIdentity_Retourne500SansDeconnecter()
     {
         // Arrange
-        var utilisateur = new Utilisateur
+        var utilisateur = new ApplicationUser
         {
             Id = Guid.NewGuid(),
             UserName = "paul@example.com",

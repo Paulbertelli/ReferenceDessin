@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace ReferenceDessin.Infrastructure.Identite;
+namespace ReferenceDessin.Infrastructure.Identity;
 
-public sealed class Utilisateur: IdentityUser<Guid>
+public sealed class ApplicationUser: IdentityUser<Guid>
 {
     public string NomAffiche { get; set; } = string.Empty;
 

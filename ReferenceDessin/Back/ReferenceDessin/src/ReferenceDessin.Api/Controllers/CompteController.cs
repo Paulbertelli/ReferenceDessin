@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using ReferenceDessin.Infrastructure.Identite;
+using ReferenceDessin.Infrastructure.Identity;
 
 namespace ReferenceDessin.Api.Controllers;
 
@@ -9,8 +9,8 @@ namespace ReferenceDessin.Api.Controllers;
 [Route("api/compte")]
 [Authorize]
 public sealed class CompteController(
-    UserManager<Utilisateur> gestionnaireUtilisateurs,
-    SignInManager<Utilisateur> gestionnaireConnexion,
+    UserManager<ApplicationUser> gestionnaireUtilisateurs,
+    SignInManager<ApplicationUser> gestionnaireConnexion,
     ILogger<CompteController> journal)
     : ControllerBase
 {

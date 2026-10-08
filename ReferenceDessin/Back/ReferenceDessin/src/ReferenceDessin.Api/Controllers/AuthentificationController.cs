@@ -4,15 +4,15 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using ReferenceDessin.Infrastructure.Identite;
+using ReferenceDessin.Infrastructure.Identity;
 
 namespace ReferenceDessin.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
 public sealed class AuthentificationController(
-    SignInManager<Utilisateur> gestionnaireConnexion,
-    UserManager<Utilisateur> gestionnaireUtilisateurs,
+    SignInManager<ApplicationUser> gestionnaireConnexion,
+    UserManager<ApplicationUser> gestionnaireUtilisateurs,
     IConfiguration configuration,
     ILogger<AuthentificationController> journal)
     : ControllerBase
@@ -119,7 +119,7 @@ public sealed class AuthentificationController(
                     .FindFirstValue(ClaimTypes.Name);
 
             // Création d'une instance de notre entité Utilisateur.
-            utilisateur = new Utilisateur
+            utilisateur = new ApplicationUser
             {
                 // Comme nous n'avons pas de pseudonyme, nous utilisons l'adresse e-mail.
                 UserName = email,

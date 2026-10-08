@@ -86,7 +86,7 @@ namespace ReferenceDessin.Infrastructure.Persistance.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ReferenceDessin.Infrastructure.Identite.Utilisateur", b =>
+            modelBuilder.Entity("ReferenceDessin.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -161,7 +161,7 @@ namespace ReferenceDessin.Infrastructure.Persistance.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
-                    b.HasOne("ReferenceDessin.Infrastructure.Identite.Utilisateur", null)
+                    b.HasOne("ReferenceDessin.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -170,7 +170,7 @@ namespace ReferenceDessin.Infrastructure.Persistance.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
-                    b.HasOne("ReferenceDessin.Infrastructure.Identite.Utilisateur", null)
+                    b.HasOne("ReferenceDessin.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -179,7 +179,7 @@ namespace ReferenceDessin.Infrastructure.Persistance.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.HasOne("ReferenceDessin.Infrastructure.Identite.Utilisateur", null)
+                    b.HasOne("ReferenceDessin.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

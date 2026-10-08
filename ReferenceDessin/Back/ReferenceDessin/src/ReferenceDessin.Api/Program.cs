@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using ReferenceDessin.Application.Photos;
-using ReferenceDessin.Infrastructure.Pexels;
 using ReferenceDessin.Api.Errors;
-using ReferenceDessin.Infrastructure.Identite;
+using ReferenceDessin.Application.Photos;
+using ReferenceDessin.Infrastructure.Identity;
 using ReferenceDessin.Infrastructure.Persistance;
+using ReferenceDessin.Infrastructure.Pexels;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -117,7 +117,7 @@ constructeurAuthentification.AddGoogle(options =>
 });
 
 builder.Services
-    .AddIdentityCore<Utilisateur>(options =>
+    .AddIdentityCore<ApplicationUser>(options =>
     {
         options.User.RequireUniqueEmail = true;
     })
@@ -183,4 +183,7 @@ app.MapFallbackToFile("index.html");
 
 app.Run();
 
-public partial class Program;
+namespace ReferenceDessin.Api
+{
+    public partial class Program;
+}
