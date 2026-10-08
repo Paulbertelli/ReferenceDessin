@@ -1,11 +1,6 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using ReferenceDessin.Api.ErrorHandling;
-using ReferenceDessin.Application.Photos;
-using ReferenceDessin.Infrastructure.Identity;
-using ReferenceDessin.Infrastructure.Persistence;
-using ReferenceDessin.Infrastructure.Pexels;
+using ReferenceDessin.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
-
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-XSRF-TOKEN";
@@ -29,51 +24,9 @@ builder.Services.AddAntiforgery(options =>
             ? CookieSecurePolicy.SameAsRequest
             : CookieSecurePolicy.Always;
 });
-
 builder.Services.AddHealthChecks();
 builder.Services.AddExceptionHandler<ExternalApiExceptionHandler>();
-
-builder.Services
-    .AddOptions<PexelsOptions>()
-    .BindConfiguration(PexelsOptions.SectionName)
-    .Validate(
-        options => Uri.TryCreate(
-            options.BaseUrl,
-            UriKind.Absolute,
-            out _),
-        "L'URL de l'API Pexels est invalide.")
-    .Validate(
-        options => !string.IsNullOrWhiteSpace(options.ApiKey),
-        "La clé API Pexels est absente.")
-    .ValidateOnStart();
-
-builder.Services.AddHttpClient<IPhotoProvider, PexelsClient>(
-    (services, client) =>
-    {
-        var options = services
-            .GetRequiredService<IOptions<PexelsOptions>>()
-            .Value;
-
-        client.BaseAddress = new Uri(options.BaseUrl);
-        client.DefaultRequestHeaders.Add(
-            "Authorization",
-            options.ApiKey);
-
-        client.Timeout = TimeSpan.FromSeconds(10);
-    });
-
 builder.Services.AddControllersWithViews();
-
-var chaineConnexion =
-    builder.Configuration.GetConnectionString("BaseDeDonnees")
-    ?? throw new InvalidOperationException(
-        "La chaîne de connexion à la base de données est absente.");
-
-builder.Services.AddDbContext<ReferenceDessinDbContext>(
-    options =>
-    {
-        options.UseNpgsql(chaineConnexion);
-    });
 
 var identifiantClientGoogle =
     builder.Configuration[
@@ -115,14 +68,6 @@ constructeurAuthentification.AddGoogle(options =>
             SameSiteMode.Lax;
     }
 });
-
-builder.Services
-    .AddIdentityCore<ApplicationUser>(options =>
-    {
-        options.User.RequireUniqueEmail = true;
-    })
-    .AddSignInManager()
-    .AddEntityFrameworkStores<ReferenceDessinDbContext>();
 
 builder.Services.ConfigureExternalCookie(options =>
 {
