@@ -8,10 +8,10 @@ namespace ReferenceDessin.Api.Controllers;
 [ApiController]
 [Route("api/compte")]
 [Authorize]
-public sealed class CompteController(
+public sealed class AccountController(
     UserManager<ApplicationUser> gestionnaireUtilisateurs,
     SignInManager<ApplicationUser> gestionnaireConnexion,
-    ILogger<CompteController> journal)
+    ILogger<AccountController> journal)
     : ControllerBase
 {
     [HttpGet]

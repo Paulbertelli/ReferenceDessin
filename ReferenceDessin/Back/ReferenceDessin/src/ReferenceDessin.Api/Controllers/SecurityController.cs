@@ -7,7 +7,7 @@ namespace ReferenceDessin.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/securite")]
-public sealed class SecuriteController(
+public sealed class SecurityController(
     IAntiforgery antiforgery, 
     IWebHostEnvironment environnement) 
     : ControllerBase

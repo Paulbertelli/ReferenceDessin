@@ -10,11 +10,11 @@ namespace ReferenceDessin.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public sealed class AuthentificationController(
+public sealed class AuthenticationController(
     SignInManager<ApplicationUser> gestionnaireConnexion,
     UserManager<ApplicationUser> gestionnaireUtilisateurs,
     IConfiguration configuration,
-    ILogger<AuthentificationController> journal)
+    ILogger<AuthenticationController> journal)
     : ControllerBase
 {
    [AllowAnonymous]
@@ -24,7 +24,7 @@ public sealed class AuthentificationController(
         // Génère l'adresse correspondant à l'action RetourGoogle : /api/auth/google/retour
         var urlRetour = Url.Action(
             nameof(RetourGoogle),
-            "Authentification");
+            "Authentication");
         
         // On traite tout de même proprement le cas d'un échec.
         if (urlRetour is null)

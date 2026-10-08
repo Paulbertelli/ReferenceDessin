@@ -11,7 +11,7 @@ using ReferenceDessin.Infrastructure.Identity;
 
 namespace ReferenceDessin.Api.Tests.Controllers;
 
-public sealed class CompteControllerTests
+public sealed class AccountControllerTests
 {
     [Fact]
     public async Task Supprimer_UtilisateurConnecte_SupprimeEtDeconnecte()
@@ -44,10 +44,10 @@ public sealed class CompteControllerTests
             .SignOutAsync()
             .Returns(Task.CompletedTask);
 
-        var controleur = new CompteController(
+        var controleur = new AccountController(
             gestionnaireUtilisateurs,
             gestionnaireConnexion,
-            Substitute.For<ILogger<CompteController>>())
+            Substitute.For<ILogger<AccountController>>())
         {
             ControllerContext = new ControllerContext
             {
@@ -70,14 +70,14 @@ public sealed class CompteControllerTests
             .SignOutAsync();
     }
 
-    private static CompteController CreerControleur(
+    private static AccountController CreerControleur(
         UserManager<ApplicationUser> gestionnaireUtilisateurs,
         SignInManager<ApplicationUser> gestionnaireConnexion)
     {
-        return new CompteController(
+        return new AccountController(
             gestionnaireUtilisateurs,
             gestionnaireConnexion,
-            Substitute.For<ILogger<CompteController>>())
+            Substitute.For<ILogger<AccountController>>())
         {
             ControllerContext = new ControllerContext
             {

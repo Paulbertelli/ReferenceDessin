@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using ReferenceDessin.Api.Errors;
+using ReferenceDessin.Api.ErrorHandling;
 using ReferenceDessin.Application.Photos;
 using ReferenceDessin.Infrastructure.Identity;
 using ReferenceDessin.Infrastructure.Persistence;
