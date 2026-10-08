@@ -47,7 +47,7 @@ builder.Services
         "La clé API Pexels est absente.")
     .ValidateOnStart();
 
-builder.Services.AddHttpClient<IPhotoProvider, PexelsPhotoProvider>(
+builder.Services.AddHttpClient<IPhotoProvider, PexelsClient>(
     (services, client) =>
     {
         var options = services

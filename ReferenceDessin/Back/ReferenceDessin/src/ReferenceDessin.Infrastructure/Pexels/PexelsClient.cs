@@ -3,8 +3,7 @@ using ReferenceDessin.Application.Photos;
 
 namespace ReferenceDessin.Infrastructure.Pexels;
 
-public sealed class PexelsPhotoProvider(HttpClient httpClient)
-    : IPhotoProvider
+public sealed class PexelsClient(HttpClient httpClient) : IPhotoProvider
 {
     public async Task<IReadOnlyCollection<PhotoReference>> GetPhotosAsync(
         string? query,

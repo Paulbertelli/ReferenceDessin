@@ -4,7 +4,7 @@ using ReferenceDessin.Infrastructure.Pexels;
 
 namespace ReferenceDessin.Infrastructure.Tests.Pexels;
 
-public sealed class PexelsPhotoProviderTests
+public sealed class PexelsClientTests
 {
     [Fact]
     public async Task GetPhotosAsync_WhenQueryIsEmpty_CallsCuratedEndpoint()
@@ -24,10 +24,10 @@ public sealed class PexelsPhotoProviderTests
                 """);
         });
 
-        var provider = new PexelsPhotoProvider(httpClient);
+        var client = new PexelsClient(httpClient);
 
         // Act
-        var photos = await provider.GetPhotosAsync(
+        var photos = await client.GetPhotosAsync(
             query: null,
             count: 15);
 
@@ -57,10 +57,10 @@ public sealed class PexelsPhotoProviderTests
                 """);
         });
 
-        var provider = new PexelsPhotoProvider(httpClient);
+        var client = new PexelsClient(httpClient);
 
         // Act
-        await provider.GetPhotosAsync(
+        await client.GetPhotosAsync(
             query: "  chat noir  ",
             count: 12);
 
@@ -95,10 +95,10 @@ public sealed class PexelsPhotoProviderTests
                 }
                 """));
 
-        var provider = new PexelsPhotoProvider(httpClient);
+        var client = new PexelsClient(httpClient);
 
         // Act
-        var photos = await provider.GetPhotosAsync(
+        var photos = await client.GetPhotosAsync(
             query: "chat",
             count: 1);
 
@@ -127,11 +127,11 @@ public sealed class PexelsPhotoProviderTests
         using var httpClient = CreateHttpClient(_ =>
             new HttpResponseMessage(HttpStatusCode.BadGateway));
 
-        var provider = new PexelsPhotoProvider(httpClient);
+        var client = new PexelsClient(httpClient);
 
         // Act
         var action = async () =>
-            await provider.GetPhotosAsync(
+            await client.GetPhotosAsync(
                 query: "portrait",
                 count: 10);
 
@@ -146,10 +146,10 @@ public sealed class PexelsPhotoProviderTests
         using var httpClient = CreateHttpClient(_ =>
             CreateJsonResponse("null"));
 
-        var provider = new PexelsPhotoProvider(httpClient);
+        var client = new PexelsClient(httpClient);
 
         // Act
-        var photos = await provider.GetPhotosAsync(
+        var photos = await client.GetPhotosAsync(
             query: null,
             count: 10);
 
