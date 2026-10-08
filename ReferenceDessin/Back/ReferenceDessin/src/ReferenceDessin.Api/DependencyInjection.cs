@@ -56,13 +56,13 @@ public static class DependencyInjection
     {
         var googleClientId =
             configuration[
-                "Authentification:Google:IdentifiantClient"]
+                "Authentication:Google:ClientId"]
             ?? throw new InvalidOperationException(
                 "L’identifiant client Google est absent.");
 
         var googleClientSecret =
             configuration[
-                "Authentification:Google:SecretClient"]
+                "Authentication:Google:ClientSecret"]
             ?? throw new InvalidOperationException(
                 "Le secret client Google est absent.");
 

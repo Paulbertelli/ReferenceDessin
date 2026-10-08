@@ -28,7 +28,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         var connectionString = 
-            configuration.GetConnectionString("BaseDeDonnees")
+            configuration.GetConnectionString("Database")
             ?? throw new InvalidOperationException(
                 "La chaîne de connexion à la base de données est absente.");
 
