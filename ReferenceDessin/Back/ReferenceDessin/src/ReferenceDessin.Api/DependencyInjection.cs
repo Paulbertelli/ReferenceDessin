@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using ReferenceDessin.Api.ErrorHandling;
+using ReferenceDessin.Application.Photos.GetPhotos;
 
 namespace ReferenceDessin.Api;
 
@@ -22,6 +23,8 @@ public static class DependencyInjection
             environment);
 
         services.AddAuthorization();
+        
+        services.AddScoped<GetPhotosHandler>();
 
         return services;
     }
