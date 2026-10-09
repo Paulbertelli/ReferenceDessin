@@ -1,7 +1,7 @@
 import { Component, computed, HostListener, OnDestroy, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { PhotoReference } from './core/models/photo-reference.model';
+import { ReferenceImage } from './core/models/reference-image.model';
 import { PhotoService } from './core/services/photo.service';
 import {
   LucideChevronLeft,
@@ -40,7 +40,7 @@ export class App implements OnDestroy {
 
   protected readonly confirmationSuppressionCompteOuverte = signal(false);
 
-  protected readonly photos = signal<PhotoReference[]>([]);
+  protected readonly photos = signal<ReferenceImage[]>([]);
   protected readonly currentIndex = signal(0);
   protected readonly loading = signal(false);
   protected readonly error = signal('');
@@ -301,7 +301,7 @@ export class App implements OnDestroy {
   }
 
   // état pour le chargement 
-  protected readonly displayedPhoto = signal<PhotoReference | null>(null);
+  protected readonly displayedPhoto = signal<ReferenceImage | null>(null);
   protected readonly displayedIndex = signal(0);
   protected readonly imageLoading = signal(false);
   protected readonly imageError = signal(false);

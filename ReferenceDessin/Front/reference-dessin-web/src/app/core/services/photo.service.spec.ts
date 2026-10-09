@@ -1,20 +1,8 @@
-import {
-    HttpErrorResponse,
-    provideHttpClient
-} from '@angular/common/http';
-import {
-    HttpTestingController,
-    provideHttpClientTesting
-} from '@angular/common/http/testing';
+import {HttpErrorResponse, provideHttpClient} from '@angular/common/http';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import {
-    afterEach,
-    beforeEach,
-    describe,
-    expect,
-    it
-} from 'vitest';
-import { PhotoReference } from '../models/photo-reference.model';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
+import { ReferenceImage } from '../models/reference-image.model';
 import { PhotoService } from './photo.service';
 
 describe('PhotoService', () => {
@@ -65,19 +53,20 @@ describe('PhotoService', () => {
     });
 
     it('doit retourner les photos reçues', () => {
-        const photosAttendues: PhotoReference[] = [
+        const photosAttendues: ReferenceImage[] = [
             {
-                id: 123,
-                imageUrl: 'https://images.pexels.com/photo.jpeg',
-                pexelsUrl: 'https://www.pexels.com/photo/123',
-                photographer: 'Jane Doe',
-                photographerUrl: 'https://www.pexels.com/@jane',
+                externalId: '123',
+                imageUrl: 'https://images.example/photo.jpeg',
+                sourceName: 'Pexels',
+                originalUrl: 'https://www.pexels.com/photo/123',
+                authorName: 'Jane Doe',
+                authorUrl: 'https://www.pexels.com/@jane',
                 description: 'Un portrait',
                 averageColor: '#AABBCC'
             }
         ];
 
-        let photosRecues: PhotoReference[] | undefined;
+        let photosRecues: ReferenceImage[] | undefined;
 
         service.getPhotos('portrait', 1).subscribe(photos => {
             photosRecues = photos;

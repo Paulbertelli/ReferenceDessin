@@ -1,9 +1,9 @@
 namespace ReferenceDessin.Application.Photos;
 
-public interface IPhotoProvider
+public interface IPexelsPhotoProvider
 {
-    Task<IReadOnlyCollection<PhotoReference>> GetPhotosAsync(
-        string? query,
+    Task<IReadOnlyCollection<ReferenceImage>> SearchAsync(
+        string? searchTerm,
         int count,
         CancellationToken cancellationToken = default);
 }

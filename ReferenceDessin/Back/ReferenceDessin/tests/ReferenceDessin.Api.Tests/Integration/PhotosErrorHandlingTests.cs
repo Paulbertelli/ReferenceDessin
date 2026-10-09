@@ -14,13 +14,13 @@ public sealed class PhotosErrorHandlingTests(
     PhotosApiFactory factory)
     : IClassFixture<PhotosApiFactory>
 {
-    private readonly HttpClient client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateClient();
 
     [Fact]
     public async Task GetPhotos_WhenPexelsFails_ReturnsProblemDetails()
     {
         // Act
-        using var response = await client.GetAsync(
+        using var response = await _client.GetAsync(
             "/api/photos?query=portrait&count=10");
 
         // Assert
@@ -84,20 +84,20 @@ public sealed class PhotosApiFactory
 
         builder.ConfigureTestServices(services =>
         {
-            services.RemoveAll<IPhotoProvider>();
+            services.RemoveAll<IPexelsPhotoProvider>();
 
             services.AddSingleton<
-                IPhotoProvider,
-                FailingPhotoProvider>();
+                IPexelsPhotoProvider,
+                FailingPexelsPhotoProvider>();
         });
     }
 
-    private sealed class FailingPhotoProvider
-        : IPhotoProvider
+    private sealed class FailingPexelsPhotoProvider
+        : IPexelsPhotoProvider
     {
-        public Task<IReadOnlyCollection<PhotoReference>>
-            GetPhotosAsync(
-                string? query,
+        public Task<IReadOnlyCollection<ReferenceImage>>
+            SearchAsync(
+                string? searchTerm,
                 int count,
                 CancellationToken cancellationToken = default)
         {

@@ -4,9 +4,9 @@ namespace ReferenceDessin.Infrastructure.Pexels;
 
 internal sealed record PexelsSearchResponse(
     [property: JsonPropertyName("photos")]
-    IReadOnlyCollection<PexelsApiModels> Photos);
+    IReadOnlyCollection<PexelsPhoto> Photos);
 
-internal sealed record PexelsApiModels(
+internal sealed record PexelsPhoto(
     [property: JsonPropertyName("id")]
     long Id,
 
