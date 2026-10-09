@@ -1,8 +1,16 @@
-import { Component, computed, HostListener, OnDestroy, inject, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  HostListener,
+  inject,
+  OnDestroy,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+
 import { ReferenceImage } from './features/drawing-session/reference-image';
-import { ReferenceImageApi } from './features/drawing-session/reference-image-api';
 import {
   LucideChevronLeft,
   LucideChevronRight,
@@ -10,9 +18,9 @@ import {
   LucideMaximize2,
   LucideX,
 } from '@lucide/angular';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Timer } from './features/drawing-session/timer/timer';
 import { AuthenticationStore } from './features/account/authentication-store';
+import { DrawingSessionStore } from './features/drawing-session/drawing-session-store';
 import { NotificationBanner } from './shared/notification/notification-banner';
 import { AccountDeletionConfirmation } from './features/account/account-deletion-confirmation/account-deletion-confirmation';
 
@@ -33,23 +41,25 @@ import { AccountDeletionConfirmation } from './features/account/account-deletion
   templateUrl: './app.html',
 })
 export class App implements OnDestroy {
-  private readonly referenceImageApi = inject(ReferenceImageApi);
   protected readonly authenticationStore = inject(AuthenticationStore);
+  protected readonly drawingSessionStore = inject(DrawingSessionStore);
+  protected readonly photos = this.drawingSessionStore.images;
+
+  protected readonly currentIndex = this.drawingSessionStore.currentIndex;
+
+  protected readonly loading = this.drawingSessionStore.loading;
+
+  protected readonly error = this.drawingSessionStore.error;
+
+  protected readonly currentPhoto = this.drawingSessionStore.currentImage;
 
   protected readonly confirmationSuppressionCompteOuverte = signal(false);
 
-  protected readonly photos = signal<ReferenceImage[]>([]);
-  protected readonly currentIndex = signal(0);
-  protected readonly loading = signal(false);
-  protected readonly error = signal('');
-
   protected searchQuery = '';
-
-  protected readonly currentPhoto = computed(() => this.photos()[this.currentIndex()] ?? null);
 
   constructor() {
     this.authenticationStore.loadAccount();
-    this.loadPhotos();
+    this.drawingSessionStore.search();
   }
 
   protected openAccountDeletionConfirmation(): void {
@@ -67,24 +77,26 @@ export class App implements OnDestroy {
   }
 
   protected search(): void {
-    this.loadPhotos(this.searchQuery);
+    this.drawingSessionStore.search(this.searchQuery);
   }
 
   protected previous(): void {
-    if (this.currentIndex() === 0) {
+    if (!this.drawingSessionStore.hasPrevious()) {
       return;
     }
 
-    this.selectPhoto(this.currentIndex() - 1);
+    this.drawingSessionStore.selectPrevious();
+    this.loadSelectedImage();
     this.restartTimerForCurrentPhoto();
   }
 
   protected next(): void {
-    if (this.currentIndex() >= this.photos().length - 1) {
+    if (!this.drawingSessionStore.hasNext()) {
       return;
     }
 
-    this.selectPhoto(this.currentIndex() + 1);
+    this.drawingSessionStore.selectNext();
+    this.loadSelectedImage();
     this.restartTimerForCurrentPhoto();
   }
 
@@ -99,48 +111,29 @@ export class App implements OnDestroy {
     }
   }
 
-  private loadPhotos(query: string = ''): void {
-    this.loading.set(true);
-    this.error.set('');
+  private readonly imagesChangedEffect = effect(() => {
+    const images = this.drawingSessionStore.images();
+
+    untracked(() => {
+      this.handleImagesChanged(images);
+    });
+  });
+
+  private handleImagesChanged(images: ReferenceImage[]): void {
     this.imageRequestId++;
 
-    this.referenceImageApi
-      .searchImages(query)
-      .pipe(finalize(() => this.loading.set(false)))
-      .subscribe({
-        next: (photos) => {
-          this.photos.set(photos);
-          this.currentIndex.set(0);
+    this.displayedPhoto.set(null);
+    this.displayedIndex.set(0);
+    this.imageLoading.set(false);
+    this.imageError.set(false);
 
-          this.displayedPhoto.set(null);
-          this.displayedIndex.set(0);
+    this.preloadedImages.clear();
+    this.resetTimer();
 
-          this.imageLoading.set(false);
-          this.imageError.set(false);
-
-          this.preloadedImages.clear();
-          this.resetTimer();
-
-          if (photos.length === 0) {
-            this.error.set('Aucune photo trouvée pour cette recherche.');
-
-            return;
-          }
-
-          this.loadSelectedImage();
-        },
-        error: (response: HttpErrorResponse) => {
-          const detail = response.error?.detail;
-
-          this.error.set(
-            typeof detail === 'string' && detail.trim().length > 0
-              ? detail
-              : 'Impossible de récupérer les photos.',
-          );
-        },
-      });
+    if (images.length > 0) {
+      this.loadSelectedImage();
+    }
   }
-
   // Logique chronomètre
 
   private timerId?: ReturnType<typeof setInterval>;
@@ -215,15 +208,14 @@ export class App implements OnDestroy {
   }
 
   private moveToNextPhotoAutomatically(): void {
-    const hasNextPhoto = this.currentIndex() < this.photos().length - 1;
-
-    if (!hasNextPhoto) {
+    if (!this.drawingSessionStore.hasNext()) {
       this.remainingSeconds.set(0);
       this.stopTimer();
       return;
     }
 
-    this.selectPhoto(this.currentIndex() + 1);
+    this.drawingSessionStore.selectNext();
+    this.loadSelectedImage();
     this.remainingSeconds.set(this.getDurationInSeconds());
   }
 
@@ -294,15 +286,6 @@ export class App implements OnDestroy {
 
   private readonly preloadedImages = new Map<string, HTMLImageElement>();
 
-  private selectPhoto(index: number): void {
-    if (index < 0 || index >= this.photos().length) {
-      return;
-    }
-
-    this.currentIndex.set(index);
-    this.loadSelectedImage();
-  }
-
   private loadSelectedImage(): void {
     const photo = this.currentPhoto();
 
@@ -363,7 +346,7 @@ export class App implements OnDestroy {
   }
 
   private preloadNextImage(currentIndex: number): void {
-    const nextPhoto = this.photos()[currentIndex + 1];
+    const nextPhoto = this.drawingSessionStore.images()[currentIndex + 1];
 
     if (!nextPhoto || this.preloadedImages.has(nextPhoto.imageUrl)) {
       return;
@@ -398,7 +381,7 @@ export class App implements OnDestroy {
   }
 
   protected skipCurrentImage(): void {
-    if (this.currentIndex() < this.photos().length - 1) {
+    if (this.drawingSessionStore.hasNext()) {
       this.next();
     }
   }
