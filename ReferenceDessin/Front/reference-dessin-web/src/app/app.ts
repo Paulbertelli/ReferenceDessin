@@ -3,18 +3,24 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { ReferenceImage } from './core/models/reference-image.model';
 import { PhotoService } from './core/services/photo.service';
-import { LucideChevronLeft, LucideChevronRight, LucideSearch, LucideMaximize2, LucideX } from '@lucide/angular';
+import {
+  LucideChevronLeft,
+  LucideChevronRight,
+  LucideSearch,
+  LucideMaximize2,
+  LucideX,
+} from '@lucide/angular';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Timer } from './features/drawing-session/timer/timer';
 import { EtatAuthentificationService } from './core/services/etat-authentification.service';
-import { NotificationComposant } from './shared/composants/notification/notification';
+import { NotificationBanner } from './shared/notification/notification-banner';
 import { AccountDeletionConfirmation } from './features/account/account-deletion-confirmation/account-deletion-confirmation';
 
 @Component({
   imports: [
     FormsModule,
     Timer,
-    NotificationComposant,
+    NotificationBanner,
     LucideChevronLeft,
     LucideChevronRight,
     LucideSearch,
