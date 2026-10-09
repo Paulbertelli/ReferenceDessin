@@ -12,7 +12,7 @@ import {
 } from '@lucide/angular';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Timer } from './features/drawing-session/timer/timer';
-import { EtatAuthentificationService } from './core/services/etat-authentification.service';
+import { AuthenticationStore } from './features/account/authentication-store';
 import { NotificationBanner } from './shared/notification/notification-banner';
 import { AccountDeletionConfirmation } from './features/account/account-deletion-confirmation/account-deletion-confirmation';
 
@@ -33,9 +33,8 @@ import { AccountDeletionConfirmation } from './features/account/account-deletion
   templateUrl: './app.html',
 })
 export class App implements OnDestroy {
-  // Logique chargement images, précèdent/suivant
   private readonly photoService = inject(PhotoService);
-  protected readonly etatAuthentificationService = inject(EtatAuthentificationService);
+  protected readonly authenticationStore = inject(AuthenticationStore);
 
   protected readonly confirmationSuppressionCompteOuverte = signal(false);
 
@@ -49,22 +48,22 @@ export class App implements OnDestroy {
   protected readonly currentPhoto = computed(() => this.photos()[this.currentIndex()] ?? null);
 
   constructor() {
-    this.etatAuthentificationService.chargerCompte();
+    this.authenticationStore.loadAccount();
     this.loadPhotos();
   }
 
-  protected ouvrirConfirmationSuppressionCompte(): void {
+  protected openAccountDeletionConfirmation(): void {
     this.confirmationSuppressionCompteOuverte.set(true);
   }
 
-  protected annulerSuppressionCompte(): void {
+  protected cancelAccountDeletion(): void {
     this.confirmationSuppressionCompteOuverte.set(false);
   }
 
-  protected confirmerSuppressionCompte(): void {
+  protected confirmAccountDeletion(): void {
     this.confirmationSuppressionCompteOuverte.set(false);
 
-    this.etatAuthentificationService.supprimerCompte();
+    this.authenticationStore.deleteAccount();
   }
 
   protected search(): void {

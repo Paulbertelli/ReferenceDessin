@@ -29,42 +29,35 @@
     </button>
   </form>
 
-  @if (etatAuthentificationService.etat(); as etatAuthentification) {
-    @switch (etatAuthentification.statut) {
-      @case ('chargement') {
+  @if (authenticationStore.state(); as authenticationState) {
+    @switch (authenticationState.status) {
+      @case ('loading') {
         <p>Chargement du compte…</p>
       }
 
-      @case ('connecte') {
+      @case ('signedIn') {
         <div class="compte-connecte">
           <span>
-            {{ etatAuthentification.compte.nomAffiche }}
+            {{ authenticationState.account.displayName }}
           </span>
-          <button type="button" (click)="etatAuthentificationService.deconnecter()">
-            Se déconnecter
-          </button>
-          <button
-            type="button"
-            class="supprimer-compte"
-            (click)="ouvrirConfirmationSuppressionCompte()"
-          >
-            Supprimer mon compte
-          </button>
+
+          <button type="button" (click)="authenticationStore.signOut()">Se déconnecter</button>
         </div>
       }
-      @case ('deconnexion') {
+
+      @case ('signingOut') {
         <button type="button" disabled>Déconnexion…</button>
       }
 
-      @case ('deconnecte') {
+      @case ('signedOut') {
         <a href="/api/auth/google"> Se connecter avec Google </a>
       }
 
-      @case ('erreur') {
+      @case ('error') {
         <p>Compte indisponible</p>
       }
 
-      @case ('suppression') {
+      @case ('deleting') {
         <p>Suppression du compte…</p>
       }
     }
@@ -73,8 +66,8 @@
 
 @if (confirmationSuppressionCompteOuverte()) {
   <app-account-deletion-confirmation
-    (confirmationRequested)="confirmerSuppressionCompte()"
-    (cancellationRequested)="annulerSuppressionCompte()"
+    (confirmationRequested)="confirmAccountDeletion()"
+    (cancellationRequested)="cancelAccountDeletion()"
   />
 }
 
