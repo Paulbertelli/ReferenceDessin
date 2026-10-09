@@ -1,8 +1,8 @@
 import { Component, computed, HostListener, OnDestroy, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { ReferenceImage } from './core/models/reference-image.model';
-import { PhotoService } from './core/services/photo.service';
+import { ReferenceImage } from './features/drawing-session/reference-image';
+import { ReferenceImageApi } from './features/drawing-session/reference-image-api';
 import {
   LucideChevronLeft,
   LucideChevronRight,
@@ -33,7 +33,7 @@ import { AccountDeletionConfirmation } from './features/account/account-deletion
   templateUrl: './app.html',
 })
 export class App implements OnDestroy {
-  private readonly photoService = inject(PhotoService);
+  private readonly referenceImageApi = inject(ReferenceImageApi);
   protected readonly authenticationStore = inject(AuthenticationStore);
 
   protected readonly confirmationSuppressionCompteOuverte = signal(false);
@@ -104,8 +104,8 @@ export class App implements OnDestroy {
     this.error.set('');
     this.imageRequestId++;
 
-    this.photoService
-      .getPhotos(query)
+    this.referenceImageApi
+      .searchImages(query)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (photos) => {
