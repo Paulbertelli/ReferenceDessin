@@ -3,15 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { ReferenceImage } from './core/models/reference-image.model';
 import { PhotoService } from './core/services/photo.service';
-import {
-  LucideChevronLeft,
-  LucideChevronRight,
-  LucideSearch,
-  LucideMaximize2,
-  LucideX
-} from '@lucide/angular';
+import { LucideChevronLeft, LucideChevronRight, LucideSearch, LucideMaximize2, LucideX } from '@lucide/angular';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MinuteurComponent } from './features/seance-dessin/minuteur/minuteur';
+import { Timer } from './features/drawing-session/timer/timer';
 import { EtatAuthentificationService } from './core/services/etat-authentification.service';
 import { NotificationComposant } from './shared/composants/notification/notification';
 import { ConfirmationSuppressionCompte } from './features/compte/confirmation-suppression-compte/confirmation-suppression-compte';
@@ -19,21 +13,20 @@ import { ConfirmationSuppressionCompte } from './features/compte/confirmation-su
 @Component({
   imports: [
     FormsModule,
-    MinuteurComponent,
+    Timer,
     NotificationComposant,
     LucideChevronLeft,
     LucideChevronRight,
     LucideSearch,
     LucideMaximize2,
     LucideX,
-    ConfirmationSuppressionCompte
+    ConfirmationSuppressionCompte,
   ],
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
 export class App implements OnDestroy {
-  
   // Logique chargement images, précèdent/suivant
   private readonly photoService = inject(PhotoService);
   protected readonly etatAuthentificationService = inject(EtatAuthentificationService);
@@ -47,9 +40,7 @@ export class App implements OnDestroy {
 
   protected searchQuery = '';
 
-  protected readonly currentPhoto = computed(
-    () => this.photos()[this.currentIndex()] ?? null
-  );
+  protected readonly currentPhoto = computed(() => this.photos()[this.currentIndex()] ?? null);
 
   constructor() {
     this.etatAuthentificationService.chargerCompte();
@@ -112,7 +103,7 @@ export class App implements OnDestroy {
       .getPhotos(query)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: photos => {
+        next: (photos) => {
           this.photos.set(photos);
           this.currentIndex.set(0);
 
@@ -126,9 +117,7 @@ export class App implements OnDestroy {
           this.resetTimer();
 
           if (photos.length === 0) {
-            this.error.set(
-              'Aucune photo trouvée pour cette recherche.'
-            );
+            this.error.set('Aucune photo trouvée pour cette recherche.');
 
             return;
           }
@@ -141,13 +130,13 @@ export class App implements OnDestroy {
           this.error.set(
             typeof detail === 'string' && detail.trim().length > 0
               ? detail
-              : 'Impossible de récupérer les photos.'
+              : 'Impossible de récupérer les photos.',
           );
-        }
+        },
       });
   }
 
-  // Logique chronomètre 
+  // Logique chronomètre
 
   private timerId?: ReturnType<typeof setInterval>;
 
@@ -162,9 +151,7 @@ export class App implements OnDestroy {
       .toString()
       .padStart(2, '0');
 
-    const seconds = (remaining % 60)
-      .toString()
-      .padStart(2, '0');
+    const seconds = (remaining % 60).toString().padStart(2, '0');
 
     return `${minutes}:${seconds}`;
   });
@@ -176,10 +163,7 @@ export class App implements OnDestroy {
       return 0;
     }
 
-    return Math.max(
-      0,
-      Math.min(100, (this.remainingSeconds() / total) * 100)
-    );
+    return Math.max(0, Math.min(100, (this.remainingSeconds() / total) * 100));
   });
 
   protected toggleTimer(): void {
@@ -208,7 +192,7 @@ export class App implements OnDestroy {
 
     this.timerId = setInterval(() => {
       if (this.remainingSeconds() > 1) {
-        this.remainingSeconds.update(value => value - 1);
+        this.remainingSeconds.update((value) => value - 1);
         return;
       }
 
@@ -226,8 +210,7 @@ export class App implements OnDestroy {
   }
 
   private moveToNextPhotoAutomatically(): void {
-    const hasNextPhoto =
-      this.currentIndex() < this.photos().length - 1;
+    const hasNextPhoto = this.currentIndex() < this.photos().length - 1;
 
     if (!hasNextPhoto) {
       this.remainingSeconds.set(0);
@@ -246,10 +229,7 @@ export class App implements OnDestroy {
       return 120;
     }
 
-    const safeDuration = Math.min(
-      60,
-      Math.max(0.1, duration)
-    );
+    const safeDuration = Math.min(60, Math.max(0.1, duration));
 
     return Math.round(safeDuration * 60);
   }
@@ -260,7 +240,6 @@ export class App implements OnDestroy {
 
   @HostListener('window:keydown', ['$event'])
   protected handleKeyboard(event: KeyboardEvent): void {
-
     if (event.key === 'Escape' && this.imageExpanded()) {
       this.closeImageOverlay();
       return;
@@ -286,7 +265,7 @@ export class App implements OnDestroy {
     }
   }
 
-  // Expenssion de l'image 
+  // Expenssion de l'image
 
   protected readonly imageExpanded = signal(false);
 
@@ -300,7 +279,7 @@ export class App implements OnDestroy {
     this.imageExpanded.set(false);
   }
 
-  // état pour le chargement 
+  // état pour le chargement
   protected readonly displayedPhoto = signal<ReferenceImage | null>(null);
   protected readonly displayedIndex = signal(0);
   protected readonly imageLoading = signal(false);
@@ -308,9 +287,8 @@ export class App implements OnDestroy {
 
   private imageRequestId = 0;
 
-  private readonly preloadedImages =
-    new Map<string, HTMLImageElement>();
-  
+  private readonly preloadedImages = new Map<string, HTMLImageElement>();
+
   private selectPhoto(index: number): void {
     if (index < 0 || index >= this.photos().length) {
       return;
@@ -320,7 +298,6 @@ export class App implements OnDestroy {
     this.loadSelectedImage();
   }
 
-  
   private loadSelectedImage(): void {
     const photo = this.currentPhoto();
 
@@ -383,10 +360,7 @@ export class App implements OnDestroy {
   private preloadNextImage(currentIndex: number): void {
     const nextPhoto = this.photos()[currentIndex + 1];
 
-    if (
-      !nextPhoto ||
-      this.preloadedImages.has(nextPhoto.imageUrl)
-    ) {
+    if (!nextPhoto || this.preloadedImages.has(nextPhoto.imageUrl)) {
       return;
     }
 
@@ -423,6 +397,4 @@ export class App implements OnDestroy {
       this.next();
     }
   }
-
-  
 }

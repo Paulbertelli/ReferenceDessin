@@ -219,14 +219,14 @@
     <svg lucideChevronLeft [size]="22" aria-hidden="true"></svg>
   </button>
 
-  <app-minuteur
-    [(dureeMinutes)]="durationMinutes"
-    [enCours]="timerRunning()"
-    [desactive]="!displayedPhoto()"
-    [tempsFormate]="formattedTime()"
-    [progression]="timerProgress()"
-    (demandeLecturePause)="toggleTimer()"
-    (demandeReinitialisation)="resetTimer()"
+  <app-timer
+    [(durationMinutes)]="durationMinutes"
+    [running]="timerRunning()"
+    [disabled]="!displayedPhoto()"
+    [formattedTime]="formattedTime()"
+    [progress]="timerProgress()"
+    (toggleRequested)="toggleTimer()"
+    (resetRequested)="resetTimer()"
   />
 
   <button
