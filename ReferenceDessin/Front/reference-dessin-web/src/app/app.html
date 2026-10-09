@@ -1,22 +1,13 @@
 <app-notification />
 
 <header class="header">
-  
   <a class="brand" href="/" aria-label="Référence Dessin — Accueil">
-    <img
-      class="brand-logo"
-      src="/logo-32.png?v=2"
-      width="32"
-      height="32"
-      alt=""
-    >
+    <img class="brand-logo" src="/logo-32.png?v=2" width="32" height="32" alt="" />
     <span>Référence Dessin</span>
   </a>
 
   <form class="search" (ngSubmit)="search()">
-    <label class="sr-only" for="search-query">
-      Rechercher un thème
-    </label>
+    <label class="sr-only" for="search-query"> Rechercher un thème </label>
 
     <input
       id="search-query"
@@ -25,7 +16,7 @@
       [(ngModel)]="searchQuery"
       placeholder="Portrait, animal, architecture…"
       autocomplete="off"
-    >
+    />
 
     <button
       type="submit"
@@ -34,14 +25,10 @@
       aria-label="Rechercher"
       title="Rechercher"
     >
-      <svg
-        lucideSearch
-        [size]="20"
-        aria-hidden="true"
-      ></svg>
+      <svg lucideSearch [size]="20" aria-hidden="true"></svg>
     </button>
   </form>
-  
+
   @if (etatAuthentificationService.etat(); as etatAuthentification) {
     @switch (etatAuthentification.statut) {
       @case ('chargement') {
@@ -56,21 +43,21 @@
           <button type="button" (click)="etatAuthentificationService.deconnecter()">
             Se déconnecter
           </button>
-          <button type="button" class="supprimer-compte" (click)="ouvrirConfirmationSuppressionCompte()">
+          <button
+            type="button"
+            class="supprimer-compte"
+            (click)="ouvrirConfirmationSuppressionCompte()"
+          >
             Supprimer mon compte
           </button>
         </div>
       }
       @case ('deconnexion') {
-        <button type="button" disabled>
-          Déconnexion…
-        </button>
+        <button type="button" disabled>Déconnexion…</button>
       }
 
       @case ('deconnecte') {
-        <a href="/api/auth/google">
-          Se connecter avec Google
-        </a>
+        <a href="/api/auth/google"> Se connecter avec Google </a>
       }
 
       @case ('erreur') {
@@ -91,11 +78,7 @@
   />
 }
 
-<main
-  class="workspace"
-  [attr.aria-busy]="loading() || imageLoading()"
-  aria-live="polite"
->
+<main class="workspace" [attr.aria-busy]="loading() || imageLoading()" aria-live="polite">
   @if (loading()) {
     <div class="state">
       <span class="spinner" aria-hidden="true"></span>
@@ -120,7 +103,7 @@
             [src]="photo.imageUrl"
             [alt]="photo.description"
             draggable="false"
-          >
+          />
         </button>
 
         <button
@@ -130,11 +113,7 @@
           aria-label="Afficher l’image en plein écran"
           title="Agrandir"
         >
-          <svg
-            lucideMaximize2
-            [size]="18"
-            aria-hidden="true"
-          ></svg>
+          <svg lucideMaximize2 [size]="18" aria-hidden="true"></svg>
         </button>
 
         @if (imageLoading()) {
@@ -149,20 +128,10 @@
             <p>Cette image n’a pas pu être chargée.</p>
 
             <div class="image-error-actions">
-              <button
-                type="button"
-                (click)="retryCurrentImage()"
-              >
-                Réessayer
-              </button>
+              <button type="button" (click)="retryCurrentImage()">Réessayer</button>
 
               @if (currentIndex() < photos().length - 1) {
-                <button
-                  type="button"
-                  (click)="skipCurrentImage()"
-                >
-                  Image suivante
-                </button>
+                <button type="button" (click)="skipCurrentImage()">Image suivante</button>
               }
             </div>
           </div>
@@ -171,27 +140,28 @@
 
       <figcaption>
         <span class="photo-credit">
-          Photo par
-          <a
-            [href]="photo.photographerUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {{ photo.photographer }}
-          </a>
-          sur
-          <a
-            [href]="photo.pexelsUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Pexels
+          @if (photo.authorName) {
+            <span>Image par </span>
+
+            @if (photo.authorUrl) {
+              <a [href]="photo.authorUrl" target="_blank" rel="noopener noreferrer">
+                {{ photo.authorName }}
+              </a>
+            } @else {
+              <span>{{ photo.authorName }}</span>
+            }
+
+            <span> sur </span>
+          } @else {
+            <span>Image provenant de </span>
+          }
+
+          <a [href]="photo.originalUrl" target="_blank" rel="noopener noreferrer">
+            {{ photo.sourceName }}
           </a>
         </span>
 
-        <span class="photo-counter">
-          {{ displayedIndex() + 1 }} / {{ photos().length }}
-        </span>
+        <span class="photo-counter"> {{ displayedIndex() + 1 }} / {{ photos().length }} </span>
       </figcaption>
     </figure>
   } @else if (imageLoading()) {
@@ -203,13 +173,7 @@
     <div class="state state-error">
       <p>Cette image n’a pas pu être chargée.</p>
 
-      <button
-        type="button"
-        class="state-action"
-        (click)="retryCurrentImage()"
-      >
-        Réessayer
-      </button>
+      <button type="button" class="state-action" (click)="retryCurrentImage()">Réessayer</button>
     </div>
   }
 </main>
@@ -229,11 +193,7 @@
       aria-label="Fermer l’image agrandie"
       title="Fermer"
     >
-      <svg
-        lucideX
-        [size]="24"
-        aria-hidden="true"
-      ></svg>
+      <svg lucideX [size]="24" aria-hidden="true"></svg>
     </button>
 
     <div class="overlay-content">
@@ -242,7 +202,7 @@
         [alt]="photo.description"
         draggable="false"
         (click)="$event.stopPropagation()"
-      >
+      />
     </div>
   </div>
 }
@@ -256,21 +216,17 @@
     aria-label="Image précédente"
     title="Image précédente"
   >
-    <svg
-      lucideChevronLeft
-      [size]="22"
-      aria-hidden="true"
-    ></svg>
+    <svg lucideChevronLeft [size]="22" aria-hidden="true"></svg>
   </button>
 
   <app-minuteur
-  [(dureeMinutes)]="durationMinutes"
-  [enCours]="timerRunning()"
-  [desactive]="!displayedPhoto()"
-  [tempsFormate]="formattedTime()"
-  [progression]="timerProgress()"
-  (demandeLecturePause)="toggleTimer()"
-  (demandeReinitialisation)="resetTimer()"
+    [(dureeMinutes)]="durationMinutes"
+    [enCours]="timerRunning()"
+    [desactive]="!displayedPhoto()"
+    [tempsFormate]="formattedTime()"
+    [progression]="timerProgress()"
+    (demandeLecturePause)="toggleTimer()"
+    (demandeReinitialisation)="resetTimer()"
   />
 
   <button
@@ -281,10 +237,6 @@
     aria-label="Image suivante"
     title="Image suivante"
   >
-    <svg
-      lucideChevronRight
-      [size]="22"
-      aria-hidden="true"
-    ></svg>
+    <svg lucideChevronRight [size]="22" aria-hidden="true"></svg>
   </button>
 </footer>

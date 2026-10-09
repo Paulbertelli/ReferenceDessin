@@ -63,7 +63,7 @@ public static class DependencyInjection
                 "La clé API Pexels est absente.")
             .ValidateOnStart();
 
-        services.AddHttpClient<IPhotoProvider, PexelsClient>(
+        services.AddHttpClient<IPexelsPhotoProvider, PexelsClient>(
             (serviceProvider, client) =>
             {
                 var options = serviceProvider

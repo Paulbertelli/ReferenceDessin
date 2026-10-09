@@ -1,46 +1,47 @@
 using Microsoft.AspNetCore.Mvc;
 using ReferenceDessin.Api.Controllers;
 using ReferenceDessin.Application.Photos;
-using ReferenceDessin.Application.Photos.GetPhotos;
+using ReferenceDessin.Application.Photos.SearchPexelsPhotos;
 
 namespace ReferenceDessin.Api.Tests.Controllers;
 
 public sealed class PhotosControllerTests
 {
     [Fact]
-    public async Task Get_WhenRequestIsValid_ReturnsPhotos()
+    public async Task Get_WhenRequestIsValid_ReturnsImages()
     {
         // Arrange
-        IReadOnlyCollection<PhotoReference> expectedPhotos =
+        IReadOnlyCollection<ReferenceImage> expectedImages =
         [
-            new PhotoReference(
-                Id: 123,
+            new ReferenceImage(
+                ExternalId: "123",
                 ImageUrl: "https://images.example/photo.jpeg",
-                PexelsUrl: "https://www.pexels.com/photo/123",
-                Photographer: "Jane Doe",
-                PhotographerUrl: "https://www.pexels.com/@jane",
+                SourceName: "Pexels",
+                OriginalUrl: "https://www.pexels.com/photo/123",
+                AuthorName: "Jane Doe",
+                AuthorUrl: "https://www.pexels.com/@jane",
                 Description: "Un portrait",
                 AverageColor: "#AABBCC")
         ];
 
-        var photoProvider = new StubPhotoProvider
+        var pexelsPhotoProvider = new StubPexelsPhotoProvider
         {
-            PhotosToReturn = expectedPhotos
+            ImagesToReturn = expectedImages
         };
 
-        var handler = new GetPhotosHandler(photoProvider);
+        var handler = new SearchPexelsPhotosHandler(pexelsPhotoProvider);
         var controller = new PhotosController(handler);
 
         // Act
         var result = await controller.Get(
-            query: "portrait",
+            searchTerm: "portrait",
             count: 20);
 
         // Assert
         var okResult =
             Assert.IsType<OkObjectResult>(result.Result);
 
-        Assert.Same(expectedPhotos, okResult.Value);
+        Assert.Same(expectedImages, okResult.Value);
     }
 
     [Theory]
@@ -50,13 +51,13 @@ public sealed class PhotosControllerTests
         int invalidCount)
     {
         // Arrange
-        var photoProvider = new StubPhotoProvider();
-        var handler = new GetPhotosHandler(photoProvider);
+        var pexelsPhotoProvider = new StubPexelsPhotoProvider();
+        var handler = new SearchPexelsPhotosHandler(pexelsPhotoProvider);
         var controller = new PhotosController(handler);
 
         // Act
         var result = await controller.Get(
-            query: null,
+            searchTerm: null,
             count: invalidCount);
 
         // Assert
@@ -69,20 +70,20 @@ public sealed class PhotosControllerTests
             badRequest.Value);
     }
 
-    private sealed class StubPhotoProvider : IPhotoProvider
+    private sealed class StubPexelsPhotoProvider : IPexelsPhotoProvider
     {
-        public IReadOnlyCollection<PhotoReference> PhotosToReturn
+        public IReadOnlyCollection<ReferenceImage> ImagesToReturn
         {
             get;
             init;
         } = [];
 
-        public Task<IReadOnlyCollection<PhotoReference>> GetPhotosAsync(
-            string? query,
+        public Task<IReadOnlyCollection<ReferenceImage>> SearchAsync(
+            string? searchTerm,
             int count,
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(PhotosToReturn);
+            return Task.FromResult(ImagesToReturn);
         }
     }
 }

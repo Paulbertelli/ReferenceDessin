@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { PhotoReference } from '../models/photo-reference.model';
+import { ReferenceImage } from '../models/reference-image.model';
 
 @Injectable({
     providedIn: 'root'
@@ -13,7 +13,7 @@ export class PhotoService {
     getPhotos(
         query: string = '',
         count: number = 30
-    ): Observable<PhotoReference[]> {
+    ): Observable<ReferenceImage[]> {
         let params = new HttpParams()
             .set('count', count);
 
@@ -23,7 +23,7 @@ export class PhotoService {
             params = params.set('query', normalizedQuery);
         }
 
-        return this.httpClient.get<PhotoReference[]>(
+        return this.httpClient.get<ReferenceImage[]>(
             this.apiUrl,
             { params }
         );

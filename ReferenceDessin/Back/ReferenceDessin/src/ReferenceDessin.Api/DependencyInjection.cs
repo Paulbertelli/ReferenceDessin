@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using ReferenceDessin.Api.ErrorHandling;
-using ReferenceDessin.Application.Photos.GetPhotos;
+using ReferenceDessin.Application.Photos.SearchPexelsPhotos;
 
 namespace ReferenceDessin.Api;
 
@@ -24,7 +24,7 @@ public static class DependencyInjection
 
         services.AddAuthorization();
         
-        services.AddScoped<GetPhotosHandler>();
+        services.AddScoped<SearchPexelsPhotosHandler>();
 
         return services;
     }

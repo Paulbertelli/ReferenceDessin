@@ -1,18 +1,19 @@
+using System.Globalization;
 using System.Net.Http.Json;
 using ReferenceDessin.Application.Photos;
 
 namespace ReferenceDessin.Infrastructure.Pexels;
 
-public sealed class PexelsClient(HttpClient httpClient) : IPhotoProvider
+public sealed class PexelsClient(HttpClient httpClient) : IPexelsPhotoProvider
 {
-    public async Task<IReadOnlyCollection<PhotoReference>> GetPhotosAsync(
-        string? query,
+    public async Task<IReadOnlyCollection<ReferenceImage>> SearchAsync(
+        string? searchTerm,
         int count,
         CancellationToken cancellationToken = default)
     {
-        var endpoint = string.IsNullOrWhiteSpace(query)
+        var endpoint = string.IsNullOrWhiteSpace(searchTerm)
             ? $"curated?per_page={count}"
-            : $"search?query={Uri.EscapeDataString(query.Trim())}" +
+            : $"search?query={Uri.EscapeDataString(searchTerm.Trim())}" +
               $"&locale=fr-FR&per_page={count}";
 
         var response = await httpClient.GetAsync(
@@ -32,14 +33,16 @@ public sealed class PexelsClient(HttpClient httpClient) : IPhotoProvider
 
         return result.Photos
             .OrderBy(_ => Random.Shared.Next())
-            .Select(photo => new PhotoReference(
-                photo.Id,
-                photo.Sources.Large2X,
-                photo.Url,
-                photo.Photographer,
-                photo.PhotographerUrl,
-                photo.Alt,
-                photo.AverageColor))
+            .Select(image => new ReferenceImage(
+                ExternalId: image.Id.ToString(
+                    CultureInfo.InvariantCulture),
+                ImageUrl: image.Sources.Large2X,
+                SourceName: "Pexels",
+                OriginalUrl: image.Url,
+                AuthorName: image.Photographer,
+                AuthorUrl: image.PhotographerUrl,
+                Description: image.Alt,
+                AverageColor: image.AverageColor))
             .ToArray();
     }
 }

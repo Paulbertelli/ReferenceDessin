@@ -1,9 +1,9 @@
 using ReferenceDessin.Application.Photos;
-using ReferenceDessin.Application.Photos.GetPhotos;
+using ReferenceDessin.Application.Photos.SearchPexelsPhotos;
 
-namespace ReferenceDessin.Application.Tests.Photos.GetPhotos;
+namespace ReferenceDessin.Application.Tests.Photos.SearchPexelsPhotos;
 
-public sealed class GetPhotosHandlerTests
+public sealed class SearchPexelsPhotosHandlerTests
 {
     [Theory]
     [InlineData(-1)]
@@ -14,10 +14,10 @@ public sealed class GetPhotosHandlerTests
         int invalidCount)
     {
         // Arrange
-        var photoProvider = new StubPhotoProvider();
-        var handler = new GetPhotosHandler(photoProvider);
+        var pexelsPhotoProvider = new StubPexelsPhotoProvider();
+        var handler = new SearchPexelsPhotosHandler(pexelsPhotoProvider);
 
-        var query = new GetPhotosQuery(
+        var query = new SearchPexelsPhotosQuery(
             SearchTerm: "portrait",
             Count: invalidCount);
 
@@ -27,10 +27,10 @@ public sealed class GetPhotosHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(
-            GetPhotosError.InvalidCount,
+            SearchPexelsPhotosError.InvalidCount,
             result.Error);
-        Assert.Empty(result.Photos);
-        Assert.Equal(0, photoProvider.CallCount);
+        Assert.Empty(result.Images);
+        Assert.Equal(0, pexelsPhotoProvider.CallCount);
     }
 
     [Theory]
@@ -40,10 +40,10 @@ public sealed class GetPhotosHandlerTests
         int count)
     {
         // Arrange
-        var photoProvider = new StubPhotoProvider();
-        var handler = new GetPhotosHandler(photoProvider);
+        var pexelsPhotoProvider = new StubPexelsPhotoProvider();
+        var handler = new SearchPexelsPhotosHandler(pexelsPhotoProvider);
 
-        var query = new GetPhotosQuery(
+        var query = new SearchPexelsPhotosQuery(
             SearchTerm: "portrait",
             Count: count);
 
@@ -52,22 +52,22 @@ public sealed class GetPhotosHandlerTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(GetPhotosError.None, result.Error);
-        Assert.Equal(1, photoProvider.CallCount);
-        Assert.Equal(count, photoProvider.ReceivedCount);
+        Assert.Equal(SearchPexelsPhotosError.None, result.Error);
+        Assert.Equal(1, pexelsPhotoProvider.CallCount);
+        Assert.Equal(count, pexelsPhotoProvider.ReceivedCount);
     }
 
     [Fact]
     public async Task HandleAsync_WhenSearchTermHasSpaces_NormalizesIt()
     {
         // Arrange
-        var photoProvider = new StubPhotoProvider();
-        var handler = new GetPhotosHandler(photoProvider);
+        var pexelsPhotoProvider = new StubPexelsPhotoProvider();
+        var handler = new SearchPexelsPhotosHandler(pexelsPhotoProvider);
 
         using var cancellationSource =
             new CancellationTokenSource();
 
-        var query = new GetPhotosQuery(
+        var query = new SearchPexelsPhotosQuery(
             SearchTerm: "  chat noir  ",
             Count: 15);
 
@@ -77,11 +77,11 @@ public sealed class GetPhotosHandlerTests
             cancellationSource.Token);
 
         // Assert
-        Assert.Equal("chat noir", photoProvider.ReceivedSearchTerm);
-        Assert.Equal(15, photoProvider.ReceivedCount);
+        Assert.Equal("chat noir", pexelsPhotoProvider.ReceivedSearchTerm);
+        Assert.Equal(15, pexelsPhotoProvider.ReceivedCount);
         Assert.Equal(
             cancellationSource.Token,
-            photoProvider.ReceivedCancellationToken);
+            pexelsPhotoProvider.ReceivedCancellationToken);
     }
 
     [Theory]
@@ -92,10 +92,10 @@ public sealed class GetPhotosHandlerTests
         string? searchTerm)
     {
         // Arrange
-        var photoProvider = new StubPhotoProvider();
-        var handler = new GetPhotosHandler(photoProvider);
+        var pexelsPhotoProvider = new StubPexelsPhotoProvider();
+        var handler = new SearchPexelsPhotosHandler(pexelsPhotoProvider);
 
-        var query = new GetPhotosQuery(
+        var query = new SearchPexelsPhotosQuery(
             SearchTerm: searchTerm,
             Count: 30);
 
@@ -103,33 +103,34 @@ public sealed class GetPhotosHandlerTests
         await handler.HandleAsync(query);
 
         // Assert
-        Assert.Null(photoProvider.ReceivedSearchTerm);
+        Assert.Null(pexelsPhotoProvider.ReceivedSearchTerm);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenProviderReturnsPhotos_ReturnsThem()
+    public async Task HandleAsync_WhenPexelsProviderReturnsImages_ReturnsThem()
     {
         // Arrange
-        IReadOnlyCollection<PhotoReference> expectedPhotos =
+        IReadOnlyCollection<ReferenceImage> expectedImages =
         [
-            new PhotoReference(
-                Id: 123,
+            new ReferenceImage(
+                ExternalId: "123",
                 ImageUrl: "https://images.example/photo.jpeg",
-                PexelsUrl: "https://www.pexels.com/photo/123",
-                Photographer: "Jane Doe",
-                PhotographerUrl: "https://www.pexels.com/@jane",
+                SourceName: "Pexels",
+                OriginalUrl: "https://www.pexels.com/photo/123",
+                AuthorName: "Jane Doe",
+                AuthorUrl: "https://www.pexels.com/@jane",
                 Description: "Un portrait",
                 AverageColor: "#AABBCC")
         ];
 
-        var photoProvider = new StubPhotoProvider
+        var pexelsPhotoProvider = new StubPexelsPhotoProvider
         {
-            PhotosToReturn = expectedPhotos
+            ImagesToReturn = expectedImages
         };
 
-        var handler = new GetPhotosHandler(photoProvider);
+        var handler = new SearchPexelsPhotosHandler(pexelsPhotoProvider);
 
-        var query = new GetPhotosQuery(
+        var query = new SearchPexelsPhotosQuery(
             SearchTerm: "portrait",
             Count: 30);
 
@@ -138,12 +139,12 @@ public sealed class GetPhotosHandlerTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Same(expectedPhotos, result.Photos);
+        Assert.Same(expectedImages, result.Images);
     }
 
-    private sealed class StubPhotoProvider : IPhotoProvider
+    private sealed class StubPexelsPhotoProvider : IPexelsPhotoProvider
     {
-        public IReadOnlyCollection<PhotoReference> PhotosToReturn
+        public IReadOnlyCollection<ReferenceImage> ImagesToReturn
         {
             get;
             init;
@@ -161,17 +162,17 @@ public sealed class GetPhotosHandlerTests
             private set;
         }
 
-        public Task<IReadOnlyCollection<PhotoReference>> GetPhotosAsync(
-            string? query,
+        public Task<IReadOnlyCollection<ReferenceImage>> SearchAsync(
+            string? searchTerm,
             int count,
             CancellationToken cancellationToken = default)
         {
             CallCount++;
-            ReceivedSearchTerm = query;
+            ReceivedSearchTerm = searchTerm;
             ReceivedCount = count;
             ReceivedCancellationToken = cancellationToken;
 
-            return Task.FromResult(PhotosToReturn);
+            return Task.FromResult(ImagesToReturn);
         }
     }
 }

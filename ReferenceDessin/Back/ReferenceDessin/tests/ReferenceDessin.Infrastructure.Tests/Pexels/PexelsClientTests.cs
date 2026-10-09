@@ -7,7 +7,7 @@ namespace ReferenceDessin.Infrastructure.Tests.Pexels;
 public sealed class PexelsClientTests
 {
     [Fact]
-    public async Task GetPhotosAsync_WhenQueryIsEmpty_CallsCuratedEndpoint()
+    public async Task SearchAsync_WhenSearchTermIsEmpty_CallsCuratedEndpoint()
     {
         // Arrange
         Uri? requestedUri = null;
@@ -27,8 +27,8 @@ public sealed class PexelsClientTests
         var client = new PexelsClient(httpClient);
 
         // Act
-        var photos = await client.GetPhotosAsync(
-            query: null,
+        var photos = await client.SearchAsync(
+            searchTerm: null,
             count: 15);
 
         // Assert
@@ -40,7 +40,7 @@ public sealed class PexelsClientTests
     }
 
     [Fact]
-    public async Task GetPhotosAsync_WhenQueryIsProvided_CallsSearchEndpoint()
+    public async Task SearchAsync_WhenSearchTermIsProvided_CallsSearchEndpoint()
     {
         // Arrange
         Uri? requestedUri = null;
@@ -60,8 +60,8 @@ public sealed class PexelsClientTests
         var client = new PexelsClient(httpClient);
 
         // Act
-        await client.GetPhotosAsync(
-            query: "  chat noir  ",
+        await client.SearchAsync(
+            searchTerm: "  chat noir  ",
             count: 12);
 
         // Assert
@@ -72,7 +72,7 @@ public sealed class PexelsClientTests
     }
 
     [Fact]
-    public async Task GetPhotosAsync_WhenResponseIsValid_MapsPhoto()
+    public async Task SearchAsync_WhenResponseIsValid_MapsReferenceImage()
     {
         // Arrange
         using var httpClient = CreateHttpClient(_ =>
@@ -98,30 +98,31 @@ public sealed class PexelsClientTests
         var client = new PexelsClient(httpClient);
 
         // Act
-        var photos = await client.GetPhotosAsync(
-            query: "chat",
+        var photos = await client.SearchAsync(
+            searchTerm: "chat",
             count: 1);
 
         // Assert
         var photo = Assert.Single(photos);
 
-        Assert.Equal(123, photo.Id);
+        Assert.Equal("123", photo.ExternalId);
         Assert.Equal(
             "https://images.pexels.com/photo-123.jpeg",
             photo.ImageUrl);
+        Assert.Equal("Pexels", photo.SourceName);
         Assert.Equal(
             "https://www.pexels.com/photo/123",
-            photo.PexelsUrl);
-        Assert.Equal("Jane Doe", photo.Photographer);
+            photo.OriginalUrl);
+        Assert.Equal("Jane Doe", photo.AuthorName);
         Assert.Equal(
             "https://www.pexels.com/@jane",
-            photo.PhotographerUrl);
+            photo.AuthorUrl);
         Assert.Equal("Un chat noir", photo.Description);
         Assert.Equal("#AABBCC", photo.AverageColor);
     }
 
     [Fact]
-    public async Task GetPhotosAsync_WhenPexelsReturnsError_ThrowsHttpRequestException()
+    public async Task SearchAsync_WhenPexelsReturnsError_ThrowsHttpRequestException()
     {
         // Arrange
         using var httpClient = CreateHttpClient(_ =>
@@ -131,8 +132,8 @@ public sealed class PexelsClientTests
 
         // Act
         var action = async () =>
-            await client.GetPhotosAsync(
-                query: "portrait",
+            await client.SearchAsync(
+                searchTerm: "portrait",
                 count: 10);
 
         // Assert
@@ -140,7 +141,7 @@ public sealed class PexelsClientTests
     }
 
     [Fact]
-    public async Task GetPhotosAsync_WhenResponseIsNull_ReturnsEmptyCollection()
+    public async Task SearchAsync_WhenResponseIsNull_ReturnsEmptyCollection()
     {
         // Arrange
         using var httpClient = CreateHttpClient(_ =>
@@ -149,8 +150,8 @@ public sealed class PexelsClientTests
         var client = new PexelsClient(httpClient);
 
         // Act
-        var photos = await client.GetPhotosAsync(
-            query: null,
+        var photos = await client.SearchAsync(
+            searchTerm: null,
             count: 10);
 
         // Assert

@@ -1,19 +1,19 @@
-namespace ReferenceDessin.Application.Photos.GetPhotos;
+namespace ReferenceDessin.Application.Photos.SearchPexelsPhotos;
 
-public sealed class GetPhotosHandler(
-    IPhotoProvider photoProvider)
+public sealed class SearchPexelsPhotosHandler(
+    IPexelsPhotoProvider pexelsPhotoProvider)
 {
     public const int MinimumCount = 1;
     public const int MaximumCount = 80;
 
-    public async Task<GetPhotosResult> HandleAsync(
-        GetPhotosQuery query,
+    public async Task<SearchPexelsPhotosResult> HandleAsync(
+        SearchPexelsPhotosQuery query,
         CancellationToken cancellationToken = default)
     {
         if (query.Count is < MinimumCount or > MaximumCount)
         {
-            return GetPhotosResult.Failure(
-                GetPhotosError.InvalidCount);
+            return SearchPexelsPhotosResult.Failure(
+                SearchPexelsPhotosError.InvalidCount);
         }
 
         var normalizedSearchTerm =
@@ -21,11 +21,11 @@ public sealed class GetPhotosHandler(
                 ? null
                 : query.SearchTerm.Trim();
 
-        var photos = await photoProvider.GetPhotosAsync(
+        var images = await pexelsPhotoProvider.SearchAsync(
             normalizedSearchTerm,
             query.Count,
             cancellationToken);
 
-        return GetPhotosResult.Success(photos);
+        return SearchPexelsPhotosResult.Success(images);
     }
 }
