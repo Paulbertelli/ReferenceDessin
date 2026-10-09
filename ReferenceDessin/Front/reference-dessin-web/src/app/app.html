@@ -72,9 +72,9 @@
 </header>
 
 @if (confirmationSuppressionCompteOuverte()) {
-  <app-confirmation-suppression-compte
-    (annuler)="annulerSuppressionCompte()"
-    (confirmer)="confirmerSuppressionCompte()"
+  <app-account-deletion-confirmation
+    (confirmationRequested)="confirmerSuppressionCompte()"
+    (cancellationRequested)="annulerSuppressionCompte()"
   />
 }
 

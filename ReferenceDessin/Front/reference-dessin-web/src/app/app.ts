@@ -8,7 +8,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Timer } from './features/drawing-session/timer/timer';
 import { EtatAuthentificationService } from './core/services/etat-authentification.service';
 import { NotificationComposant } from './shared/composants/notification/notification';
-import { ConfirmationSuppressionCompte } from './features/compte/confirmation-suppression-compte/confirmation-suppression-compte';
+import { AccountDeletionConfirmation } from './features/account/account-deletion-confirmation/account-deletion-confirmation';
 
 @Component({
   imports: [
@@ -20,7 +20,7 @@ import { ConfirmationSuppressionCompte } from './features/compte/confirmation-su
     LucideSearch,
     LucideMaximize2,
     LucideX,
-    ConfirmationSuppressionCompte,
+    AccountDeletionConfirmation,
   ],
   selector: 'app-root',
   styleUrl: './app.scss',
