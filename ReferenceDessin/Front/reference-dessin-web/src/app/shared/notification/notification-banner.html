@@ -1,0 +1,26 @@
+@if (notificationStore.notification(); as notification) {
+  <aside
+    class="notification"
+    [class.notification--error]="notification.type === 'error'"
+    [class.notification--success]="notification.type === 'success'"
+    [class.notification--info]="notification.type === 'info'"
+    [attr.role]="notification.type === 'error' ? 'alert' : 'status'"
+    [attr.aria-live]="notification.type === 'error' ? 'assertive' : 'polite'"
+  >
+    <span class="notification__indicator" aria-hidden="true"></span>
+
+    <p class="notification__message">
+      {{ notification.message }}
+    </p>
+
+    <button
+      type="button"
+      class="notification__close"
+      (click)="clear()"
+      aria-label="Fermer la notification"
+      title="Fermer"
+    >
+      ×
+    </button>
+  </aside>
+}

@@ -27,28 +27,28 @@
   box-shadow: 0 12px 35px rgb(0 0 0 / 35%);
 
   pointer-events: auto;
-  animation: notification-apparition 160ms ease-out;
+  animation: notification-appearance 160ms ease-out;
 }
 
-.notification--erreur {
+.notification--error {
   --notification-color: #ff8f8f;
   --notification-background: #2a1718;
   --notification-border: #653336;
 }
 
-.notification--succes {
+.notification--success {
   --notification-color: #a4db72;
   --notification-background: #182619;
   --notification-border: #3c603d;
 }
 
-.notification--information {
+.notification--info {
   --notification-color: #75a7ff;
   --notification-background: #17202c;
   --notification-border: #30445d;
 }
 
-.notification__indicateur {
+.notification__indicator {
   width: 5px;
   height: 100%;
   min-height: 32px;
@@ -63,7 +63,7 @@
   line-height: 1.4;
 }
 
-.notification__fermeture {
+.notification__close {
   width: 32px;
   height: 32px;
   display: grid;
@@ -93,7 +93,7 @@
   }
 }
 
-@keyframes notification-apparition {
+@keyframes notification-appearance {
   from {
     opacity: 0;
     transform: translateY(-8px);
