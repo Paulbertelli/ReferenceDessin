@@ -1,5 +1,6 @@
 using ReferenceDessin.Application.Pinterest;
 using ReferenceDessin.Application.Pinterest.ListPinterestBoards;
+using ReferenceDessin.Application.Pinterest.ListPinterestBoardSections;
 
 namespace ReferenceDessin.Application.Tests.Pinterest.ListPinterestBoards;
 
@@ -66,6 +67,15 @@ public sealed class ListPinterestBoardsHandlerTests
             ReceivedCancellationToken = cancellationToken;
 
             return Task.FromResult(BoardsToReturn);
+        }
+        
+        public Task<IReadOnlyCollection<PinterestBoardSection>>
+            GetBoardSectionsAsync(
+                string boardId,
+                CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<
+                IReadOnlyCollection<PinterestBoardSection>>([]);
         }
     }
 }

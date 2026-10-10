@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using ReferenceDessin.Application.Pinterest;
-using ReferenceDessin.Application.Pinterest.ListPinterestBoards;
+using ReferenceDessin.Application.Pinterest.ListPinterestBoardSections;
 
 namespace ReferenceDessin.Infrastructure.Pinterest;
 
@@ -63,5 +63,54 @@ public sealed class PinterestClient(HttpClient httpClient)
 
         return endpoint +
                $"&bookmark={Uri.EscapeDataString(bookmark)}";
+    }
+    
+    public async Task<IReadOnlyCollection<PinterestBoardSection>>
+        GetBoardSectionsAsync(
+            string boardId,
+            CancellationToken cancellationToken = default)
+    {
+        var sections = new List<PinterestBoardSection>();
+        string? bookmark = null;
+
+        do
+        {
+            var endpoint =
+                $"boards/{Uri.EscapeDataString(boardId)}/sections" +
+                "?page_size=100";
+
+            if (!string.IsNullOrWhiteSpace(bookmark))
+            {
+                endpoint +=
+                    $"&bookmark={Uri.EscapeDataString(bookmark)}";
+            }
+
+            var response = await httpClient.GetAsync(
+                endpoint,
+                cancellationToken);
+
+            response.EnsureSuccessStatusCode();
+
+            var result =
+                await response.Content
+                    .ReadFromJsonAsync<PinterestBoardSectionsResponse>(
+                        cancellationToken);
+
+            if (result is null)
+            {
+                break;
+            }
+
+            sections.AddRange(
+                result.Items.Select(section =>
+                    new PinterestBoardSection(
+                        section.Id,
+                        section.Name)));
+
+            bookmark = result.Bookmark;
+        }
+        while (!string.IsNullOrWhiteSpace(bookmark));
+
+        return sections;
     }
 }

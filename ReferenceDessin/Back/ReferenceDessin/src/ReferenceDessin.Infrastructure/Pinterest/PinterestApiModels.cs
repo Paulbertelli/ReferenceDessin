@@ -18,3 +18,17 @@ internal sealed record PinterestBoardResponse(
 
     [property: JsonPropertyName("description")]
     string? Description);
+    
+internal sealed record PinterestBoardSectionsResponse(
+    [property: JsonPropertyName("items")]
+    IReadOnlyCollection<PinterestBoardSectionResponse> Items,
+
+    [property: JsonPropertyName("bookmark")]
+    string? Bookmark);
+
+internal sealed record PinterestBoardSectionResponse(
+    [property: JsonPropertyName("id")]
+    string Id,
+
+    [property: JsonPropertyName("name")]
+    string Name);

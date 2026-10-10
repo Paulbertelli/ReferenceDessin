@@ -187,4 +187,120 @@ public sealed class PinterestClientTests
                 responseFactory(request));
         }
     }
+    
+    [Fact]
+    public async Task GetBoardSectionsAsync_WhenResponseIsValid_MapsSections()
+    {
+        // Arrange
+        Uri? requestedUri = null;
+
+        using var httpClient = CreateHttpClient(request =>
+        {
+            requestedUri = request.RequestUri;
+
+            return CreateJsonResponse(
+                """
+                {
+                  "items": [
+                    {
+                      "id": "section-123",
+                      "name": "Portraits"
+                    }
+                  ],
+                  "bookmark": null
+                }
+                """);
+        });
+
+        var client = new PinterestClient(httpClient);
+
+        // Act
+        var sections = await client.GetBoardSectionsAsync(
+            "board-456");
+
+        // Assert
+        var section = Assert.Single(sections);
+
+        Assert.Equal("section-123", section.Id);
+        Assert.Equal("Portraits", section.Name);
+
+        Assert.Equal(
+            "https://api.pinterest.com/v5/" +
+            "boards/board-456/sections?page_size=100",
+            requestedUri?.AbsoluteUri);
+    }
+    
+    [Fact]
+    public async Task GetBoardSectionsAsync_WhenBookmarkExists_LoadsNextPage()
+    {
+        // Arrange
+        var requestedUris = new List<string>();
+
+        using var httpClient = CreateHttpClient(request =>
+        {
+            requestedUris.Add(request.RequestUri!.AbsoluteUri);
+
+            if (requestedUris.Count == 1)
+            {
+                return CreateJsonResponse(
+                    """
+                    {
+                      "items": [
+                        {
+                          "id": "section-1",
+                          "name": "Portraits"
+                        }
+                      ],
+                      "bookmark": "next page"
+                    }
+                    """);
+            }
+
+            return CreateJsonResponse(
+                """
+                {
+                  "items": [
+                    {
+                      "id": "section-2",
+                      "name": "Animaux"
+                    }
+                  ],
+                  "bookmark": null
+                }
+                """);
+        });
+
+        var client = new PinterestClient(httpClient);
+
+        // Act
+        var sections = await client.GetBoardSectionsAsync(
+            "board/123");
+
+        // Assert
+        Assert.Collection(
+            sections,
+            section =>
+            {
+                Assert.Equal("section-1", section.Id);
+                Assert.Equal("Portraits", section.Name);
+            },
+            section =>
+            {
+                Assert.Equal("section-2", section.Id);
+                Assert.Equal("Animaux", section.Name);
+            });
+
+        Assert.Equal(2, requestedUris.Count);
+
+        Assert.Equal(
+            "https://api.pinterest.com/v5/" +
+            "boards/board%2F123/sections?page_size=100",
+            requestedUris[0]);
+
+        Assert.Equal(
+            "https://api.pinterest.com/v5/" +
+            "boards/board%2F123/sections?page_size=100" +
+            "&bookmark=next%20page",
+            requestedUris[1]);
+    }
 }
