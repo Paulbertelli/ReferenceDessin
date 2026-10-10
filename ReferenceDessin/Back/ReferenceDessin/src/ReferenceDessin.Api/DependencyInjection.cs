@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using ReferenceDessin.Api.Configuration;
 using ReferenceDessin.Api.ErrorHandling;
 using ReferenceDessin.Application.Photos.SearchPexelsPhotos;
 using ReferenceDessin.Application.Pinterest.GetPinterestReferenceImages;
@@ -31,6 +32,10 @@ public static class DependencyInjection
         services.AddScoped<ListPinterestBoardsHandler>();
         services.AddScoped<ListPinterestBoardSectionsHandler>();
         services.AddScoped<GetPinterestReferenceImagesHandler>();
+        
+        services
+            .AddOptions<PinterestFeatureOptions>()
+            .BindConfiguration(PinterestFeatureOptions.SectionName);
 
         return services;
     }
