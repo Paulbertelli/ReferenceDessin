@@ -116,5 +116,13 @@ public sealed class ListPinterestBoardSectionsHandlerTests
 
             return Task.FromResult(SectionsToReturn);
         }
+        
+        public Task<IReadOnlyCollection<PinterestPin>> GetBoardPinsAsync(
+            string boardId,
+            string? sectionId = null,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<IReadOnlyCollection<PinterestPin>>([]);
+        }
     }
 }

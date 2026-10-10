@@ -303,4 +303,98 @@ public sealed class PinterestClientTests
             "&bookmark=next%20page",
             requestedUris[1]);
     }
+    
+    [Fact]
+    public async Task GetBoardPinsAsync_WhenResponseIsValid_MapsPins()
+    {
+        // Arrange
+        Uri? requestedUri = null;
+
+        using var httpClient = CreateHttpClient(request =>
+        {
+            requestedUri = request.RequestUri;
+
+            return CreateJsonResponse(
+                """
+                {
+                  "items": [
+                    {
+                      "id": "pin-123",
+                      "title": "Portrait",
+                      "description": "Portrait au crayon",
+                      "media": {
+                        "images": {
+                          "small": {
+                            "url": "https://images.example/small.jpg",
+                            "width": 150,
+                            "height": 150
+                          },
+                          "large": {
+                            "url": "https://images.example/large.jpg",
+                            "width": 1200,
+                            "height": 1600
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "bookmark": null
+                }
+                """);
+        });
+
+        var client = new PinterestClient(httpClient);
+
+        // Act
+        var pins = await client.GetBoardPinsAsync("board-123");
+
+        // Assert
+        var pin = Assert.Single(pins);
+
+        Assert.Equal("pin-123", pin.Id);
+        Assert.Equal("Portrait", pin.Title);
+        Assert.Equal("Portrait au crayon", pin.Description);
+
+        Assert.Equal(
+            "https://www.pinterest.com/pin/pin-123/",
+            pin.OriginalUrl);
+
+        Assert.Equal(
+            "https://images.example/large.jpg",
+            pin.ImageUrl);
+
+        Assert.Equal(
+            "https://api.pinterest.com/v5/" +
+            "boards/board-123/pins?page_size=100",
+            requestedUri?.AbsoluteUri);
+    }
+    
+    [Fact]
+    public async Task GetBoardPinsAsync_WhenPinHasNoImage_IgnoresIt()
+    {
+        // Arrange
+        using var httpClient = CreateHttpClient(_ =>
+            CreateJsonResponse(
+                """
+                {
+                  "items": [
+                    {
+                      "id": "pin-without-image",
+                      "title": "Vidéo",
+                      "description": null,
+                      "media": null
+                    }
+                  ],
+                  "bookmark": null
+                }
+                """));
+
+        var client = new PinterestClient(httpClient);
+
+        // Act
+        var pins = await client.GetBoardPinsAsync("board-123");
+
+        // Assert
+        Assert.Empty(pins);
+    }
 }

@@ -45,8 +45,7 @@ public sealed class PinterestClient(HttpClient httpClient)
             bookmark = string.IsNullOrWhiteSpace(page.Bookmark)
                 ? null
                 : page.Bookmark;
-        }
-        while (bookmark is not null);
+        } while (bookmark is not null);
 
         return boards;
     }
@@ -64,7 +63,7 @@ public sealed class PinterestClient(HttpClient httpClient)
         return endpoint +
                $"&bookmark={Uri.EscapeDataString(bookmark)}";
     }
-    
+
     public async Task<IReadOnlyCollection<PinterestBoardSection>>
         GetBoardSectionsAsync(
             string boardId,
@@ -108,9 +107,82 @@ public sealed class PinterestClient(HttpClient httpClient)
                         section.Name)));
 
             bookmark = result.Bookmark;
-        }
-        while (!string.IsNullOrWhiteSpace(bookmark));
+        } while (!string.IsNullOrWhiteSpace(bookmark));
 
         return sections;
+    }
+
+    public async Task<IReadOnlyCollection<PinterestPin>> GetBoardPinsAsync(
+        string boardId,
+        string? sectionId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var pins = new List<PinterestPin>();
+        string? bookmark = null;
+
+        do
+        {
+            var escapedBoardId = Uri.EscapeDataString(boardId);
+
+            var endpoint = string.IsNullOrWhiteSpace(sectionId)
+                ? $"boards/{escapedBoardId}/pins?page_size=100"
+                : $"boards/{escapedBoardId}/sections/" +
+                  $"{Uri.EscapeDataString(sectionId)}/pins?page_size=100";
+
+            if (!string.IsNullOrWhiteSpace(bookmark))
+            {
+                endpoint +=
+                    $"&bookmark={Uri.EscapeDataString(bookmark)}";
+            }
+
+            var response = await httpClient.GetAsync(
+                endpoint,
+                cancellationToken);
+
+            response.EnsureSuccessStatusCode();
+
+            var result =
+                await response.Content.ReadFromJsonAsync<PinterestPinsResponse>(
+                    cancellationToken);
+
+            if (result is null)
+            {
+                break;
+            }
+
+            foreach (var pin in result.Items)
+            {
+                var imageUrl = SelectLargestImageUrl(pin.Media);
+
+                if (imageUrl is null)
+                {
+                    continue;
+                }
+
+                pins.Add(
+                    new PinterestPin(
+                        Id: pin.Id,
+                        Title: pin.Title,
+                        Description: pin.Description,
+                        OriginalUrl:
+                        $"https://www.pinterest.com/pin/{pin.Id}/",
+                        ImageUrl: imageUrl));
+            }
+
+            bookmark = result.Bookmark;
+        } while (!string.IsNullOrWhiteSpace(bookmark));
+
+        return pins;
+    }
+
+    private static string? SelectLargestImageUrl(
+        PinterestPinMediaResponse? media)
+    {
+        return media?.Images?
+            .Values
+            .Where(image => !string.IsNullOrWhiteSpace(image.Url))
+            .OrderByDescending(image => (long)image.Width * image.Height)
+            .Select(image => image.Url)
+            .FirstOrDefault();
     }
 }

@@ -12,4 +12,9 @@ public interface IPinterestCatalog
         GetBoardSectionsAsync(
             string boardId,
             CancellationToken cancellationToken = default);
+    
+    Task<IReadOnlyCollection<PinterestPin>> GetBoardPinsAsync(
+        string boardId,
+        string? sectionId = null,
+        CancellationToken cancellationToken = default);
 }

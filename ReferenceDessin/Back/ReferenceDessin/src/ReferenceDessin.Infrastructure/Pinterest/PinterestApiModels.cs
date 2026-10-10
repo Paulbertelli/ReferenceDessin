@@ -32,3 +32,37 @@ internal sealed record PinterestBoardSectionResponse(
 
     [property: JsonPropertyName("name")]
     string Name);
+    
+internal sealed record PinterestPinsResponse(
+    [property: JsonPropertyName("items")]
+    IReadOnlyCollection<PinterestPinResponse> Items,
+
+    [property: JsonPropertyName("bookmark")]
+    string? Bookmark);
+
+internal sealed record PinterestPinResponse(
+    [property: JsonPropertyName("id")]
+    string Id,
+
+    [property: JsonPropertyName("title")]
+    string? Title,
+
+    [property: JsonPropertyName("description")]
+    string? Description,
+
+    [property: JsonPropertyName("media")]
+    PinterestPinMediaResponse? Media);
+
+internal sealed record PinterestPinMediaResponse(
+    [property: JsonPropertyName("images")]
+    IReadOnlyDictionary<string, PinterestImageResponse>? Images);
+
+internal sealed record PinterestImageResponse(
+    [property: JsonPropertyName("url")]
+    string Url,
+
+    [property: JsonPropertyName("width")]
+    int Width,
+
+    [property: JsonPropertyName("height")]
+    int Height);
