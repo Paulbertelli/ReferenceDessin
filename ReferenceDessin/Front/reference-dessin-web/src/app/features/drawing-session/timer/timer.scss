@@ -68,44 +68,6 @@
   }
 }
 
-.icon-button {
-  width: 42px;
-  height: 42px;
-  display: inline-grid;
-  place-items: center;
-  flex-shrink: 0;
-  padding: 0;
-  border: 1px solid var(--border-strong);
-  border-radius: 9px;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-  transition:
-    background-color 140ms ease,
-    border-color 140ms ease,
-    color 140ms ease,
-    transform 100ms ease;
-
-  &:hover:not(:disabled) {
-    border-color: #5b625b;
-    background: var(--surface-hover);
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.95);
-  }
-
-  &:focus-visible {
-    outline: 3px solid rgb(201 255 85 / 25%);
-    outline-offset: 2px;
-  }
-
-  &:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-}
-
 .primary-action {
   border-color: var(--accent);
   background: var(--accent);
