@@ -16,8 +16,8 @@ public sealed class GetPinterestReferenceImagesHandlerTests
         var handler = new GetPinterestReferenceImagesHandler(catalog);
 
         var query = new GetPinterestReferenceImagesQuery(
-            BoardId: boardId,
-            SectionId: null);
+            boardId,
+            null);
 
         var result = await handler.HandleAsync(query);
 
@@ -39,8 +39,8 @@ public sealed class GetPinterestReferenceImagesHandlerTests
             new CancellationTokenSource();
 
         var query = new GetPinterestReferenceImagesQuery(
-            BoardId: "  board-123  ",
-            SectionId: "  section-456  ");
+            "  board-123  ",
+            "  section-456  ");
 
         await handler.HandleAsync(
             query,
@@ -64,8 +64,8 @@ public sealed class GetPinterestReferenceImagesHandlerTests
         var handler = new GetPinterestReferenceImagesHandler(catalog);
 
         var query = new GetPinterestReferenceImagesQuery(
-            BoardId: "board-123",
-            SectionId: sectionId);
+            "board-123",
+            sectionId);
 
         await handler.HandleAsync(query);
 
@@ -77,14 +77,12 @@ public sealed class GetPinterestReferenceImagesHandlerTests
     {
         IReadOnlyCollection<PinterestPin> pins =
         [
-            new PinterestPin(
-                Id: "pin-123",
-                Title: "Portrait",
-                Description: "Portrait au crayon",
-                OriginalUrl:
-                    "https://www.pinterest.com/pin/pin-123/",
-                ImageUrl:
-                    "https://images.example/portrait.jpg")
+            new(
+                "pin-123",
+                "Portrait",
+                "Portrait au crayon",
+                "https://www.pinterest.com/pin/pin-123/",
+                "https://images.example/portrait.jpg")
         ];
 
         var catalog = new StubPinterestCatalog
@@ -96,8 +94,8 @@ public sealed class GetPinterestReferenceImagesHandlerTests
 
         var result = await handler.HandleAsync(
             new GetPinterestReferenceImagesQuery(
-                BoardId: "board-123",
-                SectionId: null));
+                "board-123",
+                null));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(
@@ -130,13 +128,11 @@ public sealed class GetPinterestReferenceImagesHandlerTests
             PinsToReturn =
             [
                 new PinterestPin(
-                    Id: "pin-123",
-                    Title: "Portrait",
-                    Description: null,
-                    OriginalUrl:
-                        "https://www.pinterest.com/pin/pin-123/",
-                    ImageUrl:
-                        "https://images.example/portrait.jpg")
+                    "pin-123",
+                    "Portrait",
+                    null,
+                    "https://www.pinterest.com/pin/pin-123/",
+                    "https://images.example/portrait.jpg")
             ]
         };
 
@@ -144,8 +140,8 @@ public sealed class GetPinterestReferenceImagesHandlerTests
 
         var result = await handler.HandleAsync(
             new GetPinterestReferenceImagesQuery(
-                BoardId: "board-123",
-                SectionId: null));
+                "board-123",
+                null));
 
         var image = Assert.Single(result.Images);
 
@@ -154,11 +150,7 @@ public sealed class GetPinterestReferenceImagesHandlerTests
 
     private sealed class StubPinterestCatalog : IPinterestCatalog
     {
-        public IReadOnlyCollection<PinterestPin> PinsToReturn
-        {
-            get;
-            init;
-        } = [];
+        public IReadOnlyCollection<PinterestPin> PinsToReturn { get; init; } = [];
 
         public int PinCallCount { get; private set; }
 
@@ -166,11 +158,7 @@ public sealed class GetPinterestReferenceImagesHandlerTests
 
         public string? ReceivedSectionId { get; private set; }
 
-        public CancellationToken ReceivedCancellationToken
-        {
-            get;
-            private set;
-        }
+        public CancellationToken ReceivedCancellationToken { get; private set; }
 
         public Task<IReadOnlyCollection<PinterestBoard>> GetBoardsAsync(
             CancellationToken cancellationToken = default)
@@ -201,5 +189,35 @@ public sealed class GetPinterestReferenceImagesHandlerTests
 
             return Task.FromResult(PinsToReturn);
         }
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenDescriptionIsWhitespace_UsesTitle()
+    {
+        var catalog = new StubPinterestCatalog
+        {
+            PinsToReturn =
+            [
+                new PinterestPin(
+                    "pin-123",
+                    "  Portrait au crayon  ",
+                    "   ",
+                    "https://www.pinterest.com/pin/pin-123/",
+                    "https://images.example/portrait.jpg")
+            ]
+        };
+
+        var handler = new GetPinterestReferenceImagesHandler(catalog);
+
+        var result = await handler.HandleAsync(
+            new GetPinterestReferenceImagesQuery(
+                "board-123",
+                null));
+
+        var image = Assert.Single(result.Images);
+
+        Assert.Equal(
+            "Portrait au crayon",
+            image.Description);
     }
 }

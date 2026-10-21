@@ -29,19 +29,31 @@ public sealed class GetPinterestReferenceImagesHandler(
 
         var images = pins
             .Select(pin => new ReferenceImage(
-                ExternalId: pin.Id,
-                ImageUrl: pin.ImageUrl,
-                SourceName: "Pinterest",
-                OriginalUrl: pin.OriginalUrl,
-                AuthorName: null,
-                AuthorUrl: null,
-                Description:
-                pin.Description
-                ?? pin.Title
-                ?? string.Empty,
-                AverageColor: null))
+                pin.Id,
+                pin.ImageUrl,
+                "Pinterest",
+                pin.OriginalUrl,
+                null,
+                null,
+                GetDescription(pin),
+                null))
             .ToArray();
 
         return GetPinterestReferenceImagesResult.Success(images);
+    }
+
+    private static string GetDescription(PinterestPin pin)
+    {
+        if (!string.IsNullOrWhiteSpace(pin.Description))
+        {
+            return pin.Description.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(pin.Title))
+        {
+            return pin.Title.Trim();
+        }
+
+        return string.Empty;
     }
 }
