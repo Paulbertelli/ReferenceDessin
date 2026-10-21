@@ -26,27 +26,21 @@ public static class DependencyInjection
 
         return services;
     }
-    
-    private static void AddPersistence(
-        this IServiceCollection services,
-        IConfiguration configuration)
+
+    private static void AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = 
+        var connectionString =
             configuration.GetConnectionString("Database")
             ?? throw new InvalidOperationException(
                 "La chaîne de connexion à la base de données est absente.");
 
         services.AddDbContext<ReferenceDessinDbContext>(options => options.UseNpgsql(connectionString));
     }
-    
-    private static void AddApplicationIdentity(
-        this IServiceCollection services)
+
+    private static void AddApplicationIdentity(this IServiceCollection services)
     {
         services
-            .AddIdentityCore<ApplicationUser>(options =>
-            {
-                options.User.RequireUniqueEmail = true;
-            })
+            .AddIdentityCore<ApplicationUser>(options => { options.User.RequireUniqueEmail = true; })
             .AddSignInManager()
             .AddEntityFrameworkStores<ReferenceDessinDbContext>();
     }
@@ -83,7 +77,7 @@ public static class DependencyInjection
                 client.Timeout = TimeSpan.FromSeconds(10);
             });
     }
-    
+
     private static void AddPinterest(
         this IServiceCollection services)
     {
@@ -91,43 +85,59 @@ public static class DependencyInjection
             .AddOptions<PinterestOptions>()
             .BindConfiguration(PinterestOptions.SectionName)
             .Validate(
-                options => Uri.TryCreate(
-                    options.BaseUrl,
-                    UriKind.Absolute,
-                    out _),
-                "L'URL de l'API Pinterest est invalide.")
+                options =>
+                    Uri.TryCreate(
+                        options.BaseUrl,
+                        UriKind.Absolute,
+                        out _),
+                "L’URL de l’API Pinterest est invalide.")
+            .Validate(
+                options =>
+                    Uri.TryCreate(
+                        options.OAuthUrl,
+                        UriKind.Absolute,
+                        out _),
+                "L’URL OAuth de Pinterest est invalide.")
             .Validate(
                 options =>
                     !options.Enabled ||
-                    !string.IsNullOrWhiteSpace(
-                        options.AccessToken),
-                "Le jeton d'accès Pinterest est absent.")
+                    !string.IsNullOrWhiteSpace(options.AppId),
+                "L’identifiant de l’application Pinterest est absent.")
+            .Validate(
+                options =>
+                    !options.Enabled ||
+                    !string.IsNullOrWhiteSpace(options.AppSecret),
+                "Le secret de l’application Pinterest est absent.")
             .ValidateOnStart();
 
-        services.AddHttpClient<
-            IPinterestCatalog,
-            PinterestClient>(
-            (serviceProvider, client) =>
-            {
-                var options = serviceProvider
-                    .GetRequiredService<
-                        IOptions<PinterestOptions>>()
-                    .Value;
+        // Services utilisés pour obtenir et mettre en cache
+        // le jeton OAuth Pinterest.
+        services.AddSingleton(TimeProvider.System);
 
-                client.BaseAddress =
-                    new Uri(options.BaseUrl);
+        services.AddHttpClient(
+            PinterestAccessTokenProvider.HttpClientName,
+            client => { client.Timeout = TimeSpan.FromSeconds(10); });
 
-                if (!string.IsNullOrWhiteSpace(
-                        options.AccessToken))
+        services.AddSingleton<PinterestAccessTokenProvider>();
+        services.AddTransient<PinterestAuthenticationHandler>();
+
+        // Client utilisé pour appeler les tableaux,
+        // sections et épingles.
+        services
+            .AddHttpClient<IPinterestCatalog, PinterestClient>(
+                (serviceProvider, client) =>
                 {
-                    client.DefaultRequestHeaders.Authorization =
-                        new AuthenticationHeaderValue(
-                            "Bearer",
-                            options.AccessToken);
-                }
+                    var options = serviceProvider
+                        .GetRequiredService<
+                            IOptions<PinterestOptions>>()
+                        .Value;
 
-                client.Timeout = TimeSpan.FromSeconds(10);
-            });
+                    client.BaseAddress =
+                        new Uri(options.BaseUrl);
+
+                    client.Timeout =
+                        TimeSpan.FromSeconds(10);
+                })
+            .AddHttpMessageHandler<PinterestAuthenticationHandler>();
     }
-
 }
