@@ -1,3 +1,35 @@
-<main>
-  <h1>collection-list-page</h1>
+<main class="collection-list-page">
+  <header>
+    <h1>Collections</h1>
+
+    <p>Explorez les collections Pinterest disponibles pour préparer votre séance.</p>
+  </header>
+
+  @if (boardsStore.loading()) {
+    <p role="status">Chargement des collections…</p>
+  } @else if (boardsStore.error()) {
+    <section role="alert">
+      <p>{{ boardsStore.error() }}</p>
+
+      <button type="button" (click)="reload()">Réessayer</button>
+    </section>
+  } @else if (boardsStore.boards().length === 0) {
+    <p>Aucune collection Pinterest n’est disponible.</p>
+  } @else {
+    <section class="collection-grid" aria-label="Collections Pinterest">
+      @for (board of boardsStore.boards(); track board.id) {
+        <article class="collection-card">
+          <h2>{{ board.name }}</h2>
+
+          @if (board.description) {
+            <p>{{ board.description }}</p>
+          }
+
+          <a [routerLink]="['/collections', board.id]"> Explorer la collection </a>
+        </article>
+      }
+    </section>
+  }
 </main>
+
+<app-selection-launcher />
