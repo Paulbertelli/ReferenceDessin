@@ -195,6 +195,58 @@ public sealed class PinterestControllerTests
         Assert.Equal("section-456", catalog.ReceivedSectionId);
         Assert.Equal(1, catalog.PinCallCount);
     }
+    
+    [Fact]
+    public async Task GetBoardPreviewImages_WhenCountIsOmitted_UsesFour()
+    {
+        // Arrange
+        var catalog = new StubPinterestCatalog();
+
+        var controller = CreateController(
+            catalog,
+            enabled: true);
+
+        // Act
+        var result = await controller.GetBoardPreviewImages(
+            boardId: "board-123",
+            cancellationToken: CancellationToken.None);
+
+        // Assert
+        Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(4, catalog.ReceivedMaximumCount);
+        Assert.Equal(1, catalog.PinCallCount);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(5)]
+    public async Task GetBoardPreviewImages_WhenCountIsInvalid_ReturnsBadRequest(
+        int count)
+    {
+        // Arrange
+        var catalog = new StubPinterestCatalog();
+
+        var controller = CreateController(
+            catalog,
+            enabled: true);
+
+        // Act
+        var result = await controller.GetBoardPreviewImages(
+            boardId: "board-123",
+            count: count,
+            cancellationToken: CancellationToken.None);
+
+        // Assert
+        var badRequest =
+            Assert.IsType<BadRequestObjectResult>(
+                result.Result);
+
+        Assert.Equal(
+            "Le nombre d’images doit être compris entre 1 et 4.",
+            badRequest.Value);
+
+        Assert.Equal(0, catalog.PinCallCount);
+    }
 
     private static PinterestController CreateController(
         IPinterestCatalog catalog,
@@ -241,6 +293,8 @@ public sealed class PinterestControllerTests
         public string? ReceivedBoardId { get; private set; }
 
         public string? ReceivedSectionId { get; private set; }
+        
+        public int? ReceivedMaximumCount { get; private set; }
 
         public Task<IReadOnlyCollection<PinterestBoard>>
             GetBoardsAsync(
@@ -266,10 +320,12 @@ public sealed class PinterestControllerTests
             GetBoardPinsAsync(
                 string boardId,
                 string? sectionId = null,
+                int? maximumCount = null,
                 CancellationToken cancellationToken = default)
         {
             PinCallCount++;
             ReceivedBoardId = boardId;
+            ReceivedMaximumCount = maximumCount;
             ReceivedSectionId = sectionId;
 
             return Task.FromResult(PinsToReturn);

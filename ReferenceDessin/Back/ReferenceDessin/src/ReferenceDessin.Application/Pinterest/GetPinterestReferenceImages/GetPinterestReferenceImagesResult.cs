@@ -5,7 +5,8 @@ namespace ReferenceDessin.Application.Pinterest.GetPinterestReferenceImages;
 public enum GetPinterestReferenceImagesError
 {
     None,
-    InvalidBoardId
+    InvalidBoardId,
+    InvalidCount
 }
 
 public sealed record GetPinterestReferenceImagesResult(

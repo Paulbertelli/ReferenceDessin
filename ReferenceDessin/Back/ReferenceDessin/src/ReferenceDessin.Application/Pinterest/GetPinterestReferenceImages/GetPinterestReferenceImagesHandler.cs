@@ -17,6 +17,11 @@ public sealed class GetPinterestReferenceImagesHandler(
 
         var boardId = query.BoardId.Trim();
 
+        if (query.MaximumCount is <= 0 or > 4)
+        {
+            return GetPinterestReferenceImagesResult.Failure(GetPinterestReferenceImagesError.InvalidCount);
+        }
+
         var sectionId =
             string.IsNullOrWhiteSpace(query.SectionId)
                 ? null
@@ -25,6 +30,7 @@ public sealed class GetPinterestReferenceImagesHandler(
         var pins = await pinterestCatalog.GetBoardPinsAsync(
             boardId,
             sectionId,
+            maximumCount: query.MaximumCount,
             cancellationToken);
 
         var images = pins

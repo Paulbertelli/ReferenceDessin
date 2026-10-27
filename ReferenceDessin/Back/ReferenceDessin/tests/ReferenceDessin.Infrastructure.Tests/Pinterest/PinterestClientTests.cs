@@ -397,4 +397,57 @@ public sealed class PinterestClientTests
         // Assert
         Assert.Empty(pins);
     }
+    
+    [Fact]
+    public async Task GetBoardPinsAsync_WhenMaximumCountIsProvided_LoadsOnlyOnePage()
+    {
+        // Arrange
+        var requestCount = 0;
+        Uri? requestedUri = null;
+
+        using var httpClient = CreateHttpClient(request =>
+        {
+            requestCount++;
+            requestedUri = request.RequestUri;
+
+            return CreateJsonResponse(
+                """
+                {
+                  "items": [
+                    {
+                      "id": "pin-123",
+                      "title": "Portrait",
+                      "description": "Portrait au crayon",
+                      "media": {
+                        "images": {
+                          "large": {
+                            "url": "https://images.example/large.jpg",
+                            "width": 1200,
+                            "height": 1600
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "bookmark": "next-page"
+                }
+                """);
+        });
+
+        var client = new PinterestClient(httpClient);
+
+        // Act
+        var pins = await client.GetBoardPinsAsync(
+            boardId: "board/123",
+            maximumCount: 4);
+
+        // Assert
+        Assert.Single(pins);
+        Assert.Equal(1, requestCount);
+
+        Assert.Equal(
+            "https://api.pinterest.com/v5/" +
+            "boards/board%2F123/pins?page_size=4",
+            requestedUri?.AbsoluteUri);
+    }
 }

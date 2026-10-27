@@ -16,5 +16,6 @@ public interface IPinterestCatalog
     Task<IReadOnlyCollection<PinterestPin>> GetBoardPinsAsync(
         string boardId,
         string? sectionId = null,
+        int? maximumCount = null,
         CancellationToken cancellationToken = default);
 }
