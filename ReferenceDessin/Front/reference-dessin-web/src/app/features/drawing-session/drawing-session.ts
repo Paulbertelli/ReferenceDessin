@@ -10,8 +10,8 @@ import {
 } from '@angular/core';
 import { LucideChevronLeft, LucideChevronRight, LucideMaximize2, LucideX } from '@lucide/angular';
 import { DrawingSessionStore } from './drawing-session-store';
-import { ReferenceImage } from './reference-image';
 import { Timer } from './timer/timer';
+import { ReferenceImage } from '../../shared/models/reference-image';
 
 @Component({
   selector: 'app-drawing-session',

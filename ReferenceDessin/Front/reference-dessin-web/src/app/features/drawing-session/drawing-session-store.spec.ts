@@ -3,8 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { Observable, Subject } from 'rxjs';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DrawingSessionStore } from './drawing-session-store';
-import { ReferenceImage } from './reference-image';
 import { ReferenceImageApi } from './reference-image-api';
+import { ReferenceImage } from '../../shared/models/reference-image';
 
 describe('DrawingSessionStore', () => {
   let store: DrawingSessionStore;

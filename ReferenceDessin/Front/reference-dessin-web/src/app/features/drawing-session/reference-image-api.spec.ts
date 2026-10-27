@@ -2,8 +2,8 @@ import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ReferenceImage } from './reference-image';
 import { ReferenceImageApi } from './reference-image-api';
+import { ReferenceImage } from '../../shared/models/reference-image';
 
 describe('ReferenceImageApi', () => {
   let api: ReferenceImageApi;

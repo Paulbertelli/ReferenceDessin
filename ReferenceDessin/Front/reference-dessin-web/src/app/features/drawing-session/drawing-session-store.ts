@@ -1,8 +1,8 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
-import { ReferenceImage } from './reference-image';
 import { ReferenceImageApi } from './reference-image-api';
+import { ReferenceImage } from '../../shared/models/reference-image';
 
 @Injectable({
   providedIn: 'root',

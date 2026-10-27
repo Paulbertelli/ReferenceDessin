@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DrawingSession } from './drawing-session';
 import { DrawingSessionStore } from './drawing-session-store';
-import { ReferenceImage } from './reference-image';
+import { ReferenceImage } from '../../shared/models/reference-image';
 
 describe('DrawingSession', () => {
   let fixture: ComponentFixture<DrawingSession>;
