@@ -41,4 +41,17 @@ export class PinterestApi {
       `${this.endpoint}/boards/` + `${encodedBoardId}/sections/` + `${encodedSectionId}/images`,
     );
   }
+
+  getBoardPreviewImages(boardId: string, count: number = 4): Observable<ReferenceImage[]> {
+    const encodedBoardId = encodeURIComponent(boardId);
+
+    return this.httpClient.get<ReferenceImage[]>(
+      `${this.endpoint}/boards/` + `${encodedBoardId}/preview-images`,
+      {
+        params: {
+          count,
+        },
+      },
+    );
+  }
 }

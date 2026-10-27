@@ -15,17 +15,45 @@
     </section>
   } @else if (boardsStore.boards().length === 0) {
     <p>Aucune collection Pinterest n’est disponible.</p>
+  } @else if (displayedBoards().length === 0 && !previewsResolved()) {
+    <p role="status">Chargement des aperçus…</p>
+  } @else if (displayedBoards().length === 0) {
+    <p>Aucune collection contenant des références n’est disponible.</p>
   } @else {
     <section class="collection-grid" aria-label="Collections Pinterest">
-      @for (board of boardsStore.boards(); track board.id) {
+      @for (board of displayedBoards(); track board.id) {
         <article class="collection-card">
-          <h2>{{ board.name }}</h2>
+          <div class="collection-preview" [attr.aria-busy]="previewsStore.isLoading(board.id)">
+            @if (previewsStore.isLoading(board.id)) {
+              <p role="status">Chargement de l’aperçu…</p>
+            } @else if (previewsStore.errorFor(board.id)) {
+              <div class="preview-error">
+                <p>
+                  {{ previewsStore.errorFor(board.id) }}
+                </p>
 
-          @if (board.description) {
-            <p>{{ board.description }}</p>
-          }
+                <button type="button" (click)="reloadPreview(board.id)">Réessayer</button>
+              </div>
+            } @else if (previewsStore.imagesFor(board.id); as previewImages) {
+              @if (previewImages.length > 0) {
+                <div class="preview-grid">
+                  @for (image of previewImages; track image.sourceName + ':' + image.externalId) {
+                    <img [src]="image.imageUrl" [alt]="image.description" loading="lazy" />
+                  }
+                </div>
+              }
+            }
+          </div>
 
-          <a [routerLink]="['/collections', board.id]"> Explorer la collection </a>
+          <div class="collection-content">
+            <h2>{{ board.name }}</h2>
+
+            @if (board.description) {
+              <p>{{ board.description }}</p>
+            }
+
+            <a [routerLink]="['/collections', board.id]"> Explorer la collection </a>
+          </div>
         </article>
       }
     </section>

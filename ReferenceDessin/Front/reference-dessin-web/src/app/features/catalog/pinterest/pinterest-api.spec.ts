@@ -72,6 +72,28 @@ describe('PinterestApi', () => {
     expect(receivedSections).toEqual(expectedSections);
   });
 
+  it('récupère un aperçu limité d’un tableau', () => {
+    const expectedImages = [createImage('1'), createImage('2')];
+
+    let receivedImages: ReferenceImage[] | undefined;
+
+    api.getBoardPreviewImages('board 123', 2).subscribe((images) => {
+      receivedImages = images;
+    });
+
+    const request = httpController.expectOne(
+      (request) =>
+        request.url === '/api/pinterest/boards/' + 'board%20123/preview-images' &&
+        request.params.get('count') === '2',
+    );
+
+    expect(request.request.method).toBe('GET');
+
+    request.flush(expectedImages);
+
+    expect(receivedImages).toEqual(expectedImages);
+  });
+
   it('récupère les références d’un tableau', () => {
     const expectedImages = [createImage('1')];
 
