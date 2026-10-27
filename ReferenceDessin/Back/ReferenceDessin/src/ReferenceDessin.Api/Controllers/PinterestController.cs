@@ -6,9 +6,11 @@ using ReferenceDessin.Application.Pinterest;
 using ReferenceDessin.Application.Pinterest.GetPinterestReferenceImages;
 using ReferenceDessin.Application.Pinterest.ListPinterestBoards;
 using ReferenceDessin.Application.Pinterest.ListPinterestBoardSections;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ReferenceDessin.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/pinterest")]
 public sealed class PinterestController(
