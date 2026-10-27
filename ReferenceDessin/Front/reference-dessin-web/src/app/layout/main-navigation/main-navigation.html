@@ -1,0 +1,24 @@
+<header class="main-header">
+  <a class="brand" routerLink="/" aria-label="Référence Dessin — Accueil">
+    <img src="/logo-32.png?v=2" width="32" height="32" alt="" />
+
+    <span>Référence Dessin</span>
+  </a>
+
+  <nav aria-label="Navigation principale">
+    <a
+      routerLink="/"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      ariaCurrentWhenActive="page"
+    >
+      Accueil
+    </a>
+
+    <a routerLink="/search" routerLinkActive="active" ariaCurrentWhenActive="page"> Rechercher </a>
+
+    <a routerLink="/collections" routerLinkActive="active" ariaCurrentWhenActive="page">
+      Collections
+    </a>
+  </nav>
+</header>

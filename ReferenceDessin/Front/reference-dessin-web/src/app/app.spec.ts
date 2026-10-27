@@ -1,27 +1,45 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { App } from './app';
+import { routes } from './app.routes';
 
 describe('App', () => {
+  let fixture: ComponentFixture<App>;
+  let router: Router;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-    })
-      .compileComponents();
+      providers: [provideRouter(routes)],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(App);
+    router = TestBed.inject(Router);
+
+    fixture.detectChanges();
   });
 
   it('crée l’application', () => {
-    const fixture = TestBed.createComponent(App);
-
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('affiche la zone de navigation', () => {
-    const fixture = TestBed.createComponent(App);
-
+  it('affiche la navigation dans le shell principal', async () => {
+    await router.navigateByUrl('/');
+    await fixture.whenStable();
     fixture.detectChanges();
 
-    const routerOutlet = fixture.nativeElement.querySelector('router-outlet');
+    const navigation = fixture.nativeElement.querySelector('app-main-navigation');
 
-    expect(routerOutlet).not.toBeNull();
+    expect(navigation).not.toBeNull();
+  });
+
+  it('n’affiche pas la navigation sur la page de connexion', async () => {
+    await router.navigateByUrl('/login');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const navigation = fixture.nativeElement.querySelector('app-main-navigation');
+
+    expect(navigation).toBeNull();
   });
 });
