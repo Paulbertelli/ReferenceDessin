@@ -2,19 +2,19 @@ import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ReferenceImageApi } from './reference-image-api';
-import { ReferenceImage } from '../../shared/models/reference-image';
+import { ReferenceImage } from '../../../shared/models/reference-image';
+import { PexelsApi } from './pexels-api';
 
-describe('ReferenceImageApi', () => {
-  let api: ReferenceImageApi;
+describe('PexelsApi', () => {
+  let api: PexelsApi;
   let httpController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [ReferenceImageApi, provideHttpClient(), provideHttpClientTesting()],
+      providers: [PexelsApi, provideHttpClient(), provideHttpClientTesting()],
     });
 
-    api = TestBed.inject(ReferenceImageApi);
+    api = TestBed.inject(PexelsApi);
     httpController = TestBed.inject(HttpTestingController);
   });
 
@@ -23,7 +23,7 @@ describe('ReferenceImageApi', () => {
   });
 
   it('requests 30 images by default', () => {
-    api.searchImages().subscribe();
+    api.searchReferenceImages().subscribe();
 
     const request = httpController.expectOne((request) => request.url === '/api/photos');
 
@@ -35,7 +35,7 @@ describe('ReferenceImageApi', () => {
   });
 
   it('normalizes and sends the search term', () => {
-    api.searchImages('  chat noir  ', 12).subscribe();
+    api.searchReferenceImages('  chat noir  ', 12).subscribe();
 
     const request = httpController.expectOne(
       (request) =>
@@ -65,7 +65,7 @@ describe('ReferenceImageApi', () => {
 
     let receivedImages: ReferenceImage[] | undefined;
 
-    api.searchImages('portrait', 1).subscribe((images) => {
+    api.searchReferenceImages('portrait', 1).subscribe((images) => {
       receivedImages = images;
     });
 
@@ -84,7 +84,7 @@ describe('ReferenceImageApi', () => {
   it('propagates HTTP errors', () => {
     let receivedError: HttpErrorResponse | undefined;
 
-    api.searchImages().subscribe({
+    api.searchReferenceImages().subscribe({
       error: (error) => {
         receivedError = error;
       },

@@ -3,21 +3,21 @@ import { TestBed } from '@angular/core/testing';
 import { Observable, Subject } from 'rxjs';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DrawingSessionStore } from './drawing-session-store';
-import { ReferenceImageApi } from './reference-image-api';
+import { PexelsApi } from '../catalog/pexels/pexels-api';
 import { ReferenceImage } from '../../shared/models/reference-image';
 
 describe('DrawingSessionStore', () => {
   let store: DrawingSessionStore;
-  let api: StubReferenceImageApi;
+  let api: StubPexelsApi;
 
   beforeEach(() => {
-    api = new StubReferenceImageApi();
+    api = new StubPexelsApi();
 
     TestBed.configureTestingModule({
       providers: [
         DrawingSessionStore,
         {
-          provide: ReferenceImageApi,
+          provide: PexelsApi,
           useValue: api,
         },
       ],
@@ -148,12 +148,12 @@ describe('DrawingSessionStore', () => {
   }
 });
 
-class StubReferenceImageApi {
+class StubPexelsApi {
   readonly response = new Subject<ReferenceImage[]>();
 
   receivedSearchTerm: string | undefined;
 
-  searchImages(searchTerm: string = ''): Observable<ReferenceImage[]> {
+  searchReferenceImages(searchTerm: string = ''): Observable<ReferenceImage[]> {
     this.receivedSearchTerm = searchTerm;
 
     return this.response.asObservable();

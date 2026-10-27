@@ -1,14 +1,14 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
-import { ReferenceImageApi } from './reference-image-api';
+import { PexelsApi } from '../catalog/pexels/pexels-api';
 import { ReferenceImage } from '../../shared/models/reference-image';
 
 @Injectable({
   providedIn: 'root',
 })
 export class DrawingSessionStore {
-  private readonly referenceImageApi = inject(ReferenceImageApi);
+  private readonly referenceImageApi = inject(PexelsApi);
 
   private readonly referenceImages = signal<ReferenceImage[]>([]);
 
@@ -32,7 +32,7 @@ export class DrawingSessionStore {
     this.errorMessage.set('');
 
     this.referenceImageApi
-      .searchImages(searchTerm)
+      .searchReferenceImages(searchTerm)
       .pipe(finalize(() => this.loadingState.set(false)))
       .subscribe({
         next: (images) => {
