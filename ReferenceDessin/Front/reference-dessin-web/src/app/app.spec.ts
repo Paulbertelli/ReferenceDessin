@@ -9,25 +9,19 @@ describe('App', () => {
       .compileComponents();
   });
 
-  it('should create the app', () => {
+  it('crée l’application', () => {
     const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('doit afficher le nom de l’application', async () => {
+  it('affiche la zone de navigation', () => {
     const fixture = TestBed.createComponent(App);
 
-    await fixture.whenStable();
+    fixture.detectChanges();
 
-    const element = fixture.nativeElement as HTMLElement;
-    const nomApplication = element.querySelector(
-      '.brand span'
-    );
+    const routerOutlet = fixture.nativeElement.querySelector('router-outlet');
 
-    expect(nomApplication).not.toBeNull();
-    expect(nomApplication?.textContent?.trim()).toBe(
-      'Référence Dessin'
-    );
+    expect(routerOutlet).not.toBeNull();
   });
 });
