@@ -21,4 +21,35 @@
       Collections
     </a>
   </nav>
+  <div class="account-access">
+    @if (authenticationStore.state(); as authenticationState) {
+      @switch (authenticationState.status) {
+        @case ('loading') {
+          <span role="status"> Chargement du compte… </span>
+        }
+
+        @case ('signedIn') {
+          <span>
+            {{ authenticationState.account.displayName }}
+          </span>
+        }
+
+        @case ('signedOut') {
+          <a routerLink="/login"> Se connecter </a>
+        }
+
+        @case ('signingOut') {
+          <span role="status"> Déconnexion… </span>
+        }
+
+        @case ('deleting') {
+          <span role="status"> Suppression… </span>
+        }
+
+        @case ('error') {
+          <a routerLink="/login"> Compte indisponible </a>
+        }
+      }
+    }
+  </div>
 </header>

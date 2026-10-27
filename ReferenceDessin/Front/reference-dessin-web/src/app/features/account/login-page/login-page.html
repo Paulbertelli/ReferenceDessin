@@ -1,3 +1,46 @@
-<main>
-  <h1>login-page</h1>
+<main class="login-page">
+  <section aria-labelledby="login-title">
+    <a routerLink="/" aria-label="Référence Dessin — Accueil">
+      <img src="/logo-32.png?v=2" width="32" height="32" alt="" />
+
+      <span>Référence Dessin</span>
+    </a>
+
+    <h1 id="login-title">Connectez-vous pour commencer</h1>
+
+    <p>Préparez vos références et lancez vos séances de dessin.</p>
+
+    @if (authenticationStore.state(); as authenticationState) {
+      @switch (authenticationState.status) {
+        @case ('loading') {
+          <p role="status">Vérification de votre connexion…</p>
+        }
+
+        @case ('signedOut') {
+          <a class="google-login" href="/api/auth/google"> Continuer avec Google </a>
+        }
+
+        @case ('signedIn') {
+          <p>
+            Vous êtes connecté en tant que
+            {{ authenticationState.account.displayName }}.
+          </p>
+
+          <a routerLink="/"> Accéder à l’application </a>
+        }
+
+        @case ('error') {
+          <p role="alert">Impossible de vérifier votre compte.</p>
+        }
+
+        @case ('signingOut') {
+          <p role="status">Déconnexion…</p>
+        }
+
+        @case ('deleting') {
+          <p role="status">Suppression du compte…</p>
+        }
+      }
+    }
+  </section>
 </main>

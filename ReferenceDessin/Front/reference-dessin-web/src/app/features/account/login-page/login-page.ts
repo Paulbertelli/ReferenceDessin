@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { AuthenticationStore } from '../authentication-store';
 
 @Component({
   selector: 'app-login-page',
@@ -6,4 +7,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   styleUrl: './login-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LoginPage {}
+export class LoginPage {
+  protected readonly authenticationStore = inject(AuthenticationStore);
+}

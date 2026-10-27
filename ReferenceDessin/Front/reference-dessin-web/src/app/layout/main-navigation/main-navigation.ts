@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthenticationStore } from '../../features/account/authentication-store';
 
 @Component({
   selector: 'app-main-navigation',
@@ -8,4 +9,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './main-navigation.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MainNavigation {}
+export class MainNavigation {
+  protected readonly authenticationStore = inject(AuthenticationStore);
+}
