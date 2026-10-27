@@ -1,3 +1,16 @@
-<main>
-  <h1>drawing-session-page</h1>
-</main>
+@if (sessionStore.images().length > 0) {
+  <app-drawing-session />
+} @else {
+  <main class="empty-session">
+    <h1>Aucune référence dans cette séance</h1>
+
+    <p>
+      Sélectionnez d’abord des références avant de
+      commencer à dessiner.
+    </p>
+
+    <a routerLink="/search">
+      Rechercher des références
+    </a>
+  </main>
+}

@@ -1,0 +1,10 @@
+@if (!selectionStore.isEmpty()) {
+  <aside class="selection-launcher" aria-label="Sélection active">
+    <a routerLink="/selection">
+      {{ selectionStore.count() }}
+      {{ selectionStore.count() === 1 ? 'référence sélectionnée' : 'références sélectionnées' }}
+    </a>
+
+    <button type="button" (click)="launchSession()">Commencer la séance</button>
+  </aside>
+}

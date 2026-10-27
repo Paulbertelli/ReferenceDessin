@@ -1,0 +1,29 @@
+<article class="reference-card" [class.reference-card--selected]="selected()">
+  <button
+    type="button"
+    class="reference-card__selection"
+    (click)="toggleSelection()"
+    [attr.aria-pressed]="selected()"
+    [attr.aria-label]="
+      selected()
+        ? 'Retirer cette référence de la sélection'
+        : 'Ajouter cette référence à la sélection'
+    "
+  >
+    <img
+      [src]="image().imageUrl"
+      [alt]="image().description || 'Référence de dessin'"
+      loading="lazy"
+    />
+
+    <span aria-hidden="true">
+      {{ selected() ? 'Sélectionnée' : 'Sélectionner' }}
+    </span>
+  </button>
+
+  <footer>
+    <a [href]="image().originalUrl" target="_blank" rel="noopener noreferrer">
+      {{ image().sourceName }}
+    </a>
+  </footer>
+</article>

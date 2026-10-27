@@ -1,3 +1,51 @@
-<main>
-  <h1>search-page</h1>
+<main class="search-page">
+  <header>
+    <h1>Rechercher des références</h1>
+
+    <p>Recherchez un thème parmi les références proposées par Pexels.</p>
+  </header>
+
+  <form class="search-form" (ngSubmit)="search()">
+    <label for="reference-search"> Thème </label>
+
+    <input
+      id="reference-search"
+      name="reference-search"
+      type="search"
+      [(ngModel)]="searchTerm"
+      placeholder="Portrait, animal, architecture…"
+      autocomplete="off"
+    />
+
+    <button type="submit" [disabled]="searchStore.loading()">Rechercher</button>
+  </form>
+
+  @if (searchStore.loading()) {
+    <p role="status">Chargement des références…</p>
+  } @else if (searchStore.error()) {
+    <p role="alert">
+      {{ searchStore.error() }}
+    </p>
+  } @else if (searchStore.noResults()) {
+    <p>Aucune référence trouvée pour cette recherche.</p>
+  } @else if (searchStore.images().length > 0) {
+    <section aria-labelledby="search-results-title">
+      <header>
+        <h2 id="search-results-title">Résultats</h2>
+
+        <button type="button" (click)="selectAllDisplayed()">Tout sélectionner</button>
+      </header>
+
+      <div class="reference-grid">
+        @for (image of searchStore.images(); track image.sourceName + ':' + image.externalId) {
+          <app-reference-card
+            [image]="image"
+            [selected]="selectionStore.isSelected(image)"
+            (selectionRequested)="toggleSelection($event)"
+          />
+        }
+      </div>
+    </section>
+  }
 </main>
+<app-selection-launcher />

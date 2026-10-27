@@ -1,0 +1,15 @@
+:host {
+  min-width: 0;
+  display: block;
+}
+
+.reference-card__selection {
+  width: 100%;
+}
+
+.reference-card img {
+  width: 100%;
+  height: 240px;
+  display: block;
+  object-fit: cover;
+}

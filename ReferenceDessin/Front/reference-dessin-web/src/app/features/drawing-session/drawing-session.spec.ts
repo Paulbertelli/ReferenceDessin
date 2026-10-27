@@ -1,9 +1,9 @@
 import { computed, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { ReferenceImage } from '../../shared/models/reference-image';
 import { DrawingSession } from './drawing-session';
 import { DrawingSessionStore } from './drawing-session-store';
-import { ReferenceImage } from '../../shared/models/reference-image';
 
 describe('DrawingSession', () => {
   let fixture: ComponentFixture<DrawingSession>;
@@ -23,25 +23,11 @@ describe('DrawingSession', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(DrawingSession);
+
     fixture.detectChanges();
   });
 
-  it('displays the loading state', () => {
-    store.loading.set(true);
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('Chargement des références…');
-  });
-
-  it('displays the store error', () => {
-    store.error.set('Impossible de récupérer les images.');
-
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('Impossible de récupérer les images.');
-  });
-
-  it('disables navigation without images', () => {
+  it('désactive la navigation sans référence', () => {
     const previousButton = fixture.nativeElement.querySelector(
       '.previous-button',
     ) as HTMLButtonElement;
@@ -52,7 +38,7 @@ describe('DrawingSession', () => {
     expect(nextButton.disabled).toBe(true);
   });
 
-  it('navigates to the next image', () => {
+  it('navigue vers la référence suivante', () => {
     store.images.set(createImages());
     fixture.detectChanges();
 
@@ -69,7 +55,7 @@ describe('DrawingSession', () => {
     expect(nextButton.disabled).toBe(true);
   });
 
-  it('navigates with the arrow keys', () => {
+  it('navigue avec les touches directionnelles', () => {
     store.images.set(createImages());
     fixture.detectChanges();
 
@@ -93,9 +79,8 @@ describe('DrawingSession', () => {
 
 class StubDrawingSessionStore {
   readonly images = signal<ReferenceImage[]>([]);
+
   readonly currentIndex = signal(0);
-  readonly loading = signal(false);
-  readonly error = signal('');
 
   readonly currentImage = computed(() => this.images()[this.currentIndex()] ?? null);
 

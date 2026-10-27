@@ -1,14 +1,9 @@
-<main class="workspace" [attr.aria-busy]="store.loading() || imageLoading()" aria-live="polite">
-  @if (store.loading()) {
-    <div class="state">
-      <span class="spinner" aria-hidden="true"></span>
-      <p>Chargement des références…</p>
-    </div>
-  } @else if (store.error()) {
-    <div class="state state-error">
-      <p>{{ store.error() }}</p>
-    </div>
-  } @else if (displayedImage(); as image) {
+<main
+  class="workspace"
+  [attr.aria-busy]="imageLoading()"
+  aria-live="polite"
+>
+  @if (displayedImage(); as image) {
     <figure class="reference">
       <div class="image-container">
         <button
@@ -23,7 +18,7 @@
             [src]="image.imageUrl"
             [alt]="image.description"
             draggable="false"
-          />
+          >
         </button>
 
         <button
@@ -33,12 +28,19 @@
           aria-label="Afficher l’image en plein écran"
           title="Agrandir"
         >
-          <svg lucideMaximize2 [size]="18" aria-hidden="true"></svg>
+          <svg
+            lucideMaximize2
+            [size]="18"
+            aria-hidden="true"
+          ></svg>
         </button>
 
         @if (imageLoading()) {
           <div class="image-status">
-            <span class="spinner" aria-hidden="true"></span>
+            <span
+              class="spinner"
+              aria-hidden="true"
+            ></span>
 
             <span>Chargement de l’image…</span>
           </div>
@@ -46,13 +48,25 @@
 
         @if (imageError()) {
           <div class="image-status image-status-error">
-            <p>Cette image n’a pas pu être chargée.</p>
+            <p>
+              Cette image n’a pas pu être chargée.
+            </p>
 
             <div class="image-error-actions">
-              <button type="button" (click)="retryCurrentImage()">Réessayer</button>
+              <button
+                type="button"
+                (click)="retryCurrentImage()"
+              >
+                Réessayer
+              </button>
 
               @if (store.hasNext()) {
-                <button type="button" (click)="skipCurrentImage()">Image suivante</button>
+                <button
+                  type="button"
+                  (click)="skipCurrentImage()"
+                >
+                  Image suivante
+                </button>
               }
             </div>
           </div>
@@ -65,7 +79,11 @@
             <span>Image par </span>
 
             @if (image.authorUrl) {
-              <a [href]="image.authorUrl" target="_blank" rel="noopener noreferrer">
+              <a
+                [href]="image.authorUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {{ image.authorName }}
               </a>
             } @else {
@@ -77,7 +95,11 @@
             <span>Image provenant de </span>
           }
 
-          <a [href]="image.originalUrl" target="_blank" rel="noopener noreferrer">
+          <a
+            [href]="image.originalUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {{ image.sourceName }}
           </a>
         </span>
@@ -90,14 +112,24 @@
     </figure>
   } @else if (imageLoading()) {
     <div class="state">
-      <span class="spinner" aria-hidden="true"></span>
+      <span
+        class="spinner"
+        aria-hidden="true"
+      ></span>
+
       <p>Chargement de l’image…</p>
     </div>
   } @else if (imageError()) {
     <div class="state state-error">
       <p>Cette image n’a pas pu être chargée.</p>
 
-      <button type="button" class="state-action" (click)="retryCurrentImage()">Réessayer</button>
+      <button
+        type="button"
+        class="state-action"
+        (click)="retryCurrentImage()"
+      >
+        Réessayer
+      </button>
     </div>
   }
 </main>
@@ -117,7 +149,11 @@
       aria-label="Fermer l’image agrandie"
       title="Fermer"
     >
-      <svg lucideX [size]="24" aria-hidden="true"></svg>
+      <svg
+        lucideX
+        [size]="24"
+        aria-hidden="true"
+      ></svg>
     </button>
 
     <div class="overlay-content">
@@ -126,7 +162,7 @@
         [alt]="image.description"
         draggable="false"
         (click)="$event.stopPropagation()"
-      />
+      >
     </div>
   </div>
 }
@@ -140,7 +176,11 @@
     aria-label="Image précédente"
     title="Image précédente"
   >
-    <svg lucideChevronLeft [size]="22" aria-hidden="true"></svg>
+    <svg
+      lucideChevronLeft
+      [size]="22"
+      aria-hidden="true"
+    ></svg>
   </button>
 
   <app-timer
@@ -161,6 +201,10 @@
     aria-label="Image suivante"
     title="Image suivante"
   >
-    <svg lucideChevronRight [size]="22" aria-hidden="true"></svg>
+    <svg
+      lucideChevronRight
+      [size]="22"
+      aria-hidden="true"
+    ></svg>
   </button>
 </footer>
