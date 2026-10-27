@@ -1,0 +1,43 @@
+<div class="account-menu">
+  <button
+    type="button"
+    class="account-trigger"
+    (click)="toggleMenu()"
+    [attr.aria-expanded]="menuOpen()"
+    aria-controls="account-popover"
+  >
+    {{ account().displayName }}
+  </button>
+
+  @if (menuOpen()) {
+    <section
+      id="account-popover"
+      class="account-popover"
+      aria-label="Menu du compte"
+    >
+      <p>{{ account().displayName }}</p>
+      <p>{{ account().email }}</p>
+
+      <button
+        type="button"
+        (click)="signOut()"
+      >
+        Se déconnecter
+      </button>
+
+      <button
+        type="button"
+        (click)="requestAccountDeletion()"
+      >
+        Supprimer mon compte
+      </button>
+    </section>
+  }
+</div>
+
+@if (deletionConfirmationOpen()) {
+  <app-account-deletion-confirmation
+    (confirmationRequested)="confirmAccountDeletion()"
+    (cancellationRequested)="cancelAccountDeletion()"
+  />
+}

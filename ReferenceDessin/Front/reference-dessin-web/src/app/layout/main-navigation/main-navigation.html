@@ -29,9 +29,7 @@
         }
 
         @case ('signedIn') {
-          <span>
-            {{ authenticationState.account.displayName }}
-          </span>
+          <app-account-menu [account]="authenticationState.account" />
         }
 
         @case ('signedOut') {
