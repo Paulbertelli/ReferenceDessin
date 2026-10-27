@@ -4,21 +4,24 @@ import { ReferenceImage } from '../../shared/models/reference-image';
 import { ReferenceSelectionStore } from './reference-selection-store';
 
 describe('ReferenceSelectionStore', () => {
-  let store: ReferenceSelectionStore;
+  const storageKey = 'reference-dessin.selection';
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    sessionStorage.clear();
 
-    store = TestBed.inject(ReferenceSelectionStore);
+    TestBed.configureTestingModule({});
   });
 
   it('commence avec une sélection vide', () => {
+    const store = createStore();
+
     expect(store.images()).toEqual([]);
     expect(store.count()).toBe(0);
     expect(store.isEmpty()).toBe(true);
   });
 
   it('ajoute puis retire une référence', () => {
+    const store = createStore();
     const image = createImage('Pexels', '123');
 
     store.toggle(image);
@@ -33,8 +36,8 @@ describe('ReferenceSelectionStore', () => {
   });
 
   it('distingue les références provenant de sources différentes', () => {
+    const store = createStore();
     const pexelsImage = createImage('Pexels', '123');
-
     const pinterestImage = createImage('Pinterest', '123');
 
     store.addAll([pexelsImage, pinterestImage]);
@@ -45,8 +48,8 @@ describe('ReferenceSelectionStore', () => {
   });
 
   it('ajoute plusieurs références sans doublon', () => {
+    const store = createStore();
     const firstImage = createImage('Pexels', '123');
-
     const secondImage = createImage('Pexels', '456');
 
     store.addAll([firstImage]);
@@ -57,6 +60,8 @@ describe('ReferenceSelectionStore', () => {
   });
 
   it('vide entièrement la sélection', () => {
+    const store = createStore();
+
     store.addAll([createImage('Pexels', '123'), createImage('Pinterest', '456')]);
 
     store.clear();
@@ -65,6 +70,39 @@ describe('ReferenceSelectionStore', () => {
     expect(store.count()).toBe(0);
     expect(store.isEmpty()).toBe(true);
   });
+
+  it('sauvegarde la sélection dans la session', () => {
+    const store = createStore();
+    const image = createImage('Pexels', '123');
+
+    store.toggle(image);
+
+    expect(JSON.parse(sessionStorage.getItem(storageKey) ?? '[]')).toEqual([image]);
+  });
+
+  it('restaure la sélection enregistrée', () => {
+    const image = createImage('Pinterest', '456');
+
+    sessionStorage.setItem(storageKey, JSON.stringify([image]));
+
+    const store = createStore();
+
+    expect(store.images()).toEqual([image]);
+    expect(store.count()).toBe(1);
+  });
+
+  it('ignore et supprime une sélection corrompue', () => {
+    sessionStorage.setItem(storageKey, '{"invalid":true}');
+
+    const store = createStore();
+
+    expect(store.images()).toEqual([]);
+    expect(sessionStorage.getItem(storageKey)).toBeNull();
+  });
+
+  function createStore(): ReferenceSelectionStore {
+    return TestBed.inject(ReferenceSelectionStore);
+  }
 
   function createImage(sourceName: string, externalId: string): ReferenceImage {
     return {

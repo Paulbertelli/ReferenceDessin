@@ -5,6 +5,7 @@ import { ReferenceImage } from '../../../shared/models/reference-image';
 import { ReferenceSelectionStore } from '../../selection/reference-selection-store';
 import { PexelsSearchStore } from '../pexels/pexels-search-store';
 import { SearchPage } from './search-page';
+import { provideRouter } from '@angular/router';
 
 describe('SearchPage', () => {
   let fixture: ComponentFixture<SearchPage>;
@@ -29,6 +30,7 @@ describe('SearchPage', () => {
     await TestBed.configureTestingModule({
       imports: [SearchPage],
       providers: [
+        provideRouter([]),
         ReferenceSelectionStore,
         {
           provide: PexelsSearchStore,
