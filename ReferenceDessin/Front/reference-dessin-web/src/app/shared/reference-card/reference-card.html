@@ -16,14 +16,14 @@
       loading="lazy"
     />
 
-    <span aria-hidden="true">
-      {{ selected() ? 'Sélectionnée' : 'Sélectionner' }}
+    <span class="selection-indicator" aria-hidden="true">
+      {{ selected() ? '✓' : '+' }}
     </span>
   </button>
 
-  <footer>
+  <footer class="reference-credit">
     <a [href]="image().originalUrl" target="_blank" rel="noopener noreferrer">
-      {{ image().sourceName }}
+      Référence sur {{ image().sourceName }}
     </a>
   </footer>
 </article>

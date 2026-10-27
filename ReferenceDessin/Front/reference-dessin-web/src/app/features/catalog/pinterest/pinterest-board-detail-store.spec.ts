@@ -27,81 +27,134 @@ describe('PinterestBoardDetailStore', () => {
     store = TestBed.inject(PinterestBoardDetailStore);
   });
 
-  it('charge les sections et les références du tableau', () => {
+  it('charge le tableau, les sections et leurs références', () => {
     const sections: PinterestBoardSection[] = [
       {
         id: 'section-1',
         name: 'Portraits',
       },
+      {
+        id: 'section-2',
+        name: 'Personnages',
+      },
     ];
 
-    const images = [createImage('1'), createImage('2')];
+    const boardImages = [createImage('1'), createImage('2'), createImage('3')];
 
     store.load('  board-1  ');
 
-    expect(api.receivedBoardId).toBe('board-1');
     expect(store.boardId()).toBe('board-1');
     expect(store.loading()).toBe(true);
 
-    api.sectionsResponse.next(sections);
-    api.sectionsResponse.complete();
+    expect(api.sectionListRequests).toHaveLength(1);
 
-    api.boardImagesResponse.next(images);
-    api.boardImagesResponse.complete();
+    expect(api.boardImageRequests).toHaveLength(1);
+
+    expect(api.sectionListRequests[0].boardId).toBe('board-1');
+
+    flush(api.sectionListRequests[0], sections);
+
+    flush(api.boardImageRequests[0], boardImages);
+
+    /*
+     * Les requêtes de sections commencent après
+     * le chargement de la liste des sections et
+     * des références du tableau.
+     */
+    expect(api.sectionImageRequests).toHaveLength(2);
+
+    expect(api.sectionImageRequests[0].sectionId).toBe('section-1');
+
+    expect(api.sectionImageRequests[1].sectionId).toBe('section-2');
+
+    expect(store.loading()).toBe(true);
+
+    flush(api.sectionImageRequests[0], [createImage('1'), createImage('2')]);
+
+    flush(api.sectionImageRequests[1], [createImage('3')]);
 
     expect(store.sections()).toEqual(sections);
-    expect(store.images()).toEqual(images);
+
+    expect(store.images()).toEqual(boardImages);
+
+    expect(store.totalImageCount()).toBe(3);
+
+    expect(store.sectionImageCount('section-1')).toBe(2);
+
+    expect(store.sectionImageCount('section-2')).toBe(1);
+
     expect(store.loading()).toBe(false);
     expect(store.error()).toBe('');
   });
 
-  it('charge les références de la section sélectionnée', () => {
+  it('sélectionne une section depuis le cache', () => {
     completeInitialLoad();
 
-    const sectionImages = [createImage('3')];
+    const requestCountBeforeSelection = api.sectionImageRequests.length;
 
     store.selectSection('  section-1  ');
 
-    expect(api.receivedSectionId).toBe('section-1');
-
     expect(store.selectedSectionId()).toBe('section-1');
 
-    expect(store.loading()).toBe(true);
+    expect(store.images()).toEqual([createImage('3')]);
 
-    api.sectionImagesResponse.next(sectionImages);
+    expect(store.totalImageCount()).toBe(2);
 
-    api.sectionImagesResponse.complete();
-
-    expect(store.images()).toEqual(sectionImages);
-
-    expect(store.loading()).toBe(false);
+    /*
+     * La sélection ne déclenche pas de nouvelle
+     * requête HTTP.
+     */
+    expect(api.sectionImageRequests).toHaveLength(requestCountBeforeSelection);
   });
 
-  it('revient à toutes les références du tableau', () => {
+  it('revient aux références complètes depuis le cache', () => {
     completeInitialLoad();
 
     store.selectSection('section-1');
 
-    api.sectionImagesResponse.next([createImage('3')]);
-
-    api.sectionImagesResponse.complete();
+    expect(store.images()).toEqual([createImage('3')]);
 
     store.selectSection(null);
 
-    const boardImages = [createImage('1'), createImage('2')];
-
-    api.boardImagesResponse.next(boardImages);
-
-    api.boardImagesResponse.complete();
-
     expect(store.selectedSectionId()).toBeNull();
-    expect(store.images()).toEqual(boardImages);
+
+    expect(store.images()).toEqual([createImage('1'), createImage('2')]);
+
+    expect(store.totalImageCount()).toBe(2);
+  });
+
+  it('ne change rien lorsque la section est déjà sélectionnée', () => {
+    completeInitialLoad();
+
+    store.selectSection('section-1');
+
+    const imagesBeforeSecondSelection = store.images();
+
+    store.selectSection('section-1');
+
+    expect(store.images()).toBe(imagesBeforeSecondSelection);
+  });
+
+  it('charge correctement un tableau sans section', () => {
+    store.load('board-1');
+
+    flush(api.sectionListRequests[0], []);
+
+    flush(api.boardImageRequests[0], [createImage('1')]);
+
+    expect(api.sectionImageRequests).toHaveLength(0);
+
+    expect(store.sections()).toEqual([]);
+    expect(store.images()).toEqual([createImage('1')]);
+
+    expect(store.totalImageCount()).toBe(1);
+    expect(store.loading()).toBe(false);
   });
 
   it('expose le détail d’une erreur HTTP', () => {
     store.load('board-1');
 
-    api.sectionsResponse.error(
+    api.sectionListRequests[0].response.error(
       new HttpErrorResponse({
         status: 503,
         error: {
@@ -111,54 +164,110 @@ describe('PinterestBoardDetailStore', () => {
     );
 
     expect(store.loading()).toBe(false);
+
     expect(store.error()).toBe('Pinterest est temporairement indisponible.');
+  });
+
+  it('utilise un message générique sans détail', () => {
+    store.load('board-1');
+
+    api.boardImageRequests[0].response.error(
+      new HttpErrorResponse({
+        status: 500,
+        error: {},
+      }),
+    );
+
+    expect(store.loading()).toBe(false);
+
+    expect(store.error()).toBe('Impossible de récupérer cette collection Pinterest.');
   });
 
   function completeInitialLoad(): void {
     store.load('board-1');
 
-    api.sectionsResponse.next([]);
-    api.sectionsResponse.complete();
+    flush(api.sectionListRequests[0], [
+      {
+        id: 'section-1',
+        name: 'Portraits',
+      },
+    ]);
 
-    api.boardImagesResponse.next([]);
-    api.boardImagesResponse.complete();
+    flush(api.boardImageRequests[0], [createImage('1'), createImage('2')]);
+
+    flush(api.sectionImageRequests[0], [createImage('3')]);
   }
 });
 
 class StubPinterestApi {
-  sectionsResponse = new Subject<PinterestBoardSection[]>();
+  readonly sectionListRequests: SectionListRequest[] = [];
 
-  boardImagesResponse = new Subject<ReferenceImage[]>();
+  readonly boardImageRequests: BoardImageRequest[] = [];
 
-  sectionImagesResponse = new Subject<ReferenceImage[]>();
-
-  receivedBoardId: string | undefined;
-  receivedSectionId: string | undefined;
+  readonly sectionImageRequests: SectionImageRequest[] = [];
 
   getBoardSections(boardId: string): Observable<PinterestBoardSection[]> {
-    this.receivedBoardId = boardId;
+    const response = new Subject<PinterestBoardSection[]>();
 
-    this.sectionsResponse = new Subject<PinterestBoardSection[]>();
+    this.sectionListRequests.push({
+      boardId,
+      response,
+    });
 
-    return this.sectionsResponse.asObservable();
+    return response.asObservable();
   }
 
   getBoardImages(boardId: string): Observable<ReferenceImage[]> {
-    this.receivedBoardId = boardId;
+    const response = new Subject<ReferenceImage[]>();
 
-    this.boardImagesResponse = new Subject<ReferenceImage[]>();
+    this.boardImageRequests.push({
+      boardId,
+      response,
+    });
 
-    return this.boardImagesResponse.asObservable();
+    return response.asObservable();
   }
 
   getSectionImages(boardId: string, sectionId: string): Observable<ReferenceImage[]> {
-    this.receivedBoardId = boardId;
-    this.receivedSectionId = sectionId;
+    const response = new Subject<ReferenceImage[]>();
 
-    this.sectionImagesResponse = new Subject<ReferenceImage[]>();
+    this.sectionImageRequests.push({
+      boardId,
+      sectionId,
+      response,
+    });
 
-    return this.sectionImagesResponse.asObservable();
+    return response.asObservable();
   }
+}
+
+interface SectionListRequest {
+  boardId: string;
+
+  response: Subject<PinterestBoardSection[]>;
+}
+
+interface BoardImageRequest {
+  boardId: string;
+
+  response: Subject<ReferenceImage[]>;
+}
+
+interface SectionImageRequest {
+  boardId: string;
+  sectionId: string;
+
+  response: Subject<ReferenceImage[]>;
+}
+
+function flush<T>(
+  request: {
+    response: Subject<T>;
+  },
+  value: T,
+): void {
+  request.response.next(value);
+  request.response.complete();
 }
 
 function createImage(externalId: string): ReferenceImage {
