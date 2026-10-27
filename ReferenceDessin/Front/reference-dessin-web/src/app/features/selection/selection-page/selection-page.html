@@ -1,3 +1,40 @@
-<main>
-  <h1>selection-page</h1>
+<main class="selection-page">
+  <header>
+    <div>
+      <h1>Votre sélection</h1>
+
+      <p>
+        {{ selectionStore.count() }}
+        {{ selectionStore.count() === 1 ? 'référence sélectionnée' : 'références sélectionnées' }}
+      </p>
+    </div>
+
+    @if (!selectionStore.isEmpty()) {
+      <button type="button" (click)="clear()">Vider la sélection</button>
+    }
+  </header>
+
+  @if (selectionStore.isEmpty()) {
+    <section class="empty-selection">
+      <h2>Votre sélection est vide</h2>
+
+      <p>Recherchez des références ou explorez vos collections Pinterest.</p>
+
+      <a routerLink="/search"> Rechercher des références </a>
+
+      <a routerLink="/collections"> Explorer les collections </a>
+    </section>
+  } @else {
+    <section class="reference-grid" aria-label="Références sélectionnées">
+      @for (image of selectionStore.images(); track image.sourceName + ':' + image.externalId) {
+        <app-reference-card
+          [image]="image"
+          [selected]="true"
+          (selectionRequested)="remove($event)"
+        />
+      }
+    </section>
+  }
 </main>
+
+<app-selection-launcher />
