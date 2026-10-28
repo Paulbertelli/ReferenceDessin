@@ -13,6 +13,7 @@ describe('SelectionLauncher', () => {
   let router: Router;
 
   beforeEach(async () => {
+    sessionStorage.clear();
     await TestBed.configureTestingModule({
       imports: [SelectionLauncher],
       providers: [ReferenceSelectionStore, DrawingSessionStore, provideRouter([])],
@@ -21,6 +22,8 @@ describe('SelectionLauncher', () => {
     fixture = TestBed.createComponent(SelectionLauncher);
 
     selectionStore = TestBed.inject(ReferenceSelectionStore);
+
+    selectionStore.clear();
 
     sessionStore = TestBed.inject(DrawingSessionStore);
 
