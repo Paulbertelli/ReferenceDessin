@@ -12,92 +12,138 @@ describe('ReferenceSelectionStore', () => {
     TestBed.configureTestingModule({});
   });
 
-  it('commence avec une sélection vide', () => {
-    const store = createStore();
+  describe('état initial', () => {
+    it('commence avec une sélection vide', () => {
+      const store = createStore();
 
-    expect(store.images()).toEqual([]);
-    expect(store.count()).toBe(0);
-    expect(store.isEmpty()).toBe(true);
+      expect(store.images()).toEqual([]);
+      expect(store.count()).toBe(0);
+      expect(store.isEmpty()).toBe(true);
+    });
   });
 
-  it('ajoute puis retire une référence', () => {
-    const store = createStore();
-    const image = createImage('Pexels', '123');
+  describe('gestion de la sélection', () => {
+    it('ajoute puis retire une référence', () => {
+      const store = createStore();
 
-    store.toggle(image);
+      const image = createImage('Pexels', '123');
 
-    expect(store.images()).toEqual([image]);
-    expect(store.isSelected(image)).toBe(true);
+      store.toggle(image);
 
-    store.toggle(image);
+      expect(store.images()).toEqual([image]);
 
-    expect(store.images()).toEqual([]);
-    expect(store.isSelected(image)).toBe(false);
+      expect(store.isSelected(image)).toBe(true);
+
+      store.toggle(image);
+
+      expect(store.images()).toEqual([]);
+
+      expect(store.isSelected(image)).toBe(false);
+    });
+
+    it('distingue les références provenant de sources différentes', () => {
+      const store = createStore();
+
+      const pexelsImage = createImage('Pexels', '123');
+
+      const pinterestImage = createImage('Pinterest', '123');
+
+      store.addAll([pexelsImage, pinterestImage]);
+
+      expect(store.images()).toEqual([pexelsImage, pinterestImage]);
+
+      expect(store.count()).toBe(2);
+    });
+
+    it('ajoute plusieurs références sans doublon', () => {
+      const store = createStore();
+
+      const firstImage = createImage('Pexels', '123');
+
+      const secondImage = createImage('Pexels', '456');
+
+      store.addAll([firstImage]);
+
+      store.addAll([firstImage, secondImage, secondImage]);
+
+      expect(store.images()).toEqual([firstImage, secondImage]);
+    });
+
+    it('retire plusieurs références sans toucher aux autres', () => {
+      const store = createStore();
+
+      const firstImage = createImage('Pexels', '123');
+
+      const secondImage = createImage('Pinterest', '456');
+
+      const preservedImage = createImage('Pexels', '789');
+
+      store.addAll([firstImage, secondImage, preservedImage]);
+
+      store.removeAll([firstImage, secondImage]);
+
+      expect(store.images()).toEqual([preservedImage]);
+
+      expect(store.isSelected(firstImage)).toBe(false);
+
+      expect(store.isSelected(secondImage)).toBe(false);
+
+      expect(store.isSelected(preservedImage)).toBe(true);
+
+      expect(store.count()).toBe(1);
+    });
+
+    it('vide entièrement la sélection', () => {
+      const store = createStore();
+
+      store.addAll([createImage('Pexels', '123'), createImage('Pinterest', '456')]);
+
+      store.clear();
+
+      expect(store.images()).toEqual([]);
+      expect(store.count()).toBe(0);
+      expect(store.isEmpty()).toBe(true);
+    });
   });
 
-  it('distingue les références provenant de sources différentes', () => {
-    const store = createStore();
-    const pexelsImage = createImage('Pexels', '123');
-    const pinterestImage = createImage('Pinterest', '123');
+  describe('persistance dans la session', () => {
+    it('sauvegarde la sélection', () => {
+      const store = createStore();
 
-    store.addAll([pexelsImage, pinterestImage]);
+      const image = createImage('Pexels', '123');
 
-    expect(store.images()).toEqual([pexelsImage, pinterestImage]);
+      store.toggle(image);
 
-    expect(store.count()).toBe(2);
-  });
+      const storedSelection = sessionStorage.getItem(storageKey);
 
-  it('ajoute plusieurs références sans doublon', () => {
-    const store = createStore();
-    const firstImage = createImage('Pexels', '123');
-    const secondImage = createImage('Pexels', '456');
+      expect(storedSelection).not.toBeNull();
 
-    store.addAll([firstImage]);
+      expect(JSON.parse(storedSelection ?? '[]')).toEqual([image]);
+    });
 
-    store.addAll([firstImage, secondImage, secondImage]);
+    it('restaure la sélection enregistrée', () => {
+      const image = createImage('Pinterest', '456');
 
-    expect(store.images()).toEqual([firstImage, secondImage]);
-  });
+      sessionStorage.setItem(storageKey, JSON.stringify([image]));
 
-  it('vide entièrement la sélection', () => {
-    const store = createStore();
+      const store = createStore();
 
-    store.addAll([createImage('Pexels', '123'), createImage('Pinterest', '456')]);
+      expect(store.images()).toEqual([image]);
 
-    store.clear();
+      expect(store.count()).toBe(1);
 
-    expect(store.images()).toEqual([]);
-    expect(store.count()).toBe(0);
-    expect(store.isEmpty()).toBe(true);
-  });
+      expect(store.isSelected(image)).toBe(true);
+    });
 
-  it('sauvegarde la sélection dans la session', () => {
-    const store = createStore();
-    const image = createImage('Pexels', '123');
+    it('ignore et supprime une sélection corrompue', () => {
+      sessionStorage.setItem(storageKey, '{"invalid":true}');
 
-    store.toggle(image);
+      const store = createStore();
 
-    expect(JSON.parse(sessionStorage.getItem(storageKey) ?? '[]')).toEqual([image]);
-  });
+      expect(store.images()).toEqual([]);
 
-  it('restaure la sélection enregistrée', () => {
-    const image = createImage('Pinterest', '456');
-
-    sessionStorage.setItem(storageKey, JSON.stringify([image]));
-
-    const store = createStore();
-
-    expect(store.images()).toEqual([image]);
-    expect(store.count()).toBe(1);
-  });
-
-  it('ignore et supprime une sélection corrompue', () => {
-    sessionStorage.setItem(storageKey, '{"invalid":true}');
-
-    const store = createStore();
-
-    expect(store.images()).toEqual([]);
-    expect(sessionStorage.getItem(storageKey)).toBeNull();
+      expect(sessionStorage.getItem(storageKey)).toBeNull();
+    });
   });
 
   function createStore(): ReferenceSelectionStore {

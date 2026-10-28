@@ -139,4 +139,12 @@ export class ReferenceSelectionStore {
   private getImageKey(image: ReferenceImage): string {
     return JSON.stringify([image.sourceName.trim().toLowerCase(), image.externalId.trim()]);
   }
+
+  removeAll(imagesToRemove: readonly ReferenceImage[]): void {
+    const keysToRemove = new Set(imagesToRemove.map((image) => this.getImageKey(image)));
+
+    this.selectedImages.update((images) =>
+      images.filter((image) => !keysToRemove.has(this.getImageKey(image))),
+    );
+  }
 }

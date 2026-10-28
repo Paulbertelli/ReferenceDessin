@@ -1,13 +1,19 @@
-<article class="reference-card" [class.reference-card--selected]="selected()">
+<article
+  class="reference-card"
+  [class.reference-card--selected]="selected() && action() === 'select'"
+  [class.reference-card--removable]="action() === 'remove'"
+>
   <button
     type="button"
     class="reference-card__selection"
     (click)="toggleSelection()"
-    [attr.aria-pressed]="selected()"
+    [attr.aria-pressed]="action() === 'select' ? selected() : null"
     [attr.aria-label]="
-      selected()
+      action() === 'remove'
         ? 'Retirer cette référence de la sélection'
-        : 'Ajouter cette référence à la sélection'
+        : selected()
+          ? 'Retirer cette référence de la sélection'
+          : 'Ajouter cette référence à la sélection'
     "
   >
     <img
@@ -16,14 +22,28 @@
       loading="lazy"
     />
 
-    <span class="selection-indicator" aria-hidden="true">
-      {{ selected() ? '✓' : '+' }}
+    <span
+      class="selection-indicator"
+      [class.selection-indicator--remove]="action() === 'remove'"
+      aria-hidden="true"
+    >
+      @if (action() === 'remove') {
+        <svg lucideTrash2 [size]="60"></svg>
+      } @else {
+        {{ selected() ? '✓' : '+' }}
+      }
     </span>
   </button>
 
   <footer class="reference-credit">
-    <a [href]="image().originalUrl" target="_blank" rel="noopener noreferrer">
-      Référence sur {{ image().sourceName }}
-    </a>
-  </footer>
+  <span>Référence sur </span>
+
+  <a
+    [href]="image().originalUrl"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    {{ image().sourceName }}
+  </a>
+</footer>
 </article>

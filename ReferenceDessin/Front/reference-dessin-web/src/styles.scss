@@ -17,6 +17,12 @@
   --color-divider: #e7eaf0;
   --color-focus: rgb(37 99 235 / 25%);
 
+  --color-danger: #ef233c;
+  --color-danger-hover: #d90429;
+  --color-danger-soft: #fff0f2;
+
+  --color-media-hover-overlay: rgb(0 22 67 / 70%);
+
   --color-scrollbar-track: #f7f7f7;
   --color-scrollbar-thumb: #8b8b8b;
   --color-scrollbar-thumb-hover: #666666;
@@ -34,8 +40,12 @@
 
 html,
 body {
+  width: 100%;
   min-width: 100%;
+
+  height: 100%;
   min-height: 100%;
+
   margin: 0;
 
   background: var(--color-background);
@@ -53,6 +63,32 @@ body {
     sans-serif;
 }
 
+app-root {
+  min-height: 100%;
+  display: block;
+}
+
+/*
+ * La séance utilise uniquement l’espace fourni par
+ * le shell et ne doit pas faire défiler le document.
+ */
+html:has(app-drawing-session-page),
+body:has(app-drawing-session-page) {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body:has(app-drawing-session-page) app-root {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Bloque également le fond pendant le plein écran. */
+body:has(.image-overlay) {
+  overflow: hidden;
+}
+
 button,
 input {
   font: inherit;
@@ -62,6 +98,8 @@ input {
   background: var(--color-accent-soft);
   color: var(--color-text);
 }
+
+/* Barre de défilement générale */
 
 ::-webkit-scrollbar {
   width: 16px;

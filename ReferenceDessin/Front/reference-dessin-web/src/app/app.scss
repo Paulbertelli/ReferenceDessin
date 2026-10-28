@@ -1,17 +1,26 @@
 :host {
-  --background: #111312;
-  --surface: #181b19;
-  --surface-hover: #222622;
-  --border: #303530;
-  --border-strong: #454b45;
-  --text: #f1f3ef;
-  --text-muted: #989f99;
-  --accent: #c9ff55;
-  --accent-hover: #d7ff80;
-  --danger: #ff8f8f;
+  /*
+   * Alias temporaires pour les anciens composants
+   * utilisant encore les anciennes variables.
+   */
+  --background: var(--color-background);
+  --surface: var(--color-surface);
+  --surface-hover: var(--color-surface-emphasis);
+
+  --border: var(--color-divider);
+  --border-strong: #d0d5dd;
+
+  --text: var(--color-text);
+  --text-muted: var(--color-text-secondary);
+
+  --accent: var(--color-accent);
+  --accent-hover: var(--color-accent-hover);
+
+  --danger: var(--color-danger);
 
   min-height: 100dvh;
   display: block;
-  background: var(--background);
-  color: var(--text);
+
+  background: var(--color-background);
+  color: var(--color-text);
 }

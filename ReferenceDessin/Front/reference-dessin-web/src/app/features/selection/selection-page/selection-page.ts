@@ -4,10 +4,11 @@ import { ReferenceImage } from '../../../shared/models/reference-image';
 import { ReferenceCard } from '../../../shared/reference-card/reference-card';
 import { ReferenceSelectionStore } from '../reference-selection-store';
 import { SelectionLauncher } from '../selection-launcher/selection-launcher';
+import { LucidePlus, LucideTrash2 } from '@lucide/angular';
 
 @Component({
   selector: 'app-selection-page',
-  imports: [RouterLink, ReferenceCard, SelectionLauncher],
+  imports: [LucidePlus, LucideTrash2, RouterLink, ReferenceCard, SelectionLauncher],
   templateUrl: './selection-page.html',
   styleUrl: './selection-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
