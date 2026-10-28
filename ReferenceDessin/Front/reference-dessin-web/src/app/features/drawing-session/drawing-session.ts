@@ -8,14 +8,15 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { LucideChevronLeft, LucideChevronRight, LucideMaximize2, LucideX } from '@lucide/angular';
-import { DrawingSessionStore } from './drawing-session-store';
-import { Timer } from './timer/timer';
+import { LucideMaximize2 } from '@lucide/angular';
 import { ReferenceImage } from '../../shared/models/reference-image';
+import { DrawingSessionStore } from './drawing-session-store';
+import { SessionOverlay } from './session-overlay/session-overlay';
+import { SessionControls } from './session-controls/session-controls';
 
 @Component({
   selector: 'app-drawing-session',
-  imports: [Timer, LucideChevronLeft, LucideChevronRight, LucideMaximize2, LucideX],
+  imports: [SessionOverlay, SessionControls, LucideMaximize2],
   templateUrl: './drawing-session.html',
   styleUrl: './drawing-session.scss',
 })
@@ -33,6 +34,14 @@ export class DrawingSession implements OnDestroy {
   protected readonly imageLoading = signal(false);
   protected readonly imageError = signal(false);
   protected readonly imageExpanded = signal(false);
+
+  protected readonly previewImages = computed(() => this.store.images().slice(0, 5));
+
+  protected readonly nextImage = computed(() => {
+    const nextIndex = this.store.currentIndex() + 1;
+
+    return this.store.images()[nextIndex] ?? null;
+  });
 
   private timerId?: ReturnType<typeof setInterval>;
   private imageRequestId = 0;
@@ -160,7 +169,9 @@ export class DrawingSession implements OnDestroy {
 
   ngOnDestroy(): void {
     this.stopTimer();
+
     this.imageRequestId++;
+
     this.preloadedImages.clear();
   }
 
@@ -259,6 +270,7 @@ export class DrawingSession implements OnDestroy {
     }
 
     const requestedIndex = this.store.currentIndex();
+
     const requestId = ++this.imageRequestId;
 
     const cachedImage = this.preloadedImages.get(referenceImage.imageUrl);

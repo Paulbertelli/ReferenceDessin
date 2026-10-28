@@ -1,0 +1,25 @@
+:host {
+  width: 100%;
+  height: 100dvh;
+  min-width: 0;
+  min-height: 0;
+
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+
+  overflow: hidden;
+
+  background: var(--color-background);
+}
+
+.app-content {
+  min-width: 0;
+  min-height: 0;
+
+  display: block;
+  overflow: auto;
+}
+
+.app-content:has(app-drawing-session-page) {
+  overflow: hidden;
+}
