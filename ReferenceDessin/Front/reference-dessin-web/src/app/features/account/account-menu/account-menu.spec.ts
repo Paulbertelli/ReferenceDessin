@@ -29,17 +29,46 @@ describe('AccountMenu', () => {
 
     fixture = TestBed.createComponent(AccountMenu);
 
-    fixture.componentRef.setInput('account', {
-      displayName: 'Paul',
-      email: 'paul@example.com',
-      createdAtUtc: '2026-10-27T12:00:00Z',
-    });
+    setAccount('https://images.example/paul.jpg');
 
     fixture.detectChanges();
   });
 
+  it('affiche la photo de profil', () => {
+    const image = fixture.nativeElement.querySelector('.account-trigger img') as HTMLImageElement;
+
+    expect(image).not.toBeNull();
+    expect(image.src).toContain('https://images.example/paul.jpg');
+  });
+
+  it('affiche les initiales lorsque la photo est absente', () => {
+    setAccount(null);
+    fixture.detectChanges();
+
+    const avatar = fixture.nativeElement.querySelector(
+      '.account-trigger .account-avatar',
+    ) as HTMLElement;
+
+    expect(avatar.textContent?.trim()).toBe('PA');
+    expect(avatar.querySelector('img')).toBeNull();
+  });
+
+  it('remplace une photo invalide par les initiales', () => {
+    const image = fixture.nativeElement.querySelector('.account-trigger img') as HTMLImageElement;
+
+    image.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+
+    const avatar = fixture.nativeElement.querySelector(
+      '.account-trigger .account-avatar',
+    ) as HTMLElement;
+
+    expect(avatar.textContent?.trim()).toBe('PA');
+    expect(avatar.querySelector('img')).toBeNull();
+  });
+
   it('ouvre et ferme le menu du compte', () => {
-    const trigger = fixture.nativeElement.querySelector('.account-trigger') as HTMLButtonElement;
+    const trigger = getTrigger();
 
     trigger.click();
     fixture.detectChanges();
@@ -55,21 +84,18 @@ describe('AccountMenu', () => {
   it('demande la déconnexion', () => {
     openMenu();
 
-    const signOutButton = findButton('Se déconnecter');
-
-    signOutButton.click();
+    findButton('Se déconnecter').click();
     fixture.detectChanges();
 
     expect(authenticationStore.signOut).toHaveBeenCalledOnce();
+
     expect(fixture.nativeElement.querySelector('.account-popover')).toBeNull();
   });
 
   it('confirme la suppression du compte', () => {
     openMenu();
 
-    const deletionButton = findButton('Supprimer mon compte');
-
-    deletionButton.click();
+    findButton('Supprimer mon compte').click();
     fixture.detectChanges();
 
     const confirmationDebugElement = fixture.debugElement.query(
@@ -88,11 +114,36 @@ describe('AccountMenu', () => {
     expect(fixture.nativeElement.querySelector('app-account-deletion-confirmation')).toBeNull();
   });
 
-  function openMenu(): void {
-    const trigger = fixture.nativeElement.querySelector('.account-trigger') as HTMLButtonElement;
+  it('ferme le menu lors d’un clic en dehors du composant', () => {
+    openMenu();
 
-    trigger.click();
+    document.body.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+      }),
+    );
+
     fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.account-popover')).toBeNull();
+  });
+
+  function setAccount(profileImageUrl: string | null): void {
+    fixture.componentRef.setInput('account', {
+      displayName: 'Paul',
+      email: 'paul@example.com',
+      profileImageUrl,
+      createdAtUtc: '2026-10-27T12:00:00Z',
+    });
+  }
+
+  function openMenu(): void {
+    getTrigger().click();
+    fixture.detectChanges();
+  }
+
+  function getTrigger(): HTMLButtonElement {
+    return fixture.nativeElement.querySelector('.account-trigger') as HTMLButtonElement;
   }
 
   function findButton(label: string): HTMLButtonElement {

@@ -5,32 +5,76 @@
     (click)="toggleMenu()"
     [attr.aria-expanded]="menuOpen()"
     aria-controls="account-popover"
+    [attr.aria-label]="'Ouvrir le menu du compte de ' + account().displayName"
   >
-    {{ account().displayName }}
+    <span class="account-avatar account-avatar--small">
+      @if (showProfileImage()) {
+        <img
+          [src]="account().profileImageUrl"
+          alt=""
+          referrerpolicy="no-referrer"
+          (error)="handleProfileImageError()"
+        />
+      } @else {
+        <span aria-hidden="true">
+          {{ initials() }}
+        </span>
+      }
+    </span>
+
+    <span class="account-trigger__name">
+      {{ account().displayName }}
+    </span>
+
+    <svg lucideChevronDown [size]="16" aria-hidden="true"></svg>
   </button>
 
   @if (menuOpen()) {
-    <section
-      id="account-popover"
-      class="account-popover"
-      aria-label="Menu du compte"
-    >
-      <p>{{ account().displayName }}</p>
-      <p>{{ account().email }}</p>
+    <section id="account-popover" class="account-popover" aria-label="Menu du compte">
+      <header class="account-profile">
+        <span class="account-avatar account-avatar--large">
+          @if (showProfileImage()) {
+            <img
+              [src]="account().profileImageUrl"
+              alt=""
+              referrerpolicy="no-referrer"
+              (error)="handleProfileImageError()"
+            />
+          } @else {
+            <span aria-hidden="true">
+              {{ initials() }}
+            </span>
+          }
+        </span>
 
-      <button
-        type="button"
-        (click)="signOut()"
-      >
-        Se déconnecter
-      </button>
+        <div class="account-profile__identity">
+          <p class="account-profile__name">
+            {{ account().displayName }}
+          </p>
 
-      <button
-        type="button"
-        (click)="requestAccountDeletion()"
-      >
-        Supprimer mon compte
-      </button>
+          <p class="account-profile__email">
+            {{ account().email }}
+          </p>
+        </div>
+      </header>
+
+      <div class="account-actions">
+        <button type="button" class="account-action" (click)="signOut()">
+          <svg lucideLogOut [size]="18" aria-hidden="true"></svg>
+
+          <span>Se déconnecter</span>
+        </button>
+
+        <button
+          type="button"
+          class="account-action account-action--danger"
+          (click)="requestAccountDeletion()"
+        >
+          <svg lucideTrash2 [size]="18" aria-hidden="true"></svg>
+
+          <span>Supprimer mon compte</span>
+        </button>
+      </div>
     </section>
   }
 </div>

@@ -7,6 +7,7 @@ interface AccountResponse {
   estAuthentifie: boolean;
   nomAffiche: string;
   email: string;
+  imageProfilUrl: string | null;
   creeLeUtc: string;
 }
 
@@ -25,6 +26,7 @@ export class AccountApi {
       map((response) => ({
         displayName: response.nomAffiche,
         email: response.email,
+        profileImageUrl: response.imageProfilUrl,
         createdAtUtc: response.creeLeUtc,
       })),
     );

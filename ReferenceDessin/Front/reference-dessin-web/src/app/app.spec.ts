@@ -38,6 +38,7 @@ describe('App', () => {
     account: {
       displayName: 'Paul',
       email: 'paul@example.com',
+      profileImageUrl: null,
       createdAtUtc: '2026-10-27T12:00:00Z',
     },
   });
@@ -48,6 +49,7 @@ describe('App', () => {
       account: {
         displayName: 'Paul',
         email: 'paul@example.com',
+        profileImageUrl: null,
         createdAtUtc: '2026-10-27T12:00:00Z',
       },
     });

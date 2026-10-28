@@ -15,6 +15,7 @@ describe('AuthenticationStore', () => {
   const account: UserAccount = {
     displayName: 'Paul',
     email: 'paul@example.com',
+    profileImageUrl: null,
     createdAtUtc: '2026-10-09T20:00:00Z',
   };
 

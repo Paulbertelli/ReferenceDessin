@@ -1,18 +1,21 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  ElementRef,
   HostListener,
   inject,
   input,
   signal,
 } from '@angular/core';
+import { LucideChevronDown, LucideLogOut, LucideTrash2 } from '@lucide/angular';
+import { AccountDeletionConfirmation } from '../account-deletion-confirmation/account-deletion-confirmation';
 import { AuthenticationStore } from '../authentication-store';
 import { UserAccount } from '../user-account';
-import { AccountDeletionConfirmation } from '../account-deletion-confirmation/account-deletion-confirmation';
 
 @Component({
   selector: 'app-account-menu',
-  imports: [AccountDeletionConfirmation],
+  imports: [AccountDeletionConfirmation, LucideChevronDown, LucideLogOut, LucideTrash2],
   templateUrl: './account-menu.html',
   styleUrl: './account-menu.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,9 +24,29 @@ export class AccountMenu {
   readonly account = input.required<UserAccount>();
 
   private readonly authenticationStore = inject(AuthenticationStore);
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly menuOpen = signal(false);
   protected readonly deletionConfirmationOpen = signal(false);
+  protected readonly profileImageFailed = signal(false);
+
+  protected readonly initials = computed(() => {
+    const parts = this.account().displayName.trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) {
+      return '?';
+    }
+
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    return `${parts[0][0]}${parts.at(-1)?.[0] ?? ''}`.toUpperCase();
+  });
+
+  protected readonly showProfileImage = computed(
+    () => Boolean(this.account().profileImageUrl) && !this.profileImageFailed(),
+  );
 
   protected toggleMenu(): void {
     this.menuOpen.update((open) => !open);
@@ -31,6 +54,10 @@ export class AccountMenu {
 
   protected closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  protected handleProfileImageError(): void {
+    this.profileImageFailed.set(true);
   }
 
   protected signOut(): void {
@@ -59,5 +86,14 @@ export class AccountMenu {
     }
 
     this.closeMenu();
+  }
+
+  @HostListener('document:click', ['$event'])
+  protected closeWhenClickingOutside(event: MouseEvent): void {
+    const target = event.target;
+
+    if (target instanceof Node && !this.elementRef.nativeElement.contains(target)) {
+      this.closeMenu();
+    }
   }
 }
