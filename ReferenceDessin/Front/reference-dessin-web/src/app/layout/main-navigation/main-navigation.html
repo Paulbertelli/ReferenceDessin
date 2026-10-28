@@ -1,31 +1,33 @@
 <header class="main-header">
   <a class="brand" routerLink="/" aria-label="Référence Dessin — Accueil">
-    <img src="/logo-32.png?v=2" width="32" height="32" alt="" />
+    <img src="/logo.png?v=2" width="42" height="42" alt="" />
 
     <span>Référence Dessin</span>
   </a>
 
-  <nav aria-label="Navigation principale">
-    <a
-      routerLink="/"
-      routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: true }"
-      ariaCurrentWhenActive="page"
-    >
-      Accueil
-    </a>
+  <form class="global-search" role="search" (ngSubmit)="search()">
+    <label for="global-search-input" class="visually-hidden"> Rechercher des références </label>
 
-    <a routerLink="/search" routerLinkActive="active" ariaCurrentWhenActive="page"> Rechercher </a>
+    <input
+      id="global-search-input"
+      name="query"
+      type="search"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event)"
+      placeholder="Rechercher un sujet"
+      autocomplete="off"
+    />
 
-    <a routerLink="/collections" routerLinkActive="active" ariaCurrentWhenActive="page">
-      Collections
-    </a>
-  </nav>
+    <button type="submit" aria-label="Lancer la recherche" title="Rechercher">
+      <svg lucideSearch [size]="18" aria-hidden="true"></svg>
+    </button>
+  </form>
+
   <div class="account-access">
     @if (authenticationStore.state(); as authenticationState) {
       @switch (authenticationState.status) {
         @case ('loading') {
-          <span role="status"> Chargement du compte… </span>
+          <span role="status"> Chargement… </span>
         }
 
         @case ('signedIn') {

@@ -5,7 +5,7 @@ import { ReferenceImage } from '../../../shared/models/reference-image';
 import { ReferenceSelectionStore } from '../../selection/reference-selection-store';
 import { PexelsSearchStore } from '../pexels/pexels-search-store';
 import { SearchPage } from './search-page';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 
 describe('SearchPage', () => {
   let fixture: ComponentFixture<SearchPage>;
@@ -45,17 +45,31 @@ describe('SearchPage', () => {
     fixture.detectChanges();
   });
 
-  it('lance la recherche avec le terme saisi', () => {
-    const input = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+  it('met à jour l’URL avec le terme saisi', () => {
+    const router = TestBed.inject(Router);
+
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    const input = fixture.nativeElement.querySelector('#reference-search') as HTMLInputElement;
+
+    const form = fixture.nativeElement.querySelector('.search-form') as HTMLFormElement;
 
     input.value = 'portrait';
     input.dispatchEvent(new Event('input'));
 
-    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    fixture.detectChanges();
 
     form.dispatchEvent(new Event('submit'));
 
-    expect(search).toHaveBeenCalledWith('portrait');
+    expect(navigate).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: {
+          q: 'portrait',
+        },
+        replaceUrl: true,
+      }),
+    );
   });
 
   it('ajoute une référence à la sélection', () => {

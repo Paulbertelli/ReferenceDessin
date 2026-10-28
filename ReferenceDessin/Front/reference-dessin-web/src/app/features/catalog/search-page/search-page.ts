@@ -1,10 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PexelsSearchStore } from '../pexels/pexels-search-store';
-import { ReferenceSelectionStore } from '../../selection/reference-selection-store';
-import { ReferenceCard } from '../../../shared/reference-card/reference-card';
+import { ActivatedRoute, Router } from '@angular/router';
+import { distinctUntilChanged, map } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReferenceImage } from '../../../shared/models/reference-image';
+import { ReferenceCard } from '../../../shared/reference-card/reference-card';
+import { ReferenceSelectionStore } from '../../selection/reference-selection-store';
 import { SelectionLauncher } from '../../selection/selection-launcher/selection-launcher';
+import { PexelsSearchStore } from '../pexels/pexels-search-store';
 
 @Component({
   selector: 'app-search-page',
@@ -20,14 +23,47 @@ export class SearchPage {
 
   protected searchTerm = '';
 
+  private readonly route = inject(ActivatedRoute);
+
+  private readonly router = inject(Router);
+
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor() {
-    if (!this.searchStore.hasSearched()) {
-      this.searchStore.search();
-    }
+    let initialized = false;
+
+    this.route.queryParamMap
+      .pipe(
+        map((parameters) => parameters.get('q')?.trim() ?? ''),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((query) => {
+        this.searchTerm = query;
+
+        if (query || initialized || !this.searchStore.hasSearched()) {
+          this.searchStore.search(query);
+        }
+
+        initialized = true;
+      });
   }
 
   protected search(): void {
-    this.searchStore.search(this.searchTerm);
+    const query = this.searchTerm.trim();
+
+    const currentQuery = this.route.snapshot.queryParamMap.get('q')?.trim() ?? '';
+
+    if (query === currentQuery) {
+      this.searchStore.search(query);
+      return;
+    }
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: query ? { q: query } : {},
+      replaceUrl: true,
+    });
   }
 
   protected toggleSelection(image: ReferenceImage): void {

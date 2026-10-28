@@ -1,10 +1,33 @@
-import { signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter, Router, Routes } from '@angular/router';
 import { App } from './app';
-import { routes } from './app.routes';
 import { AuthenticationState } from './features/account/authentication-state';
 import { AuthenticationStore } from './features/account/authentication-store';
+import { AppShell } from './layout/app-shell/app-shell';
+
+@Component({
+  standalone: true,
+  template: '',
+})
+class EmptyPage {}
+
+const testRoutes: Routes = [
+  {
+    path: 'login',
+    component: EmptyPage,
+  },
+  {
+    path: '',
+    component: AppShell,
+    children: [
+      {
+        path: '',
+        component: EmptyPage,
+      },
+    ],
+  },
+];
 
 describe('App', () => {
   let fixture: ComponentFixture<App>;
@@ -32,7 +55,7 @@ describe('App', () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
-        provideRouter(routes),
+        provideRouter(testRoutes),
         {
           provide: AuthenticationStore,
           useValue: {
@@ -54,7 +77,6 @@ describe('App', () => {
 
   it('affiche la navigation dans le shell principal', async () => {
     await router.navigateByUrl('/');
-    await fixture.whenStable();
 
     fixture.detectChanges();
 
@@ -65,7 +87,6 @@ describe('App', () => {
 
   it('n’affiche pas la navigation sur la page de connexion', async () => {
     await router.navigateByUrl('/login');
-    await fixture.whenStable();
 
     fixture.detectChanges();
 

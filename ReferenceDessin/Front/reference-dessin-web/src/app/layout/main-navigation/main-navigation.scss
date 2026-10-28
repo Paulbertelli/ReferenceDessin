@@ -1,0 +1,220 @@
+:host {
+    min-width: 0;
+    display: block;
+}
+
+.main-header {
+    width: 100%;
+    min-width: 0;
+    min-height: 56px;
+
+    display: grid;
+    grid-template-columns:
+        minmax(180px, 1fr) minmax(280px, 430px) minmax(180px, 1fr);
+    align-items: center;
+    gap: 1.25rem;
+
+    padding: 0.6rem 1.25rem;
+
+    border-bottom: 1px solid var(--color-divider);
+
+    background: rgb(255 255 255 / 94%);
+    color: var(--color-text);
+
+    backdrop-filter: blur(12px);
+}
+
+.brand {
+    width: max-content;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+
+    border-radius: 7px;
+
+    color: var(--color-text);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+
+    img {
+        width: 34px;
+        height: 34px;
+
+        display: block;
+
+        object-fit: contain;
+    }
+
+    &:focus-visible {
+        outline: 3px solid var(--color-focus);
+        outline-offset: 3px;
+    }
+}
+
+.global-search {
+    min-width: 0;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 38px;
+    align-items: center;
+    gap: 0.45rem;
+
+    input {
+        width: 100%;
+        height: 36px;
+
+        padding: 0 0.9rem;
+
+        border: 1px solid var(--color-divider);
+        border-radius: 10px;
+
+        outline: 0;
+
+        background: var(--color-background);
+        color: var(--color-text);
+
+        font-size: 0.78rem;
+
+        transition:
+            border-color 150ms ease,
+            box-shadow 150ms ease;
+
+        &::placeholder {
+            color: var(--color-text-muted);
+        }
+
+        &:focus {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px var(--color-focus);
+        }
+    }
+
+    button {
+        width: 36px;
+        height: 36px;
+
+        display: grid;
+        place-items: center;
+
+        padding: 0;
+
+        border: 1px solid var(--color-accent);
+        border-radius: 10px;
+
+        background: var(--color-accent);
+        color: var(--color-on-accent);
+
+        cursor: pointer;
+
+        transition:
+            border-color 150ms ease,
+            background-color 150ms ease;
+
+        svg {
+            display: block;
+        }
+
+        &:hover {
+            border-color: var(--color-accent-hover);
+            background: var(--color-accent-hover);
+        }
+
+        &:focus-visible {
+            outline: 3px solid var(--color-focus);
+            outline-offset: 2px;
+        }
+    }
+}
+
+.account-access {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+
+    >a {
+        min-height: 36px;
+
+        display: inline-flex;
+        align-items: center;
+
+        padding: 0 0.75rem;
+
+        border-radius: 8px;
+
+        color: var(--color-accent);
+        font-weight: 600;
+        text-decoration: none;
+
+        &:hover {
+            background: var(--color-accent-soft);
+            color: var(--color-accent-hover);
+        }
+
+        &:focus-visible {
+            outline: 3px solid var(--color-focus);
+            outline-offset: 2px;
+        }
+    }
+}
+
+.visually-hidden {
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+@media (max-width: 760px) {
+    .main-header {
+        grid-template-columns:
+            auto minmax(0, 1fr) auto;
+        gap: 0.65rem;
+
+        padding-inline: 0.75rem;
+    }
+
+    .brand span {
+        display: none;
+    }
+
+    .global-search {
+        grid-template-columns: minmax(0, 1fr) 36px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-header {
+        gap: 0.45rem;
+        padding-inline: 0.5rem;
+    }
+
+    .brand img {
+        width: 26px;
+        height: 26px;
+    }
+
+    .global-search input {
+        padding-inline: 0.65rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .global-search input,
+    .global-search button {
+        transition: none;
+    }
+}
