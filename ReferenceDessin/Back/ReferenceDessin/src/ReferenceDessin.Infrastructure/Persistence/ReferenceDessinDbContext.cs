@@ -17,6 +17,9 @@ public sealed class ReferenceDessinDbContext(DbContextOptions<ReferenceDessinDbC
             entite.Property(user => user.DisplayName)
                 .HasMaxLength(100);
             
+            entite.Property(user => user.ProfileImageUrl)
+                .HasMaxLength(2048);
+            
             entite.Property(user => user.CreatedAtUtc)
                 .IsRequired();
         });
