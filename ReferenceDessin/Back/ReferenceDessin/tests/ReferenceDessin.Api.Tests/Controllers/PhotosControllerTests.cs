@@ -15,22 +15,30 @@ public sealed class PhotosControllerTests
         [
             new ReferenceImage(
                 ExternalId: "123",
-                ImageUrl: "https://images.example/photo.jpeg",
+                ImageUrl:
+                    "https://images.example/photo.jpeg",
                 SourceName: "Pexels",
-                OriginalUrl: "https://www.pexels.com/photo/123",
+                OriginalUrl:
+                    "https://www.pexels.com/photo/123",
                 AuthorName: "Jane Doe",
-                AuthorUrl: "https://www.pexels.com/@jane",
+                AuthorUrl:
+                    "https://www.pexels.com/@jane",
                 Description: "Un portrait",
                 AverageColor: "#AABBCC")
         ];
 
-        var pexelsPhotoProvider = new StubPexelsPhotoProvider
-        {
-            ImagesToReturn = expectedImages
-        };
+        var pexelsPhotoProvider =
+            new StubPexelsPhotoProvider
+            {
+                ImagesToReturn = expectedImages
+            };
 
-        var handler = new SearchPexelsPhotosHandler(pexelsPhotoProvider);
-        var controller = new PhotosController(handler);
+        var handler =
+            new SearchPexelsPhotosHandler(
+                pexelsPhotoProvider);
+
+        var controller =
+            new PhotosController(handler);
 
         // Act
         var result = await controller.Get(
@@ -39,21 +47,75 @@ public sealed class PhotosControllerTests
 
         // Assert
         var okResult =
-            Assert.IsType<OkObjectResult>(result.Result);
+            Assert.IsType<OkObjectResult>(
+                result.Result);
 
-        Assert.Same(expectedImages, okResult.Value);
+        Assert.Same(
+            expectedImages,
+            okResult.Value);
+    }
+
+    [Fact]
+    public async Task Get_WhenRequestIsValid_PassesParameters()
+    {
+        // Arrange
+        var pexelsPhotoProvider =
+            new StubPexelsPhotoProvider();
+
+        var handler =
+            new SearchPexelsPhotosHandler(
+                pexelsPhotoProvider);
+
+        var controller =
+            new PhotosController(handler);
+
+        using var cancellationSource =
+            new CancellationTokenSource();
+
+        // Act
+        await controller.Get(
+            searchTerm: "chat noir",
+            count: 15,
+            cancellationToken:
+                cancellationSource.Token);
+
+        // Assert
+        Assert.Equal(
+            1,
+            pexelsPhotoProvider.CallCount);
+
+        Assert.Equal(
+            "chat noir",
+            pexelsPhotoProvider.ReceivedSearchTerm);
+
+        Assert.Equal(
+            15,
+            pexelsPhotoProvider.ReceivedCount);
+
+        Assert.Equal(
+            cancellationSource.Token,
+            pexelsPhotoProvider
+                .ReceivedCancellationToken);
     }
 
     [Theory]
+    [InlineData(-1)]
     [InlineData(0)]
     [InlineData(81)]
+    [InlineData(100)]
     public async Task Get_WhenCountIsInvalid_ReturnsBadRequest(
         int invalidCount)
     {
         // Arrange
-        var pexelsPhotoProvider = new StubPexelsPhotoProvider();
-        var handler = new SearchPexelsPhotosHandler(pexelsPhotoProvider);
-        var controller = new PhotosController(handler);
+        var pexelsPhotoProvider =
+            new StubPexelsPhotoProvider();
+
+        var handler =
+            new SearchPexelsPhotosHandler(
+                pexelsPhotoProvider);
+
+        var controller =
+            new PhotosController(handler);
 
         // Act
         var result = await controller.Get(
@@ -68,22 +130,55 @@ public sealed class PhotosControllerTests
         Assert.Equal(
             "Le nombre de photos doit être compris entre 1 et 80.",
             badRequest.Value);
+
+        Assert.Equal(
+            0,
+            pexelsPhotoProvider.CallCount);
     }
 
-    private sealed class StubPexelsPhotoProvider : IPexelsPhotoProvider
+    private sealed class StubPexelsPhotoProvider
+        : IPexelsPhotoProvider
     {
-        public IReadOnlyCollection<ReferenceImage> ImagesToReturn
+        public IReadOnlyCollection<ReferenceImage>
+            ImagesToReturn
         {
             get;
             init;
         } = [];
 
-        public Task<IReadOnlyCollection<ReferenceImage>> SearchAsync(
-            string? searchTerm,
-            int count,
-            CancellationToken cancellationToken = default)
+        public int CallCount { get; private set; }
+
+        public string? ReceivedSearchTerm
         {
-            return Task.FromResult(ImagesToReturn);
+            get;
+            private set;
+        }
+
+        public int ReceivedCount { get; private set; }
+
+        public CancellationToken
+            ReceivedCancellationToken
+        {
+            get;
+            private set;
+        }
+
+        public Task<
+            IReadOnlyCollection<ReferenceImage>>
+            SearchAsync(
+                string? searchTerm,
+                int count,
+                CancellationToken cancellationToken =
+                    default)
+        {
+            CallCount++;
+            ReceivedSearchTerm = searchTerm;
+            ReceivedCount = count;
+            ReceivedCancellationToken =
+                cancellationToken;
+
+            return Task.FromResult(
+                ImagesToReturn);
         }
     }
 }

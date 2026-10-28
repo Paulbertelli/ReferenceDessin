@@ -3,9 +3,12 @@ import { RouterOutlet } from '@angular/router';
 import { NotificationBanner } from './shared/notification/notification-banner';
 
 @Component({
-  imports: [RouterOutlet, NotificationBanner],
   selector: 'app-root',
-  styleUrl: './app.scss',
+  imports: [
+    RouterOutlet,
+    NotificationBanner,
+  ],
   templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
 export class App {}

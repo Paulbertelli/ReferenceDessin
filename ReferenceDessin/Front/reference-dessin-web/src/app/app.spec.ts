@@ -1,6 +1,13 @@
 import { Component, signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router, Routes } from '@angular/router';
+import {
+  ComponentFixture,
+  TestBed,
+} from '@angular/core/testing';
+import {
+  provideRouter,
+  Router,
+  Routes,
+} from '@angular/router';
 import { App } from './app';
 import { AuthenticationState } from './features/account/authentication-state';
 import { AuthenticationStore } from './features/account/authentication-store';
@@ -33,15 +40,16 @@ describe('App', () => {
   let fixture: ComponentFixture<App>;
   let router: Router;
 
-  const authenticationState = signal<AuthenticationState>({
-    status: 'signedIn',
-    account: {
-      displayName: 'Paul',
-      email: 'paul@example.com',
-      profileImageUrl: null,
-      createdAtUtc: '2026-10-27T12:00:00Z',
-    },
-  });
+  const authenticationState =
+    signal<AuthenticationState>({
+      status: 'signedIn',
+      account: {
+        displayName: 'Paul',
+        email: 'paul@example.com',
+        profileImageUrl: null,
+        createdAtUtc: '2026-10-27T12:00:00Z',
+      },
+    });
 
   beforeEach(async () => {
     authenticationState.set({
@@ -74,26 +82,40 @@ describe('App', () => {
   });
 
   it('crée l’application', () => {
-    expect(fixture.componentInstance).toBeTruthy();
+    expect(
+      fixture.componentInstance,
+    ).toBeTruthy();
   });
 
-  it('affiche la navigation dans le shell principal', async () => {
-    await router.navigateByUrl('/');
+  it(
+    'affiche la navigation dans le shell principal',
+    async () => {
+      await router.navigateByUrl('/');
 
-    fixture.detectChanges();
+      fixture.detectChanges();
 
-    const navigation = fixture.nativeElement.querySelector('app-main-navigation');
+      const navigation =
+        fixture.nativeElement.querySelector(
+          'app-main-navigation',
+        );
 
-    expect(navigation).not.toBeNull();
-  });
+      expect(navigation).not.toBeNull();
+    },
+  );
 
-  it('n’affiche pas la navigation sur la page de connexion', async () => {
-    await router.navigateByUrl('/login');
+  it(
+    'n’affiche pas la navigation sur la page de connexion',
+    async () => {
+      await router.navigateByUrl('/login');
 
-    fixture.detectChanges();
+      fixture.detectChanges();
 
-    const navigation = fixture.nativeElement.querySelector('app-main-navigation');
+      const navigation =
+        fixture.nativeElement.querySelector(
+          'app-main-navigation',
+        );
 
-    expect(navigation).toBeNull();
-  });
+      expect(navigation).toBeNull();
+    },
+  );
 });

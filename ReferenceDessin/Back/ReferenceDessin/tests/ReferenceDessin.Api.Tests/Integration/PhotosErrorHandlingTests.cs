@@ -14,14 +14,16 @@ public sealed class PhotosErrorHandlingTests(
     PhotosApiFactory factory)
     : IClassFixture<PhotosApiFactory>
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client =
+        factory.CreateClient();
 
     [Fact]
     public async Task GetPhotos_WhenPexelsFails_ReturnsProblemDetails()
     {
         // Act
-        using var response = await _client.GetAsync(
-            "/api/photos?query=portrait&count=10");
+        using var response =
+            await _client.GetAsync(
+                "/api/photos?query=portrait&count=10");
 
         // Assert
         Assert.Equal(
@@ -30,21 +32,31 @@ public sealed class PhotosErrorHandlingTests(
 
         Assert.Equal(
             "application/problem+json",
-            response.Content.Headers.ContentType?.MediaType);
+            response.Content.Headers.ContentType
+                ?.MediaType);
 
-        var problem = await response.Content
-            .ReadFromJsonAsync<ProblemDetails>();
+        var problem =
+            await response.Content
+                .ReadFromJsonAsync<ProblemDetails>();
 
         Assert.NotNull(problem);
         Assert.Equal(502, problem.Status);
+
         Assert.Equal(
             "Le service d’images est indisponible.",
             problem.Title);
+
         Assert.Equal(
             "Les images n’ont pas pu être récupérées auprès de Pexels.",
             problem.Detail);
-        Assert.Equal("/api/photos", problem.Instance);
-        Assert.True(problem.Extensions.ContainsKey("traceId"));
+
+        Assert.Equal(
+            "/api/photos",
+            problem.Instance);
+
+        Assert.True(
+            problem.Extensions.ContainsKey(
+                "traceId"));
     }
 }
 
@@ -55,7 +67,7 @@ public sealed class PhotosApiFactory
         IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        
+
         builder.UseSetting(
             "ConnectionStrings:Database",
             "Host=localhost;Port=5432;" +
@@ -84,7 +96,8 @@ public sealed class PhotosApiFactory
 
         builder.ConfigureTestServices(services =>
         {
-            services.RemoveAll<IPexelsPhotoProvider>();
+            services.RemoveAll<
+                IPexelsPhotoProvider>();
 
             services.AddSingleton<
                 IPexelsPhotoProvider,
@@ -95,11 +108,13 @@ public sealed class PhotosApiFactory
     private sealed class FailingPexelsPhotoProvider
         : IPexelsPhotoProvider
     {
-        public Task<IReadOnlyCollection<ReferenceImage>>
+        public Task<
+            IReadOnlyCollection<ReferenceImage>>
             SearchAsync(
                 string? searchTerm,
                 int count,
-                CancellationToken cancellationToken = default)
+                CancellationToken cancellationToken =
+                    default)
         {
             throw new HttpRequestException(
                 "Pexels est indisponible pendant le test.");

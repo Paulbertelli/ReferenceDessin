@@ -21,7 +21,8 @@
   --color-danger-hover: #d90429;
   --color-danger-soft: #fff0f2;
 
-  --color-media-hover-overlay: rgb(0 22 67 / 70%);
+  --color-media-hover-overlay:
+    rgb(0 22 67 / 70%);
 
   --color-scrollbar-track: #f7f7f7;
   --color-scrollbar-thumb: #8b8b8b;
@@ -85,6 +86,7 @@ body:has(app-drawing-session-page) app-root {
 }
 
 /* Bloque également le fond pendant le plein écran. */
+
 body:has(.image-overlay) {
   overflow: hidden;
 }
@@ -113,18 +115,21 @@ input {
 ::-webkit-scrollbar-thumb {
   min-height: 54px;
 
-  border: 3px solid var(--color-scrollbar-track);
+  border: 3px solid
+  var(--color-scrollbar-track);
   border-radius: 999px;
 
   background: var(--color-scrollbar-thumb);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-scrollbar-thumb-hover);
+  background:
+    var(--color-scrollbar-thumb-hover);
 }
 
 ::-webkit-scrollbar-thumb:active {
-  background: var(--color-scrollbar-thumb-active);
+  background:
+    var(--color-scrollbar-thumb-active);
 }
 
 ::-webkit-scrollbar-corner {
