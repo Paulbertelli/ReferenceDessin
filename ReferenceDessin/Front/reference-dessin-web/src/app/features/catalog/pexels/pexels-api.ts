@@ -1,16 +1,16 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ReferenceImage } from './reference-image';
+import { ReferenceImage } from '../../../shared/models/reference-image';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ReferenceImageApi {
+export class PexelsApi {
   private readonly httpClient = inject(HttpClient);
   private readonly endpoint = '/api/photos';
 
-  searchImages(searchTerm: string = '', count: number = 30): Observable<ReferenceImage[]> {
+  searchReferenceImages(searchTerm: string = '', count: number = 30): Observable<ReferenceImage[]> {
     let parameters = new HttpParams().set('count', count);
 
     const normalizedSearchTerm = searchTerm.trim();

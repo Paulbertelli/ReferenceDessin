@@ -1,0 +1,73 @@
+<footer class="controls">
+  <div class="session-preview" aria-label="Références de la séance">
+    <div class="session-preview__images">
+      @for (
+        image of previewImages();
+        track image.sourceName + ':' + image.externalId;
+        let index = $index
+      ) {
+        <img [src]="image.imageUrl" alt="" [style.--preview-index]="index" draggable="false" />
+      }
+    </div>
+
+    <span class="session-preview__count">
+      {{ totalImages() }}
+    </span>
+  </div>
+
+  <div class="session-controls">
+    <button
+      type="button"
+      class="icon-button previous-button"
+      (click)="previousRequested.emit()"
+      [disabled]="!hasPrevious()"
+      aria-label="Image précédente"
+      title="Image précédente"
+    >
+      <svg lucideChevronLeft [size]="22" aria-hidden="true"></svg>
+    </button>
+
+    <app-timer
+      [(durationMinutes)]="durationMinutes"
+      [running]="running()"
+      [disabled]="disabled()"
+      [formattedTime]="formattedTime()"
+      [progress]="progress()"
+      (toggleRequested)="toggleTimerRequested.emit()"
+      (resetRequested)="resetTimerRequested.emit()"
+    />
+
+    <button
+      type="button"
+      class="icon-button next-button"
+      (click)="nextRequested.emit()"
+      [disabled]="!hasNext()"
+      aria-label="Image suivante"
+      title="Image suivante"
+    >
+      <svg lucideChevronRight [size]="22" aria-hidden="true"></svg>
+    </button>
+  </div>
+
+  @if (nextImage(); as nextReference) {
+    <button
+      type="button"
+      class="next-image-preview"
+      (click)="nextRequested.emit()"
+      aria-label="Afficher l’image suivante"
+      title="Afficher l’image suivante"
+    >
+      <span>
+        <small>Image suivante</small>
+      </span>
+
+      <img [src]="nextReference.imageUrl" alt="" draggable="false" />
+    </button>
+  } @else {
+    <div class="next-image-preview next-image-preview--empty" aria-label="Fin de la séance">
+      <span>
+        <small>Fin de la séance</small>
+      </span>
+    </div>
+  }
+</footer>

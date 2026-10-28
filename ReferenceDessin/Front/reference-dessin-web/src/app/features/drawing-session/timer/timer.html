@@ -43,6 +43,7 @@
     type="button"
     class="icon-button reset-button"
     (click)="resetRequested.emit()"
+    [disabled]="disabled()"
     aria-label="Réinitialiser le minuteur"
     title="Réinitialiser"
   >

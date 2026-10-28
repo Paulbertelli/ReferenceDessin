@@ -1,0 +1,79 @@
+@if (sessionStore.images().length > 0) {
+  <div class="drawing-session-page">
+    <header class="session-header">
+      <a
+        class="session-exit"
+        routerLink="/selection"
+      >
+        <svg
+          lucideChevronLeft
+          [size]="18"
+          aria-hidden="true"
+        ></svg>
+
+        Quitter
+      </a>
+
+      <h1>
+        Nouvelle séance
+
+        <svg
+          lucidePencil
+          [size]="17"
+          aria-hidden="true"
+        ></svg>
+      </h1>
+
+      <span aria-hidden="true"></span>
+    </header>
+
+    <app-drawing-session />
+  </div>
+} @else {
+  <main class="empty-session">
+    <div
+      class="empty-session__icon"
+      aria-hidden="true"
+    >
+      <svg
+        lucideImages
+        [size]="32"
+      ></svg>
+    </div>
+
+    <h1>Aucune référence dans cette séance</h1>
+
+    <p>
+      Sélectionnez d’abord des références avant de
+      commencer à dessiner.
+    </p>
+
+    <div class="empty-session__actions">
+      <a
+        class="primary-action"
+        routerLink="/search"
+      >
+        <svg
+          lucideSearch
+          [size]="18"
+          aria-hidden="true"
+        ></svg>
+
+        Rechercher des références
+      </a>
+
+      <a
+        class="secondary-action"
+        routerLink="/collections"
+      >
+        <svg
+          lucideImages
+          [size]="18"
+          aria-hidden="true"
+        ></svg>
+
+        Explorer les collections
+      </a>
+    </div>
+  </main>
+}

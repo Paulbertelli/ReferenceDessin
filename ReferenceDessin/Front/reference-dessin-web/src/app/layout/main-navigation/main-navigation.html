@@ -1,0 +1,55 @@
+<header class="main-header">
+  <a class="brand" routerLink="/" aria-label="Référence Dessin — Accueil">
+    <img src="/logo.png?v=2" width="42" height="42" alt="" />
+
+    <span>Référence Dessin</span>
+  </a>
+
+  <form class="global-search" role="search" (ngSubmit)="search()">
+    <label for="global-search-input" class="visually-hidden"> Rechercher des références </label>
+
+    <input
+      id="global-search-input"
+      name="query"
+      type="search"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event)"
+      placeholder="Rechercher un sujet"
+      autocomplete="off"
+    />
+
+    <button type="submit" aria-label="Lancer la recherche" title="Rechercher">
+      <svg lucideSearch [size]="18" aria-hidden="true"></svg>
+    </button>
+  </form>
+
+  <div class="account-access">
+    @if (authenticationStore.state(); as authenticationState) {
+      @switch (authenticationState.status) {
+        @case ('loading') {
+          <span role="status"> Chargement… </span>
+        }
+
+        @case ('signedIn') {
+          <app-account-menu [account]="authenticationState.account" />
+        }
+
+        @case ('signedOut') {
+          <a routerLink="/login"> Se connecter </a>
+        }
+
+        @case ('signingOut') {
+          <span role="status"> Déconnexion… </span>
+        }
+
+        @case ('deleting') {
+          <span role="status"> Suppression… </span>
+        }
+
+        @case ('error') {
+          <a routerLink="/login"> Compte indisponible </a>
+        }
+      }
+    }
+  </div>
+</header>

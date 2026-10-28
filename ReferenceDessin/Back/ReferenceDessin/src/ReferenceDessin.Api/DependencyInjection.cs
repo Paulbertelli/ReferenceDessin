@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using ReferenceDessin.Api.Configuration;
 using ReferenceDessin.Api.ErrorHandling;
@@ -99,6 +100,10 @@ public static class DependencyInjection
 
             options.SignInScheme =
                 IdentityConstants.ExternalScheme;
+
+            options.ClaimActions.MapJsonKey(
+                "picture",
+                "picture");
 
             if (environment.IsDevelopment())
             {

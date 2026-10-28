@@ -17,6 +17,8 @@ public sealed class AuthenticationController(
     ILogger<AuthenticationController> logger)
     : ControllerBase
 {
+    private const string ProfileImageClaimType = "picture";
+    
    [AllowAnonymous]
     [HttpGet("google")]
     public IActionResult GoogleLogin()
@@ -56,6 +58,9 @@ public sealed class AuthenticationController(
                 title: "La réponse de Google est invalide.",
                 statusCode: StatusCodes.Status401Unauthorized);
         }
+        
+        var profileImageUrl = GetProfileImageUrl(
+            externalLoginInfo.Principal);
 
         var signInResult =
             await signInManager
@@ -67,6 +72,18 @@ public sealed class AuthenticationController(
 
         if (signInResult.Succeeded)
         {
+            var existingUser =
+                await userManager.FindByLoginAsync(
+                    externalLoginInfo.LoginProvider,
+                    externalLoginInfo.ProviderKey);
+
+            if (existingUser is not null)
+            {
+                await UpdateProfileImageAsync(
+                    existingUser,
+                    profileImageUrl);
+            }
+            
             await HttpContext.SignOutAsync(
                 IdentityConstants.ExternalScheme);
             
@@ -104,6 +121,7 @@ public sealed class AuthenticationController(
                 DisplayName = string.IsNullOrWhiteSpace(displayName)
                     ? email
                     : displayName,
+                ProfileImageUrl = profileImageUrl,
                 CreatedAtUtc = DateTimeOffset.UtcNow
             };
 
@@ -125,6 +143,13 @@ public sealed class AuthenticationController(
 
             userCreated = true;
         }
+        else
+        {
+            await UpdateProfileImageAsync(
+                user,
+                profileImageUrl);
+        }
+        
 
         var loginAssociationResult =
             await userManager.AddLoginAsync(
@@ -172,6 +197,63 @@ public sealed class AuthenticationController(
         return NoContent();
     }
 
+    private static string? GetProfileImageUrl(
+        ClaimsPrincipal principal)
+    {
+        var value =
+            principal.FindFirstValue(
+                ProfileImageClaimType);
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalizedValue = value.Trim();
+
+        if (normalizedValue.Length > 2048)
+        {
+            return null;
+        }
+
+        if (!Uri.TryCreate(
+                normalizedValue,
+                UriKind.Absolute,
+                out var uri) ||
+            uri.Scheme != Uri.UriSchemeHttps)
+        {
+            return null;
+        }
+
+        return uri.AbsoluteUri;
+    }
+
+    private async Task UpdateProfileImageAsync(
+        ApplicationUser user,
+        string? profileImageUrl)
+    {
+        if (profileImageUrl is null ||
+            string.Equals(
+                user.ProfileImageUrl,
+                profileImageUrl,
+                StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        user.ProfileImageUrl = profileImageUrl;
+
+        var updateResult =
+            await userManager.UpdateAsync(user);
+
+        if (!updateResult.Succeeded)
+        {
+            LogErrors(
+                "mise à jour de la photo de profil",
+                updateResult.Errors);
+        }
+    }
+    
     private IActionResult RedirectToApplication()
     {
         var applicationUrl =

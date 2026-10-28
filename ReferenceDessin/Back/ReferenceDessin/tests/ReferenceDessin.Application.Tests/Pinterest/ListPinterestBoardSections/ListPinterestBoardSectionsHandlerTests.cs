@@ -120,6 +120,7 @@ public sealed class ListPinterestBoardSectionsHandlerTests
         public Task<IReadOnlyCollection<PinterestPin>> GetBoardPinsAsync(
             string boardId,
             string? sectionId = null,
+            int? maximumCount = null,
             CancellationToken cancellationToken = default)
         {
             return Task.FromResult<IReadOnlyCollection<PinterestPin>>([]);

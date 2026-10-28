@@ -1,0 +1,93 @@
+<main class="collection-detail-page">
+  <header class="page-header">
+    <a class="back-link" routerLink="/collections">
+      <span aria-hidden="true">‹</span>
+      Collections
+    </a>
+
+    <div class="collection-heading">
+      <h1>{{ boardName() }}</h1>
+
+      <p>
+        {{ detailStore.totalImageCount() }}
+        {{ detailStore.totalImageCount() === 1 ? 'référence' : 'références' }}
+
+        <span aria-hidden="true">·</span>
+
+        {{ detailStore.sections().length }}
+        {{ detailStore.sections().length === 1 ? 'section' : 'sections' }}
+      </p>
+    </div>
+  </header>
+
+  @if (detailStore.loading()) {
+    <p class="page-state" role="status">Chargement de la collection…</p>
+  } @else if (detailStore.error()) {
+    <section class="page-state page-state--error" role="alert">
+      <p>{{ detailStore.error() }}</p>
+
+      <button type="button" (click)="reload()">Réessayer</button>
+    </section>
+  } @else {
+    <div class="collection-toolbar">
+      <nav class="section-filter" aria-label="Sections de la collection">
+        <button
+          type="button"
+          (click)="selectSection(null)"
+          [attr.aria-pressed]="detailStore.selectedSectionId() === null"
+        >
+          Toutes
+        </button>
+
+        @for (section of detailStore.sections(); track section.id) {
+          <button
+            type="button"
+            (click)="selectSection(section.id)"
+            [attr.aria-pressed]="detailStore.selectedSectionId() === section.id"
+          >
+            {{ section.name }}
+
+            <span>
+              ·
+              {{ detailStore.sectionImageCount(section.id) }}
+            </span>
+          </button>
+        }
+      </nav>
+
+      @if (detailStore.images().length > 0) {
+        <div class="collection-toolbar__actions">
+          @if (selectedDisplayedCount() >= 2) {
+            <button type="button" class="deselect-button" (click)="deselectDisplayed()">
+              <svg lucideTrash2 [size]="15" aria-hidden="true"></svg>
+
+              Désélectionner
+            </button>
+          }
+
+          @if (detailStore.images().length > 0 && !allDisplayedSelected()) {
+            <button type="button" class="select-all-button" (click)="selectAllDisplayed()">
+              Tout sélectionner
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    @if (detailStore.images().length === 0) {
+      <p class="page-state">Cette section ne contient aucune référence.</p>
+    } @else {
+      <section class="reference-grid" aria-label="Références de la collection">
+        @for (image of detailStore.images(); track image.sourceName + ':' + image.externalId) {
+          <app-reference-card
+            [image]="image"
+            [selected]="selectionStore.isSelected(image)"
+            (selectionRequested)="toggleSelection($event)"
+          />
+        }
+      </section>
+    }
+  }
+</main>
+
+<app-selection-launcher />

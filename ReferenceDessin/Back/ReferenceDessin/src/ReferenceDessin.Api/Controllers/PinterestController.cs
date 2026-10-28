@@ -6,9 +6,11 @@ using ReferenceDessin.Application.Pinterest;
 using ReferenceDessin.Application.Pinterest.GetPinterestReferenceImages;
 using ReferenceDessin.Application.Pinterest.ListPinterestBoards;
 using ReferenceDessin.Application.Pinterest.ListPinterestBoardSections;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ReferenceDessin.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/pinterest")]
 public sealed class PinterestController(
@@ -67,6 +69,21 @@ public sealed class PinterestController(
         return GetImages(
             boardId,
             sectionId: null,
+            maximumCount: null,
+            cancellationToken);
+    }
+    
+    [HttpGet("boards/{boardId}/preview-images")]
+    public Task<ActionResult<
+        IReadOnlyCollection<ReferenceImage>>> GetBoardPreviewImages(
+        string boardId,
+        [FromQuery] int count = 4,
+        CancellationToken cancellationToken = default)
+    {
+        return GetImages(
+            boardId,
+            sectionId: null,
+            maximumCount: count,
             cancellationToken);
     }
 
@@ -81,6 +98,7 @@ public sealed class PinterestController(
         return GetImages(
             boardId,
             sectionId,
+            maximumCount: null,
             cancellationToken);
     }
 
@@ -88,6 +106,7 @@ public sealed class PinterestController(
         IReadOnlyCollection<ReferenceImage>>> GetImages(
         string boardId,
         string? sectionId,
+        int? maximumCount,
         CancellationToken cancellationToken)
     {
         if (!featureOptions.Value.Enabled)
@@ -98,13 +117,21 @@ public sealed class PinterestController(
         var result = await getImagesHandler.HandleAsync(
             new GetPinterestReferenceImagesQuery(
                 boardId,
-                sectionId),
+                sectionId,
+                maximumCount),
             cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return BadRequest(
-                "L’identifiant du tableau Pinterest est invalide.");
+            return result.Error switch
+            {
+                GetPinterestReferenceImagesError.InvalidCount =>
+                    BadRequest(
+                        "Le nombre d’images doit être compris entre 1 et 4."),
+
+                _ => BadRequest(
+                    "L’identifiant du tableau Pinterest est invalide.")
+            };
         }
 
         return Ok(result.Images);

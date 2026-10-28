@@ -1,109 +1,65 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { Observable, Subject } from 'rxjs';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { ReferenceImage } from '../../shared/models/reference-image';
 import { DrawingSessionStore } from './drawing-session-store';
-import { ReferenceImage } from './reference-image';
-import { ReferenceImageApi } from './reference-image-api';
 
 describe('DrawingSessionStore', () => {
   let store: DrawingSessionStore;
-  let api: StubReferenceImageApi;
 
   beforeEach(() => {
-    api = new StubReferenceImageApi();
-
     TestBed.configureTestingModule({
-      providers: [
-        DrawingSessionStore,
-        {
-          provide: ReferenceImageApi,
-          useValue: api,
-        },
-      ],
+      providers: [DrawingSessionStore],
     });
 
     store = TestBed.inject(DrawingSessionStore);
   });
 
-  it('starts with an empty state', () => {
+  it('commence avec une séance vide', () => {
     expect(store.images()).toEqual([]);
     expect(store.currentIndex()).toBe(0);
     expect(store.currentImage()).toBeNull();
-    expect(store.loading()).toBe(false);
-    expect(store.error()).toBe('');
     expect(store.hasPrevious()).toBe(false);
     expect(store.hasNext()).toBe(false);
   });
 
-  it('searches images and selects the first result', () => {
-    const images = createImages();
+  it('démarre une séance avec un instantané de la sélection', () => {
+    const selectedImages = createImages();
 
-    store.search('portrait');
+    store.start(selectedImages);
 
-    expect(api.receivedSearchTerm).toBe('portrait');
-    expect(store.loading()).toBe(true);
-
-    api.response.next(images);
-    api.response.complete();
-
-    expect(store.images()).toEqual(images);
+    expect(store.images()).toEqual(selectedImages);
+    expect(store.images()).not.toBe(selectedImages);
     expect(store.currentIndex()).toBe(0);
-    expect(store.currentImage()).toBe(images[0]);
-    expect(store.loading()).toBe(false);
-    expect(store.error()).toBe('');
+    expect(store.currentImage()).toBe(selectedImages[0]);
+    expect(store.hasPrevious()).toBe(false);
+    expect(store.hasNext()).toBe(true);
   });
 
-  it('reports an empty search result', () => {
-    store.search('inconnu');
-
-    api.response.next([]);
-    api.response.complete();
-
-    expect(store.images()).toEqual([]);
-    expect(store.currentImage()).toBeNull();
-    expect(store.error()).toBe('Aucune image trouvée pour cette recherche.');
-  });
-
-  it('uses the error detail returned by the API', () => {
-    store.search();
-
-    api.response.error(
-      new HttpErrorResponse({
-        status: 502,
-        error: {
-          detail: 'Le service d’images est indisponible.',
-        },
-      }),
-    );
-
-    expect(store.loading()).toBe(false);
-    expect(store.error()).toBe('Le service d’images est indisponible.');
-  });
-
-  it('uses a fallback message without an error detail', () => {
-    store.search();
-
-    api.response.error(
-      new HttpErrorResponse({
-        status: 500,
-        error: {},
-      }),
-    );
-
-    expect(store.error()).toBe('Impossible de récupérer les images.');
-  });
-
-  it('navigates between images without exceeding boundaries', () => {
+  it('réinitialise la position au démarrage d’une nouvelle séance', () => {
     const images = createImages();
 
-    store.search();
-    api.response.next(images);
-    api.response.complete();
+    store.start(images);
+    store.selectNext();
+
+    expect(store.currentIndex()).toBe(1);
+
+    store.start([images[1]]);
+
+    expect(store.currentIndex()).toBe(0);
+    expect(store.currentImage()).toBe(images[1]);
+    expect(store.hasPrevious()).toBe(false);
+    expect(store.hasNext()).toBe(false);
+  });
+
+  it('navigue entre les références sans dépasser les limites', () => {
+    const images = createImages();
+
+    store.start(images);
 
     store.selectPrevious();
 
     expect(store.currentIndex()).toBe(0);
+    expect(store.currentImage()).toBe(images[0]);
 
     store.selectNext();
 
@@ -120,6 +76,8 @@ describe('DrawingSessionStore', () => {
 
     expect(store.currentIndex()).toBe(0);
     expect(store.currentImage()).toBe(images[0]);
+    expect(store.hasPrevious()).toBe(false);
+    expect(store.hasNext()).toBe(true);
   });
 
   function createImages(): ReferenceImage[] {
@@ -147,15 +105,3 @@ describe('DrawingSessionStore', () => {
     ];
   }
 });
-
-class StubReferenceImageApi {
-  readonly response = new Subject<ReferenceImage[]>();
-
-  receivedSearchTerm: string | undefined;
-
-  searchImages(searchTerm: string = ''): Observable<ReferenceImage[]> {
-    this.receivedSearchTerm = searchTerm;
-
-    return this.response.asObservable();
-  }
-}

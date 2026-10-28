@@ -1,0 +1,27 @@
+@if (!selectionStore.isEmpty()) {
+  <aside class="selection-launcher" aria-label="Sélection active">
+    <a class="selection-summary" routerLink="/selection" aria-label="Voir la sélection active">
+      <span class="selection-thumbnails" aria-hidden="true">
+        @for (
+          image of selectionStore.images().slice(-3);
+          track image.sourceName + ':' + image.externalId;
+          let index = $index
+        ) {
+          <img [src]="image.imageUrl" alt="" [style.--thumbnail-index]="index" />
+        }
+      </span>
+
+      <span>
+        <strong>{{ selectionStore.count() }}</strong>
+
+        {{ selectionStore.count() === 1 ? 'référence sélectionnée' : 'références sélectionnées' }}
+      </span>
+    </a>
+
+    <button type="button" (click)="launchSession()">
+      Lancer la séance
+
+      <span aria-hidden="true">→</span>
+    </button>
+  </aside>
+}

@@ -147,50 +147,32 @@ public sealed class GetPinterestReferenceImagesHandlerTests
 
         Assert.Equal("Portrait", image.Description);
     }
-
-    private sealed class StubPinterestCatalog : IPinterestCatalog
+    
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(5)]
+    [InlineData(100)]
+    public async Task HandleAsync_WhenMaximumCountIsInvalid_ReturnsFailure(
+        int maximumCount)
     {
-        public IReadOnlyCollection<PinterestPin> PinsToReturn { get; init; } = [];
+        var catalog = new StubPinterestCatalog();
+        var handler = new GetPinterestReferenceImagesHandler(catalog);
 
-        public int PinCallCount { get; private set; }
+        var result = await handler.HandleAsync(
+            new GetPinterestReferenceImagesQuery(
+                "board-123",
+                null,
+                maximumCount));
 
-        public string? ReceivedBoardId { get; private set; }
-
-        public string? ReceivedSectionId { get; private set; }
-
-        public CancellationToken ReceivedCancellationToken { get; private set; }
-
-        public Task<IReadOnlyCollection<PinterestBoard>> GetBoardsAsync(
-            CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<
-                IReadOnlyCollection<PinterestBoard>>([]);
-        }
-
-        public Task<IReadOnlyCollection<PinterestBoardSection>>
-            GetBoardSectionsAsync(
-                string boardId,
-                CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<
-                IReadOnlyCollection<PinterestBoardSection>>([]);
-        }
-
-        public Task<IReadOnlyCollection<PinterestPin>>
-            GetBoardPinsAsync(
-                string boardId,
-                string? sectionId = null,
-                CancellationToken cancellationToken = default)
-        {
-            PinCallCount++;
-            ReceivedBoardId = boardId;
-            ReceivedSectionId = sectionId;
-            ReceivedCancellationToken = cancellationToken;
-
-            return Task.FromResult(PinsToReturn);
-        }
+        Assert.False(result.IsSuccess);
+        Assert.Equal(
+            GetPinterestReferenceImagesError.InvalidCount,
+            result.Error);
+        Assert.Empty(result.Images);
+        Assert.Equal(0, catalog.PinCallCount);
     }
-
+    
     [Fact]
     public async Task HandleAsync_WhenDescriptionIsWhitespace_UsesTitle()
     {
@@ -219,5 +201,67 @@ public sealed class GetPinterestReferenceImagesHandlerTests
         Assert.Equal(
             "Portrait au crayon",
             image.Description);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenMaximumCountIsValid_PassesItToCatalog()
+    {
+        var catalog = new StubPinterestCatalog();
+        var handler = new GetPinterestReferenceImagesHandler(catalog);
+
+        await handler.HandleAsync(
+            new GetPinterestReferenceImagesQuery(
+                "board-123",
+                null,
+                4));
+
+        Assert.Equal(4, catalog.ReceivedMaximumCount);
+        Assert.Equal(1, catalog.PinCallCount);
+    }
+
+    private sealed class StubPinterestCatalog : IPinterestCatalog
+    {
+        public IReadOnlyCollection<PinterestPin> PinsToReturn { get; init; } = [];
+
+        public int PinCallCount { get; private set; }
+
+        public string? ReceivedBoardId { get; private set; }
+
+        public string? ReceivedSectionId { get; private set; }
+        public int? ReceivedMaximumCount { get; private set; }
+
+        public CancellationToken ReceivedCancellationToken { get; private set; }
+
+        public Task<IReadOnlyCollection<PinterestBoard>> GetBoardsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<
+                IReadOnlyCollection<PinterestBoard>>([]);
+        }
+
+        public Task<IReadOnlyCollection<PinterestBoardSection>>
+            GetBoardSectionsAsync(
+                string boardId,
+                CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<
+                IReadOnlyCollection<PinterestBoardSection>>([]);
+        }
+
+        public Task<IReadOnlyCollection<PinterestPin>>
+            GetBoardPinsAsync(
+                string boardId,
+                string? sectionId = null,
+                int ? maximumCount = null,
+                CancellationToken cancellationToken = default)
+        {
+            PinCallCount++;
+            ReceivedBoardId = boardId;
+            ReceivedSectionId = sectionId;
+            ReceivedMaximumCount = maximumCount;
+            ReceivedCancellationToken = cancellationToken;
+
+            return Task.FromResult(PinsToReturn);
+        }
     }
 }

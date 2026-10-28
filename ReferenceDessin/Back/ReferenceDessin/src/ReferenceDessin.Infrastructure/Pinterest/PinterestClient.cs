@@ -115,19 +115,31 @@ public sealed class PinterestClient(HttpClient httpClient)
     public async Task<IReadOnlyCollection<PinterestPin>> GetBoardPinsAsync(
         string boardId,
         string? sectionId = null,
+        int? maximumCount = null,
         CancellationToken cancellationToken = default)
     {
+        if (maximumCount is <= 0 or > PageSize)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(maximumCount));
+        }
+        
         var pins = new List<PinterestPin>();
         string? bookmark = null;
 
         do
         {
             var escapedBoardId = Uri.EscapeDataString(boardId);
+            
+            var pageSize = maximumCount ?? PageSize;
 
-            var endpoint = string.IsNullOrWhiteSpace(sectionId)
-                ? $"boards/{escapedBoardId}/pins?page_size=100"
-                : $"boards/{escapedBoardId}/sections/" +
-                  $"{Uri.EscapeDataString(sectionId)}/pins?page_size=100";
+            var endpoint =
+                string.IsNullOrWhiteSpace(sectionId)
+                    ? $"boards/{escapedBoardId}/pins" +
+                      $"?page_size={pageSize}"
+                    : $"boards/{escapedBoardId}/sections/" +
+                      $"{Uri.EscapeDataString(sectionId)}/pins" +
+                      $"?page_size={pageSize}";
 
             if (!string.IsNullOrWhiteSpace(bookmark))
             {
@@ -167,10 +179,24 @@ public sealed class PinterestClient(HttpClient httpClient)
                         OriginalUrl:
                         $"https://www.pinterest.com/pin/{pin.Id}/",
                         ImageUrl: imageUrl));
+                
+                if (
+                    maximumCount is not null &&
+                    pins.Count >= maximumCount.Value
+                )
+                {
+                    return pins;
+                }
+            }
+            
+            if (maximumCount is not null)
+            {
+                break;
             }
 
             bookmark = result.Bookmark;
-        } while (!string.IsNullOrWhiteSpace(bookmark));
+        } 
+        while (!string.IsNullOrWhiteSpace(bookmark));
 
         return pins;
     }

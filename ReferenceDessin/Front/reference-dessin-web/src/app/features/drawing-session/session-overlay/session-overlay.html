@@ -1,0 +1,67 @@
+<div
+  class="image-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Image agrandie"
+  (click)="closeRequested.emit()"
+>
+  <button
+    type="button"
+    class="overlay-close"
+    (click)="$event.stopPropagation(); closeRequested.emit()"
+    aria-label="Fermer l’image agrandie"
+    title="Fermer"
+  >
+    <svg lucideX [size]="24" aria-hidden="true"></svg>
+  </button>
+
+  <div class="overlay-content">
+    <img
+      [src]="image().imageUrl"
+      [alt]="image().description"
+      draggable="false"
+      (click)="$event.stopPropagation()"
+    />
+  </div>
+
+  <div class="overlay-controls" (click)="$event.stopPropagation()">
+    <span class="overlay-image-counter" aria-label="Position de l’image dans la séance">
+      {{ currentIndex() + 1 }} /
+      {{ totalImages() }}
+    </span>
+
+    <div class="overlay-timer">
+      <app-timer
+        [(durationMinutes)]="durationMinutes"
+        [running]="running()"
+        [disabled]="false"
+        [formattedTime]="formattedTime()"
+        [progress]="progress()"
+        (toggleRequested)="toggleTimerRequested.emit()"
+        (resetRequested)="resetTimerRequested.emit()"
+      />
+    </div>
+
+    @if (nextImage(); as nextReference) {
+      <button
+        type="button"
+        class="overlay-next-image"
+        (click)="nextRequested.emit()"
+        aria-label="Afficher l’image suivante"
+        title="Afficher l’image suivante"
+      >
+        <span>
+          <small>Image suivante</small>
+        </span>
+
+        <img [src]="nextReference.imageUrl" alt="" draggable="false" />
+      </button>
+    } @else {
+      <div class="overlay-next-image overlay-next-image--empty" aria-label="Fin de la séance">
+        <span>
+          <small>Fin de la séance</small>
+        </span>
+      </div>
+    }
+  </div>
+</div>

@@ -1,14 +1,5 @@
-<main class="workspace" [attr.aria-busy]="store.loading() || imageLoading()" aria-live="polite">
-  @if (store.loading()) {
-    <div class="state">
-      <span class="spinner" aria-hidden="true"></span>
-      <p>Chargement des références…</p>
-    </div>
-  } @else if (store.error()) {
-    <div class="state state-error">
-      <p>{{ store.error() }}</p>
-    </div>
-  } @else if (displayedImage(); as image) {
+<main class="workspace" [attr.aria-busy]="imageLoading()" aria-live="polite">
+  @if (displayedImage(); as image) {
     <figure class="reference">
       <div class="image-container">
         <button
@@ -91,6 +82,7 @@
   } @else if (imageLoading()) {
     <div class="state">
       <span class="spinner" aria-hidden="true"></span>
+
       <p>Chargement de l’image…</p>
     </div>
   } @else if (imageError()) {
@@ -103,64 +95,35 @@
 </main>
 
 @if (imageExpanded() && displayedImage(); as image) {
-  <div
-    class="image-overlay"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Image agrandie"
-    (click)="closeImageOverlay()"
-  >
-    <button
-      type="button"
-      class="icon-button overlay-close"
-      (click)="closeImageOverlay()"
-      aria-label="Fermer l’image agrandie"
-      title="Fermer"
-    >
-      <svg lucideX [size]="24" aria-hidden="true"></svg>
-    </button>
-
-    <div class="overlay-content">
-      <img
-        [src]="image.imageUrl"
-        [alt]="image.description"
-        draggable="false"
-        (click)="$event.stopPropagation()"
-      />
-    </div>
-  </div>
-}
-
-<footer class="controls">
-  <button
-    type="button"
-    class="icon-button previous-button"
-    (click)="previous()"
-    [disabled]="!store.hasPrevious()"
-    aria-label="Image précédente"
-    title="Image précédente"
-  >
-    <svg lucideChevronLeft [size]="22" aria-hidden="true"></svg>
-  </button>
-
-  <app-timer
+  <app-session-overlay
+    [image]="image"
+    [nextImage]="nextImage()"
+    [currentIndex]="displayedIndex()"
+    [totalImages]="store.images().length"
     [(durationMinutes)]="durationMinutes"
     [running]="timerRunning()"
-    [disabled]="!displayedImage()"
     [formattedTime]="formattedTime()"
     [progress]="timerProgress()"
-    (toggleRequested)="toggleTimer()"
-    (resetRequested)="resetTimer()"
+    (closeRequested)="closeImageOverlay()"
+    (nextRequested)="next()"
+    (toggleTimerRequested)="toggleTimer()"
+    (resetTimerRequested)="resetTimer()"
   />
+}
 
-  <button
-    type="button"
-    class="icon-button next-button"
-    (click)="next()"
-    [disabled]="!store.hasNext()"
-    aria-label="Image suivante"
-    title="Image suivante"
-  >
-    <svg lucideChevronRight [size]="22" aria-hidden="true"></svg>
-  </button>
-</footer>
+<app-session-controls
+  [previewImages]="previewImages()"
+  [totalImages]="store.images().length"
+  [nextImage]="nextImage()"
+  [hasPrevious]="store.hasPrevious()"
+  [hasNext]="store.hasNext()"
+  [(durationMinutes)]="durationMinutes"
+  [running]="timerRunning()"
+  [disabled]="!displayedImage()"
+  [formattedTime]="formattedTime()"
+  [progress]="timerProgress()"
+  (previousRequested)="previous()"
+  (nextRequested)="next()"
+  (toggleTimerRequested)="toggleTimer()"
+  (resetTimerRequested)="resetTimer()"
+/>

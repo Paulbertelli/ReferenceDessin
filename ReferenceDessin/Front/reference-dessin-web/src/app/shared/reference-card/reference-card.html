@@ -1,0 +1,49 @@
+<article
+  class="reference-card"
+  [class.reference-card--selected]="selected() && action() === 'select'"
+  [class.reference-card--removable]="action() === 'remove'"
+>
+  <button
+    type="button"
+    class="reference-card__selection"
+    (click)="toggleSelection()"
+    [attr.aria-pressed]="action() === 'select' ? selected() : null"
+    [attr.aria-label]="
+      action() === 'remove'
+        ? 'Retirer cette référence de la sélection'
+        : selected()
+          ? 'Retirer cette référence de la sélection'
+          : 'Ajouter cette référence à la sélection'
+    "
+  >
+    <img
+      [src]="image().imageUrl"
+      [alt]="image().description || 'Référence de dessin'"
+      loading="lazy"
+    />
+
+    <span
+      class="selection-indicator"
+      [class.selection-indicator--remove]="action() === 'remove'"
+      aria-hidden="true"
+    >
+      @if (action() === 'remove') {
+        <svg lucideTrash2 [size]="60"></svg>
+      } @else {
+        {{ selected() ? '✓' : '+' }}
+      }
+    </span>
+  </button>
+
+  <footer class="reference-credit">
+  <span>Référence sur </span>
+
+  <a
+    [href]="image().originalUrl"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    {{ image().sourceName }}
+  </a>
+</footer>
+</article>

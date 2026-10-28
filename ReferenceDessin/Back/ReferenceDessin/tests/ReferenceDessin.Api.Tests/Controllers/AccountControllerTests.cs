@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -13,6 +14,103 @@ namespace ReferenceDessin.Api.Tests.Controllers;
 
 public sealed class AccountControllerTests
 {
+    [Fact]
+    public async Task Get_WhenUserIsNotFound_ReturnsUnauthorized()
+    {
+        // Arrange
+        var userManager = CreateUserManager();
+
+        userManager
+            .GetUserAsync(
+                Arg.Any<ClaimsPrincipal>())
+            .Returns((ApplicationUser?)null);
+
+        var controller = CreateController(
+            userManager,
+            CreateSignInManager(userManager));
+
+        // Act
+        var result = await controller.Get();
+
+        // Assert
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task Get_WhenUserIsAuthenticated_ReturnsProfile()
+    {
+        // Arrange
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = "paul@example.com",
+            Email = "paul@example.com",
+            DisplayName = "Paul",
+            ProfileImageUrl =
+                "https://images.example/paul.jpg",
+            CreatedAtUtc =
+                new DateTimeOffset(
+                    2026,
+                    10,
+                    28,
+                    12,
+                    0,
+                    0,
+                    TimeSpan.Zero)
+        };
+
+        var userManager = CreateUserManager();
+
+        userManager
+            .GetUserAsync(
+                Arg.Any<ClaimsPrincipal>())
+            .Returns(user);
+
+        var controller = CreateController(
+            userManager,
+            CreateSignInManager(userManager));
+
+        // Act
+        var result = await controller.Get();
+
+        // Assert
+        var okResult =
+            Assert.IsType<OkObjectResult>(result);
+
+        var response =
+            JsonSerializer.SerializeToElement(
+                okResult.Value);
+
+        Assert.True(
+            response
+                .GetProperty("estAuthentifie")
+                .GetBoolean());
+
+        Assert.Equal(
+            "Paul",
+            response
+                .GetProperty("nomAffiche")
+                .GetString());
+
+        Assert.Equal(
+            "paul@example.com",
+            response
+                .GetProperty("email")
+                .GetString());
+
+        Assert.Equal(
+            "https://images.example/paul.jpg",
+            response
+                .GetProperty("imageProfilUrl")
+                .GetString());
+
+        Assert.Equal(
+            user.CreatedAtUtc,
+            response
+                .GetProperty("creeLeUtc")
+                .GetDateTimeOffset());
+    }
+
     [Fact]
     public async Task Delete_WhenUserIsAuthenticated_DeletesUserAndSignsOut()
     {
@@ -68,56 +166,6 @@ public sealed class AccountControllerTests
         await signInManager
             .Received(1)
             .SignOutAsync();
-    }
-
-    private static AccountController CreateController(
-        UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager)
-    {
-        return new AccountController(
-            userManager,
-            signInManager,
-            Substitute.For<ILogger<AccountController>>())
-        {
-            ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext()
-            }
-        };
-    }
-
-    private static UserManager<ApplicationUser>
-        CreateUserManager()
-    {
-        return Substitute.For<UserManager<ApplicationUser>>(
-            Substitute.For<IUserStore<ApplicationUser>>(),
-            Options.Create(new IdentityOptions()),
-            Substitute.For<IPasswordHasher<ApplicationUser>>(),
-            Array.Empty<IUserValidator<ApplicationUser>>(),
-            Array.Empty<IPasswordValidator<ApplicationUser>>(),
-            Substitute.For<ILookupNormalizer>(),
-            new IdentityErrorDescriber(),
-            Substitute.For<IServiceProvider>(),
-            Substitute.For<
-                ILogger<UserManager<ApplicationUser>>>()
-        );
-    }
-
-    private static SignInManager<ApplicationUser>
-        CreateSignInManager(
-            UserManager<ApplicationUser> userManager)
-    {
-        return Substitute.For<SignInManager<ApplicationUser>>(
-            userManager,
-            Substitute.For<IHttpContextAccessor>(),
-            Substitute.For<
-                IUserClaimsPrincipalFactory<ApplicationUser>>(),
-            Options.Create(new IdentityOptions()),
-            Substitute.For<
-                ILogger<SignInManager<ApplicationUser>>>(),
-            Substitute.For<IAuthenticationSchemeProvider>(),
-            Substitute.For<IUserConfirmation<ApplicationUser>>()
-        );
     }
 
     [Fact]
@@ -220,5 +268,55 @@ public sealed class AccountControllerTests
         await signInManager
             .DidNotReceive()
             .SignOutAsync();
+    }
+
+    private static AccountController CreateController(
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager)
+    {
+        return new AccountController(
+            userManager,
+            signInManager,
+            Substitute.For<ILogger<AccountController>>())
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            }
+        };
+    }
+
+    private static UserManager<ApplicationUser>
+        CreateUserManager()
+    {
+        return Substitute.For<UserManager<ApplicationUser>>(
+            Substitute.For<IUserStore<ApplicationUser>>(),
+            Options.Create(new IdentityOptions()),
+            Substitute.For<IPasswordHasher<ApplicationUser>>(),
+            Array.Empty<IUserValidator<ApplicationUser>>(),
+            Array.Empty<IPasswordValidator<ApplicationUser>>(),
+            Substitute.For<ILookupNormalizer>(),
+            new IdentityErrorDescriber(),
+            Substitute.For<IServiceProvider>(),
+            Substitute.For<
+                ILogger<UserManager<ApplicationUser>>>()
+        );
+    }
+
+    private static SignInManager<ApplicationUser>
+        CreateSignInManager(
+            UserManager<ApplicationUser> userManager)
+    {
+        return Substitute.For<SignInManager<ApplicationUser>>(
+            userManager,
+            Substitute.For<IHttpContextAccessor>(),
+            Substitute.For<
+                IUserClaimsPrincipalFactory<ApplicationUser>>(),
+            Options.Create(new IdentityOptions()),
+            Substitute.For<
+                ILogger<SignInManager<ApplicationUser>>>(),
+            Substitute.For<IAuthenticationSchemeProvider>(),
+            Substitute.For<IUserConfirmation<ApplicationUser>>()
+        );
     }
 }
