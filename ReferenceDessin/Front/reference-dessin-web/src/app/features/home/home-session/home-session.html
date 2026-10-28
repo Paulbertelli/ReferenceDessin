@@ -1,0 +1,104 @@
+<section class="session-section" aria-labelledby="session-title">
+  <header class="section-header">
+    <div>
+      <h2 id="session-title">Nouvelle séance</h2>
+
+      <p>
+        {{ selectionStore.count() }}
+        {{ selectionStore.count() === 1 ? 'référence sélectionnée' : 'références sélectionnées' }}
+      </p>
+    </div>
+
+    @if (!selectionStore.isEmpty()) {
+      <button type="button" class="clear-button" (click)="clearSelection()">
+        <svg lucideTrash2 [size]="15" aria-hidden="true"></svg>
+
+        Effacer
+      </button>
+    }
+  </header>
+
+  @if (selectionStore.isEmpty()) {
+    <div class="empty-selection">
+      <p>Ajoutez des références pour préparer votre prochaine séance.</p>
+
+      <a routerLink="/search">
+        Rechercher des références
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  } @else {
+    <div class="selection-carousel">
+      <button
+        type="button"
+        class="carousel-button"
+        (click)="scrollSelection(-1)"
+        aria-label="Références précédentes"
+      >
+        <svg lucideChevronLeft [size]="18" aria-hidden="true"></svg>
+      </button>
+
+      <div #selectionTrack class="selection-track">
+        @for (image of selectionStore.images(); track image.sourceName + ':' + image.externalId) {
+          <article class="selection-image">
+            <img [src]="image.imageUrl" [alt]="image.description || 'Référence de dessin'" />
+
+            <button type="button" (click)="removeImage(image)" aria-label="Retirer cette référence">
+              <svg lucideX [size]="14" aria-hidden="true"></svg>
+            </button>
+          </article>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="carousel-button"
+        (click)="scrollSelection(1)"
+        aria-label="Références suivantes"
+      >
+        <svg lucideChevronRight [size]="18" aria-hidden="true"></svg>
+      </button>
+    </div>
+
+    <div class="session-settings">
+      <div class="session-fields">
+        <label>
+          <span>Durée</span>
+
+          <span class="number-field">
+            <input
+              type="number"
+              min="0.5"
+              max="60"
+              step="0.5"
+              [ngModel]="durationMinutes()"
+              (ngModelChange)="updateDuration($event)"
+            />
+
+            <span>min</span>
+          </span>
+        </label>
+
+        <label>
+          <span>Ordre</span>
+
+          <select [ngModel]="sessionOrder()" (ngModelChange)="updateOrder($event)">
+            <option value="sequential">Dans l’ordre</option>
+
+            <option value="random">Aléatoire</option>
+          </select>
+        </label>
+
+        <strong class="estimated-duration">
+          {{ estimatedDuration() }}
+        </strong>
+      </div>
+
+      <button type="button" class="launch-button" (click)="launchSession()">
+        Lancer la séance
+
+        <svg lucidePlay [size]="17" aria-hidden="true"></svg>
+      </button>
+    </div>
+  }
+</section>

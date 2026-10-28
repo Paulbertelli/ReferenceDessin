@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ReferenceImage } from '../../shared/models/reference-image';
 import { DrawingSessionStore } from './drawing-session-store';
 
@@ -14,10 +14,15 @@ describe('DrawingSessionStore', () => {
     store = TestBed.inject(DrawingSessionStore);
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('commence avec une séance vide', () => {
     expect(store.images()).toEqual([]);
     expect(store.currentIndex()).toBe(0);
     expect(store.currentImage()).toBeNull();
+    expect(store.durationMinutes()).toBe(2);
     expect(store.hasPrevious()).toBe(false);
     expect(store.hasNext()).toBe(false);
   });
@@ -28,11 +33,64 @@ describe('DrawingSessionStore', () => {
     store.start(selectedImages);
 
     expect(store.images()).toEqual(selectedImages);
+
     expect(store.images()).not.toBe(selectedImages);
+
     expect(store.currentIndex()).toBe(0);
     expect(store.currentImage()).toBe(selectedImages[0]);
     expect(store.hasPrevious()).toBe(false);
     expect(store.hasNext()).toBe(true);
+  });
+
+  it('enregistre la durée configurée pour la séance', () => {
+    store.start(createImages(), {
+      durationMinutes: 5,
+    });
+
+    expect(store.durationMinutes()).toBe(5);
+  });
+
+  it.each([
+    {
+      duration: -5,
+      expected: 0.1,
+    },
+    {
+      duration: 100,
+      expected: 60,
+    },
+    {
+      duration: Number.NaN,
+      expected: 2,
+    },
+  ])('normalise la durée $duration', ({ duration, expected }) => {
+    store.start(createImages(), {
+      durationMinutes: duration,
+    });
+
+    expect(store.durationMinutes()).toBe(expected);
+  });
+
+  it('mélange les références lorsque l’ordre est aléatoire', () => {
+    const images = createImages();
+
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    store.start(images, {
+      order: 'random',
+    });
+
+    expect(store.images()).toEqual([images[1], images[0]]);
+
+    expect(store.images()).not.toBe(images);
+  });
+
+  it('conserve l’ordre de la sélection par défaut', () => {
+    const images = createImages();
+
+    store.start(images);
+
+    expect(store.images()).toEqual(images);
   });
 
   it('réinitialise la position au démarrage d’une nouvelle séance', () => {
