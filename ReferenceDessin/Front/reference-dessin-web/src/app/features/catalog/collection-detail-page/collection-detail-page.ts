@@ -6,10 +6,11 @@ import { ReferenceSelectionStore } from '../../selection/reference-selection-sto
 import { SelectionLauncher } from '../../selection/selection-launcher/selection-launcher';
 import { PinterestBoardDetailStore } from '../pinterest/pinterest-board-detail-store';
 import { PinterestBoardsStore } from '../pinterest/pinterest-boards-store';
+import { LucideTrash2 } from '@lucide/angular';
 
 @Component({
   selector: 'app-collection-detail-page',
-  imports: [RouterLink, ReferenceCard, SelectionLauncher],
+  imports: [RouterLink, ReferenceCard, SelectionLauncher, LucideTrash2],
   providers: [PinterestBoardDetailStore],
   templateUrl: './collection-detail-page.html',
   styleUrl: './collection-detail-page.scss',
@@ -51,5 +52,19 @@ export class CollectionDetailPage {
 
   protected reload(): void {
     this.detailStore.load(this.boardId);
+  }
+
+  protected readonly selectedDisplayedCount = computed(
+    () => this.detailStore.images().filter((image) => this.selectionStore.isSelected(image)).length,
+  );
+
+  protected readonly allDisplayedSelected = computed(() => {
+    const images = this.detailStore.images();
+
+    return images.length > 0 && images.every((image) => this.selectionStore.isSelected(image));
+  });
+
+  protected deselectDisplayed(): void {
+    this.selectionStore.removeAll(this.detailStore.images());
   }
 }

@@ -56,9 +56,21 @@
       </nav>
 
       @if (detailStore.images().length > 0) {
-        <button type="button" class="select-all-button" (click)="selectAllDisplayed()">
-          Tout sélectionner
-        </button>
+        <div class="collection-toolbar__actions">
+          @if (selectedDisplayedCount() >= 2) {
+            <button type="button" class="deselect-button" (click)="deselectDisplayed()">
+              <svg lucideTrash2 [size]="15" aria-hidden="true"></svg>
+
+              Désélectionner
+            </button>
+          }
+
+          @if (detailStore.images().length > 0 && !allDisplayedSelected()) {
+            <button type="button" class="select-all-button" (click)="selectAllDisplayed()">
+              Tout sélectionner
+            </button>
+          }
+        </div>
       }
     </div>
 
