@@ -82,6 +82,8 @@ class StubDrawingSessionStore {
 
   readonly currentIndex = signal(0);
 
+  readonly durationMinutes = signal(2);
+
   readonly currentImage = computed(() => this.images()[this.currentIndex()] ?? null);
 
   readonly hasPrevious = computed(() => this.currentIndex() > 0);

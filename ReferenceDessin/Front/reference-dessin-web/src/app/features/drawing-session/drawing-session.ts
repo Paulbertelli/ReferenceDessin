@@ -23,7 +23,7 @@ import { SessionControls } from './session-controls/session-controls';
 export class DrawingSession implements OnDestroy {
   protected readonly store = inject(DrawingSessionStore);
 
-  protected durationMinutes = 2;
+  protected durationMinutes = this.store.durationMinutes();
 
   protected readonly remainingSeconds = signal(120);
   protected readonly timerRunning = signal(false);
