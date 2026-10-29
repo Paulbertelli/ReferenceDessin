@@ -10,7 +10,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    canActivate: [authenticationGuard],
+    // canActivate: [authenticationGuard],
     loadComponent: () => import('./layout/app-shell/app-shell').then((module) => module.AppShell),
     children: [
       {
