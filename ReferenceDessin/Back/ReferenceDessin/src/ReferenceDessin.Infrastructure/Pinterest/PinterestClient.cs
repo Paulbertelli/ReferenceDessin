@@ -7,11 +7,10 @@ namespace ReferenceDessin.Infrastructure.Pinterest;
 public sealed class PinterestClient(HttpClient httpClient)
     : IPinterestCatalog
 {
-    private const int PageSize = 100;
+    private const int PageSize = 250;
 
-    public async Task<IReadOnlyCollection<PinterestBoard>>
-        GetBoardsAsync(
-            CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<PinterestBoard>> GetBoardsAsync(
+        CancellationToken cancellationToken = default)
     {
         var boards = new List<PinterestBoard>();
         string? bookmark = null;
@@ -40,7 +39,8 @@ public sealed class PinterestClient(HttpClient httpClient)
                     new PinterestBoard(
                         Id: board.Id,
                         Name: board.Name,
-                        Description: board.Description)));
+                        Description: board.Description,
+                        ReferenceCount: board.PinCount)));
 
             bookmark = string.IsNullOrWhiteSpace(page.Bookmark)
                 ? null
@@ -64,10 +64,9 @@ public sealed class PinterestClient(HttpClient httpClient)
                $"&bookmark={Uri.EscapeDataString(bookmark)}";
     }
 
-    public async Task<IReadOnlyCollection<PinterestBoardSection>>
-        GetBoardSectionsAsync(
-            string boardId,
-            CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<PinterestBoardSection>> GetBoardSectionsAsync(
+        string boardId,
+        CancellationToken cancellationToken = default)
     {
         var sections = new List<PinterestBoardSection>();
         string? bookmark = null;
@@ -210,5 +209,66 @@ public sealed class PinterestClient(HttpClient httpClient)
             .OrderByDescending(image => (long)image.Width * image.Height)
             .Select(image => image.Url)
             .FirstOrDefault();
+    }
+    
+    public async Task<IReadOnlyDictionary<string, int>> GetBoardSectionPinCountsAsync(
+        string boardId,
+        CancellationToken cancellationToken = default)
+    {
+        var countsBySectionId =
+            new Dictionary<string, int>();
+
+        string? bookmark = null;
+
+        do
+        {
+            var endpoint =
+                $"boards/{Uri.EscapeDataString(boardId)}/pins" +
+                $"?page_size={PageSize}";
+
+            if (!string.IsNullOrWhiteSpace(bookmark))
+            {
+                endpoint +=
+                    $"&bookmark={Uri.EscapeDataString(bookmark)}";
+            }
+
+            using var response = await httpClient.GetAsync(
+                endpoint,
+                cancellationToken);
+
+            response.EnsureSuccessStatusCode();
+
+            var page = await response.Content
+                .ReadFromJsonAsync<PinterestPinsResponse>(
+                    cancellationToken);
+
+            if (page is null)
+            {
+                break;
+            }
+
+            foreach (var pin in page.Items)
+            {
+                if (string.IsNullOrWhiteSpace(
+                        pin.BoardSectionId))
+                {
+                    continue;
+                }
+
+                var sectionId = pin.BoardSectionId.Trim();
+
+                countsBySectionId[sectionId] =
+                    countsBySectionId.GetValueOrDefault(
+                        sectionId) + 1;
+            }
+
+            bookmark =
+                string.IsNullOrWhiteSpace(page.Bookmark)
+                    ? null
+                    : page.Bookmark;
+        }
+        while (bookmark is not null);
+
+        return countsBySectionId;
     }
 }

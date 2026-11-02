@@ -107,8 +107,8 @@ public sealed class PinterestClientTests
 
         Assert.Equal(
             [
-                "https://api.pinterest.com/v5/boards?page_size=100",
-                "https://api.pinterest.com/v5/boards?page_size=100" +
+                "https://api.pinterest.com/v5/boards?page_size=250",
+                "https://api.pinterest.com/v5/boards?page_size=250" +
                 "&bookmark=page%20suivante"
             ],
             requestedUris);
@@ -365,7 +365,7 @@ public sealed class PinterestClientTests
 
         Assert.Equal(
             "https://api.pinterest.com/v5/" +
-            "boards/board-123/pins?page_size=100",
+            "boards/board-123/pins?page_size=250",
             requestedUri?.AbsoluteUri);
     }
     

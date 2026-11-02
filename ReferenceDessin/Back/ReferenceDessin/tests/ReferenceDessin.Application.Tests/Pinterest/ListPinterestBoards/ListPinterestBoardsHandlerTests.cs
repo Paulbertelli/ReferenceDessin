@@ -1,90 +1,66 @@
 using ReferenceDessin.Application.Pinterest;
-using ReferenceDessin.Application.Pinterest.ListPinterestBoards;
 using ReferenceDessin.Application.Pinterest.ListPinterestBoardSections;
+using ReferenceDessin.Application.Pinterest.ListPinterestBoards;
+using ReferenceDessin.Application.Tests.Stubs;
 
 namespace ReferenceDessin.Application.Tests.Pinterest.ListPinterestBoards;
 
 public sealed class ListPinterestBoardsHandlerTests
 {
     [Fact]
-    public async Task HandleAsync_ReturnsBoardsFromCatalog()
+    public async Task HandleAsync_ReturnsBoardsWithSectionCount()
     {
         // Arrange
-        IReadOnlyCollection<PinterestBoard> expectedBoards =
+        IReadOnlyCollection<PinterestBoard> boards =
         [
             new PinterestBoard(
                 Id: "123",
                 Name: "Portraits",
-                Description: "Références de portraits"),
-            new PinterestBoard(
-                Id: "456",
-                Name: "Anatomie",
-                Description: null)
+                Description:
+                    "Références de portraits",
+                ReferenceCount: 42)
         ];
 
         var catalog = new StubPinterestCatalog
         {
-            BoardsToReturn = expectedBoards
+            BoardsToReturn = boards,
+
+            SectionsToReturn =
+            [
+                new PinterestBoardSection(
+                    Id: "section-1",
+                    Name: "Visages"),
+                new PinterestBoardSection(
+                    Id: "section-2",
+                    Name: "Poses")
+            ]
         };
 
-        var handler = new ListPinterestBoardsHandler(
-            catalog);
+        var handler = new ListPinterestBoardsHandler(catalog);
 
-        using var cancellationSource =
-            new CancellationTokenSource();
+        using var cancellationSource = new CancellationTokenSource();
 
         // Act
-        var boards = await handler.HandleAsync(
-            cancellationSource.Token);
+        var result = await handler.HandleAsync(cancellationSource.Token);
 
         // Assert
-        Assert.Same(expectedBoards, boards);
-        Assert.Equal(
-            cancellationSource.Token,
-            catalog.ReceivedCancellationToken);
-        Assert.Equal(1, catalog.CallCount);
-    }
+        var board = Assert.Single(result);
 
-    private sealed class StubPinterestCatalog
-        : IPinterestCatalog
-    {
-        public IReadOnlyCollection<PinterestBoard>
-            BoardsToReturn { get; init; } = [];
+        Assert.Equal("123", board.Id);
+        Assert.Equal("Portraits", board.Name);
 
-        public int CallCount { get; private set; }
+        Assert.Equal("Références de portraits", board.Description);
 
-        public CancellationToken ReceivedCancellationToken
-        {
-            get;
-            private set;
-        }
+        Assert.Equal(42, board.ReferenceCount);
+        Assert.Equal(2, board.SectionCount);
 
-        public Task<IReadOnlyCollection<PinterestBoard>>
-            GetBoardsAsync(
-                CancellationToken cancellationToken = default)
-        {
-            CallCount++;
-            ReceivedCancellationToken = cancellationToken;
+        Assert.Equal(1, catalog.BoardCallCount);
+        Assert.Equal(1, catalog.SectionCallCount);
 
-            return Task.FromResult(BoardsToReturn);
-        }
-        
-        public Task<IReadOnlyCollection<PinterestBoardSection>>
-            GetBoardSectionsAsync(
-                string boardId,
-                CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<
-                IReadOnlyCollection<PinterestBoardSection>>([]);
-        }
-        
-        public Task<IReadOnlyCollection<PinterestPin>> GetBoardPinsAsync(
-            string boardId,
-            string? sectionId = null,
-            int? maximumCount = null,
-            CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<IReadOnlyCollection<PinterestPin>>([]);
-        }
+        Assert.Equal("123", catalog.ReceivedSectionsBoardId);
+
+        Assert.Equal(cancellationSource.Token, catalog.ReceivedBoardCancellationToken);
+
+        Assert.Equal(cancellationSource.Token, catalog.ReceivedSectionCancellationToken);
     }
 }

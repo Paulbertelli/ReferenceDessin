@@ -17,7 +17,11 @@ internal sealed record PinterestBoardResponse(
     string Name,
 
     [property: JsonPropertyName("description")]
-    string? Description);
+    string? Description,
+    
+    [property: JsonPropertyName("pin_count")]
+    int PinCount);
+
     
 internal sealed record PinterestBoardSectionsResponse(
     [property: JsonPropertyName("items")]
@@ -49,7 +53,10 @@ internal sealed record PinterestPinResponse(
 
     [property: JsonPropertyName("description")]
     string? Description,
-
+    
+    [property: JsonPropertyName("board_section_id")]
+    string? BoardSectionId,
+    
     [property: JsonPropertyName("media")]
     PinterestPinMediaResponse? Media);
 

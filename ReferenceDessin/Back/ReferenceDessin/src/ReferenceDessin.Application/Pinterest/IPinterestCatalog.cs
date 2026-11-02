@@ -7,12 +7,15 @@ public interface IPinterestCatalog
 {
     Task<IReadOnlyCollection<PinterestBoard>> GetBoardsAsync(
         CancellationToken cancellationToken = default);
-    
-    Task<IReadOnlyCollection<PinterestBoardSection>>
-        GetBoardSectionsAsync(
-            string boardId,
-            CancellationToken cancellationToken = default);
-    
+
+    Task<IReadOnlyCollection<PinterestBoardSection>> GetBoardSectionsAsync(
+        string boardId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyDictionary<string, int>> GetBoardSectionPinCountsAsync(
+        string boardId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyCollection<PinterestPin>> GetBoardPinsAsync(
         string boardId,
         string? sectionId = null,

@@ -1,5 +1,5 @@
-using ReferenceDessin.Application.Pinterest;
 using ReferenceDessin.Application.Pinterest.ListPinterestBoardSections;
+using ReferenceDessin.Application.Tests.Stubs;
 
 namespace ReferenceDessin.Application.Tests.Pinterest.ListPinterestBoardSections;
 
@@ -14,116 +14,85 @@ public sealed class ListPinterestBoardSectionsHandlerTests
         // Arrange
         var catalog = new StubPinterestCatalog();
 
-        var handler =
-            new ListPinterestBoardSectionsHandler(catalog);
+        var handler = new ListPinterestBoardSectionsHandler(catalog);
 
-        var query =
-            new ListPinterestBoardSectionsQuery(boardId);
+        var query = new ListPinterestBoardSectionsQuery(boardId);
 
         // Act
         var result = await handler.HandleAsync(query);
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal(
-            ListPinterestBoardSectionsError.InvalidBoardId,
-            result.Error);
+
+        Assert.Equal(ListPinterestBoardSectionsError.InvalidBoardId, result.Error);
+
         Assert.Empty(result.Sections);
         Assert.Equal(0, catalog.SectionCallCount);
+        Assert.Equal(0, catalog.SectionPinCountCallCount);
     }
 
     [Fact]
-    public async Task HandleAsync_NormalizesBoardIdAndReturnsSections()
+    public async Task HandleAsync_NormalizesBoardIdAndReturnsEnrichedSections()
     {
         // Arrange
-        IReadOnlyCollection<PinterestBoardSection>
-            expectedSections =
-        [
-            new PinterestBoardSection(
-                Id: "section-1",
-                Name: "Visages"),
-            new PinterestBoardSection(
-                Id: "section-2",
-                Name: "Poses")
-        ];
+        IReadOnlyCollection<PinterestBoardSection> sections =
+            [
+                new(
+                    "section-1",
+                    "Visages"),
+                new(
+                    "section-2",
+                    "Poses")
+            ];
 
         var catalog = new StubPinterestCatalog
         {
-            SectionsToReturn = expectedSections
+            SectionsToReturn = sections,
+
+            SectionPinCountsToReturn = new Dictionary<string, int> 
+            { 
+                ["section-1"] = 12,
+                ["section-2"] = 4
+            }
         };
 
-        var handler =
-            new ListPinterestBoardSectionsHandler(catalog);
+        var handler = new ListPinterestBoardSectionsHandler(catalog);
 
-        var query =
-            new ListPinterestBoardSectionsQuery(
-                BoardId: "  board-123  ");
+        var query = new ListPinterestBoardSectionsQuery("  board-123  ");
 
-        using var cancellationSource =
-            new CancellationTokenSource();
+        using var cancellationSource = new CancellationTokenSource();
 
         // Act
-        var result = await handler.HandleAsync(
-            query,
-            cancellationSource.Token);
+        var result = await handler.HandleAsync(query, cancellationSource.Token);
 
         // Assert
         Assert.True(result.IsSuccess);
+
+        Assert.Equal(ListPinterestBoardSectionsError.None, result.Error);
+
         Assert.Equal(
-            ListPinterestBoardSectionsError.None,
-            result.Error);
-        Assert.Same(expectedSections, result.Sections);
-        Assert.Equal("board-123", catalog.ReceivedBoardId);
-        Assert.Equal(
-            cancellationSource.Token,
-            catalog.ReceivedCancellationToken);
+            [
+                new PinterestBoardSection(
+                    "section-1",
+                    "Visages",
+                    12),
+                new PinterestBoardSection(
+                    "section-2",
+                    "Poses",
+                    4)
+            ],
+            result.Sections);
+
+        Assert.Equal("board-123", catalog.ReceivedSectionsBoardId);
+
+        Assert.Equal("board-123", catalog.ReceivedCountsBoardId);
+
+        Assert.Equal(cancellationSource.Token, catalog.ReceivedSectionCancellationToken);
+
+        Assert.Equal(cancellationSource.Token, catalog.ReceivedCountCancellationToken);
+
         Assert.Equal(1, catalog.SectionCallCount);
-    }
 
-    private sealed class StubPinterestCatalog
-        : IPinterestCatalog
-    {
-        public IReadOnlyCollection<PinterestBoardSection>
-            SectionsToReturn { get; init; } = [];
-
-        public int SectionCallCount { get; private set; }
-
-        public string? ReceivedBoardId { get; private set; }
-
-        public CancellationToken ReceivedCancellationToken
-        {
-            get;
-            private set;
-        }
-
-        public Task<IReadOnlyCollection<PinterestBoard>>
-            GetBoardsAsync(
-                CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<
-                IReadOnlyCollection<PinterestBoard>>([]);
-        }
-
-        public Task<
-            IReadOnlyCollection<PinterestBoardSection>>
-            GetBoardSectionsAsync(
-                string boardId,
-                CancellationToken cancellationToken = default)
-        {
-            SectionCallCount++;
-            ReceivedBoardId = boardId;
-            ReceivedCancellationToken = cancellationToken;
-
-            return Task.FromResult(SectionsToReturn);
-        }
-        
-        public Task<IReadOnlyCollection<PinterestPin>> GetBoardPinsAsync(
-            string boardId,
-            string? sectionId = null,
-            int? maximumCount = null,
-            CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<IReadOnlyCollection<PinterestPin>>([]);
-        }
+        Assert.Equal(1, catalog.SectionPinCountCallCount);
     }
 }

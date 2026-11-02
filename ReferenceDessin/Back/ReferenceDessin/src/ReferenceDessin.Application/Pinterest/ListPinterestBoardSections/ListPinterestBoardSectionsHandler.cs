@@ -1,12 +1,12 @@
-namespace ReferenceDessin.Application.Pinterest.ListPinterestBoardSections;
+namespace ReferenceDessin.Application.Pinterest
+    .ListPinterestBoardSections;
 
 public sealed class ListPinterestBoardSectionsHandler(
     IPinterestCatalog pinterestCatalog)
 {
-    public async Task<ListPinterestBoardSectionsResult>
-        HandleAsync(
-            ListPinterestBoardSectionsQuery query,
-            CancellationToken cancellationToken = default)
+    public async Task<ListPinterestBoardSectionsResult> HandleAsync(
+        ListPinterestBoardSectionsQuery query,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(query.BoardId))
         {
@@ -21,7 +21,22 @@ public sealed class ListPinterestBoardSectionsHandler(
                 normalizedBoardId,
                 cancellationToken);
 
-        return ListPinterestBoardSectionsResult.Success(
-            sections);
+        var countsBySectionId =
+            await pinterestCatalog
+                .GetBoardSectionPinCountsAsync(
+                    normalizedBoardId,
+                    cancellationToken);
+
+        var enrichedSections = sections
+            .Select(section =>
+                section with
+                {
+                    ReferenceCount =
+                    countsBySectionId.GetValueOrDefault(
+                        section.Id)
+                })
+            .ToArray();
+
+        return ListPinterestBoardSectionsResult.Success(enrichedSections);
     }
 }

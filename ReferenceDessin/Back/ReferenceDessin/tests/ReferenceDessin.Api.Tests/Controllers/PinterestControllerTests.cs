@@ -5,12 +5,10 @@ using ReferenceDessin.Api.Configuration;
 using ReferenceDessin.Api.Controllers;
 using ReferenceDessin.Application.Photos;
 using ReferenceDessin.Application.Pinterest;
-using ReferenceDessin.Application.Pinterest
-    .GetPinterestReferenceImages;
-using ReferenceDessin.Application.Pinterest
-    .ListPinterestBoardSections;
-using ReferenceDessin.Application.Pinterest
-    .ListPinterestBoards;
+using ReferenceDessin.Application.Pinterest.GetPinterestReferenceImages;
+using ReferenceDessin.Application.Pinterest.ListPinterestBoardSections;
+using ReferenceDessin.Application.Pinterest.ListPinterestBoards;
+using ReferenceDessin.Application.Tests.Stubs;
 
 namespace ReferenceDessin.Api.Tests.Controllers;
 
@@ -22,30 +20,22 @@ public sealed class PinterestControllerTests
         // Arrange
         var catalog = new StubPinterestCatalog();
 
-        var controller = CreateController(
-            catalog,
-            enabled: false);
+        var controller = CreateController(catalog, false);
 
         // Act
-        var result = await controller.GetBoards(
-            CancellationToken.None);
+        var result = await controller.GetBoards(CancellationToken.None);
 
         // Assert
-        var objectResult = Assert.IsType<ObjectResult>(
-            result.Result);
+        var objectResult = Assert.IsType<ObjectResult>(result.Result);
 
-        Assert.Equal(
-            StatusCodes.Status503ServiceUnavailable,
-            objectResult.StatusCode);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, objectResult.StatusCode);
 
-        var problem = Assert.IsType<ProblemDetails>(
-            objectResult.Value);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
 
-        Assert.Equal(
-            "L’intégration Pinterest n’est pas disponible.",
-            problem.Title);
+        Assert.Equal("L’intégration Pinterest n’est pas disponible.", problem.Title);
 
         Assert.Equal(0, catalog.BoardCallCount);
+        Assert.Equal(0, catalog.SectionCallCount);
     }
 
     [Fact]
@@ -54,10 +44,10 @@ public sealed class PinterestControllerTests
         // Arrange
         IReadOnlyCollection<PinterestBoard> expectedBoards =
         [
-            new PinterestBoard(
-                Id: "board-123",
-                Name: "Portraits",
-                Description: "Références de portraits")
+            new(
+                "board-123",
+                "Portraits",
+                "Références de portraits")
         ];
 
         var catalog = new StubPinterestCatalog
@@ -65,20 +55,19 @@ public sealed class PinterestControllerTests
             BoardsToReturn = expectedBoards
         };
 
-        var controller = CreateController(
-            catalog,
-            enabled: true);
+        var controller = CreateController(catalog, true);
 
         // Act
-        var result = await controller.GetBoards(
-            CancellationToken.None);
+        var result = await controller.GetBoards(CancellationToken.None);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(
-            result.Result);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
 
-        Assert.Same(expectedBoards, okResult.Value);
+        var boards = Assert.IsAssignableFrom<IReadOnlyCollection<PinterestBoard>>(okResult.Value);
+
+        Assert.Equal(expectedBoards, boards);
         Assert.Equal(1, catalog.BoardCallCount);
+        Assert.Equal(1, catalog.SectionCallCount);
     }
 
     [Fact]
@@ -87,32 +76,42 @@ public sealed class PinterestControllerTests
         // Arrange
         IReadOnlyCollection<PinterestBoardSection> expectedSections =
         [
-            new PinterestBoardSection(
-                Id: "section-456",
-                Name: "Visages")
+            new(
+                "section-456",
+                "Visages",
+                12)
         ];
 
         var catalog = new StubPinterestCatalog
         {
-            SectionsToReturn = expectedSections
+            SectionsToReturn =
+            [
+                new PinterestBoardSection("section-456", "Visages")
+            ],
+            SectionPinCountsToReturn = new Dictionary<string, int>
+            {
+                ["section-456"] = 12
+            }
         };
 
-        var controller = CreateController(
-            catalog,
-            enabled: true);
+        var controller = CreateController(catalog, true);
 
         // Act
-        var result = await controller.GetSections(
-            "board-123",
-            CancellationToken.None);
+        var result = await controller.GetSections("board-123", CancellationToken.None);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(
-            result.Result);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
 
-        Assert.Same(expectedSections, okResult.Value);
-        Assert.Equal("board-123", catalog.ReceivedBoardId);
+        var sections = Assert.IsAssignableFrom<IReadOnlyCollection<PinterestBoardSection>>(okResult.Value);
+
+        Assert.Equal(expectedSections, sections);
+
+        Assert.Equal("board-123", catalog.ReceivedSectionsBoardId);
+
+        Assert.Equal("board-123", catalog.ReceivedCountsBoardId);
+
         Assert.Equal(1, catalog.SectionCallCount);
+        Assert.Equal(1, catalog.SectionPinCountCallCount);
     }
 
     [Fact]
@@ -121,20 +120,16 @@ public sealed class PinterestControllerTests
         // Arrange
         var catalog = new StubPinterestCatalog();
 
-        var controller = CreateController(
-            catalog,
-            enabled: true);
+        var controller = CreateController(catalog, true);
 
         // Act
-        var result = await controller.GetSections(
-            "   ",
-            CancellationToken.None);
+        var result = await controller.GetSections("   ", CancellationToken.None);
 
         // Assert
-        Assert.IsType<BadRequestObjectResult>(
-            result.Result);
+        Assert.IsType<BadRequestObjectResult>(result.Result);
 
         Assert.Equal(0, catalog.SectionCallCount);
+        Assert.Equal(0, catalog.SectionPinCountCallCount);
     }
 
     [Fact]
@@ -146,75 +141,65 @@ public sealed class PinterestControllerTests
             PinsToReturn =
             [
                 new PinterestPin(
-                    Id: "pin-789",
-                    Title: "Portrait",
-                    Description: "Portrait au crayon",
-                    OriginalUrl:
-                        "https://www.pinterest.com/pin/pin-789/",
-                    ImageUrl:
-                        "https://images.example/portrait.jpg")
+                    "pin-789",
+                    "Portrait",
+                    "Portrait au crayon",
+                    "https://www.pinterest.com/pin/pin-789/",
+                    "https://images.example/portrait.jpg")
             ]
         };
 
-        var controller = CreateController(
-            catalog,
-            enabled: true);
+        var controller = CreateController(catalog, true);
 
         // Act
-        var result = await controller.GetSectionImages(
-            "board-123",
-            "section-456",
-            CancellationToken.None);
+        var result = await controller.GetSectionImages("board-123", "section-456", CancellationToken.None);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(
-            result.Result);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
 
-        var images = Assert.IsAssignableFrom<
-            IReadOnlyCollection<ReferenceImage>>(
-                okResult.Value);
+        var images = Assert.IsAssignableFrom<IReadOnlyCollection<ReferenceImage>>(okResult.Value);
 
         var image = Assert.Single(images);
 
         Assert.Equal("pin-789", image.ExternalId);
-        Assert.Equal(
-            "https://images.example/portrait.jpg",
-            image.ImageUrl);
+
+        Assert.Equal("https://images.example/portrait.jpg", image.ImageUrl);
+
         Assert.Equal("Pinterest", image.SourceName);
-        Assert.Equal(
-            "https://www.pinterest.com/pin/pin-789/",
-            image.OriginalUrl);
+
+        Assert.Equal("https://www.pinterest.com/pin/pin-789/", image.OriginalUrl);
+
         Assert.Null(image.AuthorName);
         Assert.Null(image.AuthorUrl);
-        Assert.Equal(
-            "Portrait au crayon",
-            image.Description);
+
+        Assert.Equal("Portrait au crayon", image.Description);
+
         Assert.Null(image.AverageColor);
 
-        Assert.Equal("board-123", catalog.ReceivedBoardId);
+        Assert.Equal("board-123", catalog.ReceivedPinsBoardId);
+
         Assert.Equal("section-456", catalog.ReceivedSectionId);
+
         Assert.Equal(1, catalog.PinCallCount);
     }
-    
+
     [Fact]
     public async Task GetBoardPreviewImages_WhenCountIsOmitted_UsesFour()
     {
         // Arrange
         var catalog = new StubPinterestCatalog();
 
-        var controller = CreateController(
-            catalog,
-            enabled: true);
+        var controller = CreateController(catalog, true);
 
         // Act
-        var result = await controller.GetBoardPreviewImages(
-            boardId: "board-123",
-            cancellationToken: CancellationToken.None);
+        var result = await controller.GetBoardPreviewImages("board-123", cancellationToken: CancellationToken.None);
 
         // Assert
         Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(4, catalog.ReceivedMaximumCount);
         Assert.Equal(1, catalog.PinCallCount);
+
+        Assert.Equal("board-123", catalog.ReceivedPinsBoardId);
     }
 
     [Theory]
@@ -226,31 +211,20 @@ public sealed class PinterestControllerTests
         // Arrange
         var catalog = new StubPinterestCatalog();
 
-        var controller = CreateController(
-            catalog,
-            enabled: true);
+        var controller = CreateController(catalog, true);
 
         // Act
-        var result = await controller.GetBoardPreviewImages(
-            boardId: "board-123",
-            count: count,
-            cancellationToken: CancellationToken.None);
+        var result = await controller.GetBoardPreviewImages("board-123", count, CancellationToken.None);
 
         // Assert
-        var badRequest =
-            Assert.IsType<BadRequestObjectResult>(
-                result.Result);
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
 
-        Assert.Equal(
-            "Le nombre d’images doit être compris entre 1 et 4.",
-            badRequest.Value);
+        Assert.Equal("Le nombre d’images doit être compris entre 1 et 4.", badRequest.Value);
 
         Assert.Equal(0, catalog.PinCallCount);
     }
 
-    private static PinterestController CreateController(
-        IPinterestCatalog catalog,
-        bool enabled)
+    private static PinterestController CreateController(IPinterestCatalog catalog, bool enabled)
     {
         return new PinterestController(
             new ListPinterestBoardsHandler(catalog),
@@ -261,74 +235,5 @@ public sealed class PinterestControllerTests
                 {
                     Enabled = enabled
                 }));
-    }
-
-    private sealed class StubPinterestCatalog : IPinterestCatalog
-    {
-        public IReadOnlyCollection<PinterestBoard> BoardsToReturn
-        {
-            get;
-            init;
-        } = [];
-
-        public IReadOnlyCollection<PinterestBoardSection>
-            SectionsToReturn
-        {
-            get;
-            init;
-        } = [];
-
-        public IReadOnlyCollection<PinterestPin> PinsToReturn
-        {
-            get;
-            init;
-        } = [];
-
-        public int BoardCallCount { get; private set; }
-
-        public int SectionCallCount { get; private set; }
-
-        public int PinCallCount { get; private set; }
-
-        public string? ReceivedBoardId { get; private set; }
-
-        public string? ReceivedSectionId { get; private set; }
-        
-        public int? ReceivedMaximumCount { get; private set; }
-
-        public Task<IReadOnlyCollection<PinterestBoard>>
-            GetBoardsAsync(
-                CancellationToken cancellationToken = default)
-        {
-            BoardCallCount++;
-
-            return Task.FromResult(BoardsToReturn);
-        }
-
-        public Task<IReadOnlyCollection<PinterestBoardSection>>
-            GetBoardSectionsAsync(
-                string boardId,
-                CancellationToken cancellationToken = default)
-        {
-            SectionCallCount++;
-            ReceivedBoardId = boardId;
-
-            return Task.FromResult(SectionsToReturn);
-        }
-
-        public Task<IReadOnlyCollection<PinterestPin>>
-            GetBoardPinsAsync(
-                string boardId,
-                string? sectionId = null,
-                int? maximumCount = null,
-                CancellationToken cancellationToken = default)
-        {
-            PinCallCount++;
-            ReceivedBoardId = boardId;
-            ReceivedMaximumCount = maximumCount;
-            ReceivedSectionId = sectionId;
-
-            return Task.FromResult(PinsToReturn);
-        }
     }
 }

@@ -1,6 +1,7 @@
 using ReferenceDessin.Application.Pinterest;
 using ReferenceDessin.Application.Pinterest.GetPinterestReferenceImages;
 using ReferenceDessin.Application.Pinterest.ListPinterestBoardSections;
+using ReferenceDessin.Application.Tests.Stubs;
 
 namespace ReferenceDessin.Application.Tests.Pinterest.GetPinterestReferenceImages;
 
@@ -15,16 +16,12 @@ public sealed class GetPinterestReferenceImagesHandlerTests
         var catalog = new StubPinterestCatalog();
         var handler = new GetPinterestReferenceImagesHandler(catalog);
 
-        var query = new GetPinterestReferenceImagesQuery(
-            boardId,
-            null);
+        var query = new GetPinterestReferenceImagesQuery(boardId, null);
 
         var result = await handler.HandleAsync(query);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(
-            GetPinterestReferenceImagesError.InvalidBoardId,
-            result.Error);
+        Assert.Equal(GetPinterestReferenceImagesError.InvalidBoardId, result.Error);
         Assert.Empty(result.Images);
         Assert.Equal(0, catalog.PinCallCount);
     }
@@ -35,22 +32,15 @@ public sealed class GetPinterestReferenceImagesHandlerTests
         var catalog = new StubPinterestCatalog();
         var handler = new GetPinterestReferenceImagesHandler(catalog);
 
-        using var cancellationSource =
-            new CancellationTokenSource();
+        using var cancellationSource = new CancellationTokenSource();
 
-        var query = new GetPinterestReferenceImagesQuery(
-            "  board-123  ",
-            "  section-456  ");
+        var query = new GetPinterestReferenceImagesQuery("  board-123  ", "  section-456  ");
 
-        await handler.HandleAsync(
-            query,
-            cancellationSource.Token);
+        await handler.HandleAsync(query, cancellationSource.Token);
 
-        Assert.Equal("board-123", catalog.ReceivedBoardId);
+        Assert.Equal("board-123", catalog.ReceivedPinsBoardId);
         Assert.Equal("section-456", catalog.ReceivedSectionId);
-        Assert.Equal(
-            cancellationSource.Token,
-            catalog.ReceivedCancellationToken);
+        Assert.Equal(cancellationSource.Token, catalog.ReceivedPinCancellationToken);
     }
 
     [Theory]
@@ -63,9 +53,7 @@ public sealed class GetPinterestReferenceImagesHandlerTests
         var catalog = new StubPinterestCatalog();
         var handler = new GetPinterestReferenceImagesHandler(catalog);
 
-        var query = new GetPinterestReferenceImagesQuery(
-            "board-123",
-            sectionId);
+        var query = new GetPinterestReferenceImagesQuery("board-123", sectionId);
 
         await handler.HandleAsync(query);
 
@@ -92,31 +80,22 @@ public sealed class GetPinterestReferenceImagesHandlerTests
 
         var handler = new GetPinterestReferenceImagesHandler(catalog);
 
-        var result = await handler.HandleAsync(
-            new GetPinterestReferenceImagesQuery(
-                "board-123",
-                null));
+        var result = await handler.HandleAsync(new GetPinterestReferenceImagesQuery(
+            "board-123",
+            null));
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(
-            GetPinterestReferenceImagesError.None,
-            result.Error);
+        Assert.Equal(GetPinterestReferenceImagesError.None, result.Error);
 
         var image = Assert.Single(result.Images);
 
         Assert.Equal("pin-123", image.ExternalId);
-        Assert.Equal(
-            "https://images.example/portrait.jpg",
-            image.ImageUrl);
+        Assert.Equal("https://images.example/portrait.jpg", image.ImageUrl);
         Assert.Equal("Pinterest", image.SourceName);
-        Assert.Equal(
-            "https://www.pinterest.com/pin/pin-123/",
-            image.OriginalUrl);
+        Assert.Equal("https://www.pinterest.com/pin/pin-123/", image.OriginalUrl);
         Assert.Null(image.AuthorName);
         Assert.Null(image.AuthorUrl);
-        Assert.Equal(
-            "Portrait au crayon",
-            image.Description);
+        Assert.Equal("Portrait au crayon", image.Description);
         Assert.Null(image.AverageColor);
     }
 
@@ -138,10 +117,9 @@ public sealed class GetPinterestReferenceImagesHandlerTests
 
         var handler = new GetPinterestReferenceImagesHandler(catalog);
 
-        var result = await handler.HandleAsync(
-            new GetPinterestReferenceImagesQuery(
-                "board-123",
-                null));
+        var result = await handler.HandleAsync(new GetPinterestReferenceImagesQuery(
+            "board-123",
+            null));
 
         var image = Assert.Single(result.Images);
 
@@ -159,16 +137,13 @@ public sealed class GetPinterestReferenceImagesHandlerTests
         var catalog = new StubPinterestCatalog();
         var handler = new GetPinterestReferenceImagesHandler(catalog);
 
-        var result = await handler.HandleAsync(
-            new GetPinterestReferenceImagesQuery(
-                "board-123",
-                null,
-                maximumCount));
+        var result = await handler.HandleAsync(new GetPinterestReferenceImagesQuery(
+            "board-123",
+            null, 
+            maximumCount));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(
-            GetPinterestReferenceImagesError.InvalidCount,
-            result.Error);
+        Assert.Equal(GetPinterestReferenceImagesError.InvalidCount, result.Error);
         Assert.Empty(result.Images);
         Assert.Equal(0, catalog.PinCallCount);
     }
@@ -191,16 +166,13 @@ public sealed class GetPinterestReferenceImagesHandlerTests
 
         var handler = new GetPinterestReferenceImagesHandler(catalog);
 
-        var result = await handler.HandleAsync(
-            new GetPinterestReferenceImagesQuery(
-                "board-123",
-                null));
+        var result = await handler.HandleAsync(new GetPinterestReferenceImagesQuery(
+            "board-123",
+            null));
 
         var image = Assert.Single(result.Images);
 
-        Assert.Equal(
-            "Portrait au crayon",
-            image.Description);
+        Assert.Equal("Portrait au crayon", image.Description);
     }
 
     [Fact]
@@ -209,59 +181,12 @@ public sealed class GetPinterestReferenceImagesHandlerTests
         var catalog = new StubPinterestCatalog();
         var handler = new GetPinterestReferenceImagesHandler(catalog);
 
-        await handler.HandleAsync(
-            new GetPinterestReferenceImagesQuery(
-                "board-123",
-                null,
-                4));
+        await handler.HandleAsync(new GetPinterestReferenceImagesQuery(
+            "board-123",
+            null, 
+            4));
 
         Assert.Equal(4, catalog.ReceivedMaximumCount);
         Assert.Equal(1, catalog.PinCallCount);
-    }
-
-    private sealed class StubPinterestCatalog : IPinterestCatalog
-    {
-        public IReadOnlyCollection<PinterestPin> PinsToReturn { get; init; } = [];
-
-        public int PinCallCount { get; private set; }
-
-        public string? ReceivedBoardId { get; private set; }
-
-        public string? ReceivedSectionId { get; private set; }
-        public int? ReceivedMaximumCount { get; private set; }
-
-        public CancellationToken ReceivedCancellationToken { get; private set; }
-
-        public Task<IReadOnlyCollection<PinterestBoard>> GetBoardsAsync(
-            CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<
-                IReadOnlyCollection<PinterestBoard>>([]);
-        }
-
-        public Task<IReadOnlyCollection<PinterestBoardSection>>
-            GetBoardSectionsAsync(
-                string boardId,
-                CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<
-                IReadOnlyCollection<PinterestBoardSection>>([]);
-        }
-
-        public Task<IReadOnlyCollection<PinterestPin>>
-            GetBoardPinsAsync(
-                string boardId,
-                string? sectionId = null,
-                int ? maximumCount = null,
-                CancellationToken cancellationToken = default)
-        {
-            PinCallCount++;
-            ReceivedBoardId = boardId;
-            ReceivedSectionId = sectionId;
-            ReceivedMaximumCount = maximumCount;
-            ReceivedCancellationToken = cancellationToken;
-
-            return Task.FromResult(PinsToReturn);
-        }
     }
 }
