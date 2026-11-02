@@ -10,7 +10,6 @@ export const routes: Routes = [
   },
   {
     path: '',
-    // canActivate: [authenticationGuard],
     loadComponent: () => import('./layout/app-shell/app-shell').then((module) => module.AppShell),
     children: [
       {
@@ -27,6 +26,7 @@ export const routes: Routes = [
       },
       {
         path: 'collections',
+        canActivate: [authenticationGuard],
         loadComponent: () =>
           import('./features/catalog/collection-list-page/collection-list-page').then(
             (module) => module.CollectionListPage,
@@ -35,6 +35,7 @@ export const routes: Routes = [
       },
       {
         path: 'collections/:boardId',
+        canActivate: [authenticationGuard],
         loadComponent: () =>
           import('./features/catalog/collection-detail-page/collection-detail-page').then(
             (module) => module.CollectionDetailPage,
@@ -57,10 +58,12 @@ export const routes: Routes = [
           ),
         title: 'Séance — Référence Dessin',
       },
+      {
+        path: '**',
+        loadComponent: () =>
+          import('./features/not-found-page/not-found-page').then((module) => module.NotFoundPage),
+        title: 'Page introuvable — Référence Dessin',
+      },
     ],
-  },
-  {
-    path: '**',
-    redirectTo: '',
   },
 ];

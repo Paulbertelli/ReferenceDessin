@@ -1,0 +1,17 @@
+<header class="page-header" [class.page-header--center]="alignment() === 'center'">
+  <app-page-back-button class="page-header__back" [fallbackUrl]="fallbackUrl()" />
+
+  <div class="page-header__content">
+    <div class="page-header__heading">
+      <h1>{{ title() }}</h1>
+
+      @if (subtitle()) {
+        <p>{{ subtitle() }}</p>
+      }
+    </div>
+
+    <div class="page-header__actions">
+      <ng-content select="[pageHeaderActions]" />
+    </div>
+  </div>
+</header>

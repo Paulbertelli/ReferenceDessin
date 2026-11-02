@@ -1,51 +1,65 @@
 <main class="search-page">
-  <header>
-    <h1>Rechercher des références</h1>
+  <app-page-header
+    [title]="searchTerm() ? 'Résultats pour « ' + searchTerm() + ' »' : 'Références à découvrir'"
+    [subtitle]="resultSubtitle()"
+    fallbackUrl="/"
+  >
+    @if (searchStore.images().length > 0) {
+      <div pageHeaderActions class="selection-actions">
+        @if (hasDisplayedSelection()) {
+          <button
+            type="button"
+            class="app-button app-button--secondary"
+            (click)="deselectAllDisplayed()"
+          >
+            <span class="app-button__framed-icon" aria-hidden="true">
+              <svg lucideX [size]="15"></svg>
+            </span>
 
-    <p>Recherchez un thème parmi les références proposées par Pexels.</p>
-  </header>
+            Tout désélectionner
+          </button>
+        }
 
-  <form class="search-form" (ngSubmit)="search()">
-    <label for="reference-search"> Thème </label>
+        @if (!allDisplayedSelected()) {
+          <button
+            type="button"
+            class="app-button app-button--secondary"
+            (click)="selectAllDisplayed()"
+          >
+            <span class="app-button__framed-icon" aria-hidden="true">
+              <svg lucidePlus [size]="15"></svg>
+            </span>
 
-    <input
-      id="reference-search"
-      name="reference-search"
-      type="search"
-      [(ngModel)]="searchTerm"
-      placeholder="Portrait, animal, architecture…"
-      autocomplete="off"
-    />
-
-    <button type="submit" [disabled]="searchStore.loading()">Rechercher</button>
-  </form>
-
-  @if (searchStore.loading()) {
-    <p role="status">Chargement des références…</p>
-  } @else if (searchStore.error()) {
-    <p role="alert">
-      {{ searchStore.error() }}
-    </p>
-  } @else if (searchStore.noResults()) {
-    <p>Aucune référence trouvée pour cette recherche.</p>
-  } @else if (searchStore.images().length > 0) {
-    <section aria-labelledby="search-results-title">
-      <header>
-        <h2 id="search-results-title">Résultats</h2>
-
-        <button type="button" (click)="selectAllDisplayed()">Tout sélectionner</button>
-      </header>
-
-      <div class="reference-grid">
-        @for (image of searchStore.images(); track image.sourceName + ':' + image.externalId) {
-          <app-reference-card
-            [image]="image"
-            [selected]="selectionStore.isSelected(image)"
-            (selectionRequested)="toggleSelection($event)"
-          />
+            Tout sélectionner
+          </button>
         }
       </div>
+    }
+  </app-page-header>
+
+  @if (searchStore.loading()) {
+    <app-page-state type="loading" message="Chargement des références…" />
+  } @else if (searchStore.error()) {
+    <app-page-state
+      type="error"
+      title="Impossible de charger les références"
+      [message]="searchStore.error()"
+      actionLabel="Réessayer"
+      (actionRequested)="retrySearch()"
+    />
+  } @else if (searchStore.noResults()) {
+    <app-page-state type="empty" [title]="emptyStateTitle()" [message]="emptyStateMessage()" />
+  } @else if (searchStore.images().length > 0) {
+    <section class="reference-grid" aria-label="Résultats de la recherche">
+      @for (image of searchStore.images(); track image.sourceName + ':' + image.externalId) {
+        <app-reference-card
+          [image]="image"
+          [selected]="selectionStore.isSelected(image)"
+          (selectionRequested)="toggleSelection($event)"
+        />
+      }
     </section>
   }
 </main>
+
 <app-selection-launcher />

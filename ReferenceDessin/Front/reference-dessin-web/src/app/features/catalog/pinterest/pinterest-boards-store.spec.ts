@@ -36,9 +36,11 @@ describe('PinterestBoardsStore', () => {
   it('charge et conserve les tableaux', () => {
     const boards: PinterestBoard[] = [
       {
-        id: '123',
+        id: 'board-123',
         name: 'Portraits',
-        description: '',
+        description: 'Références de portraits',
+        referenceCount: 42,
+        sectionCount: 3,
       },
     ];
 
@@ -93,6 +95,35 @@ describe('PinterestBoardsStore', () => {
     expect(store.loading()).toBe(false);
     expect(store.loaded()).toBe(false);
     expect(store.error()).toBe('L’accès à Pinterest n’est pas encore activé.');
+  });
+
+  it('affiche un message utile en cas d’erreur réseau', () => {
+    store.load();
+
+    api.latestResponse.error(
+      new HttpErrorResponse({
+        status: 0,
+      }),
+    );
+
+    expect(store.loading()).toBe(false);
+    expect(store.loaded()).toBe(false);
+
+    expect(store.error()).toBe('Vérifiez votre connexion internet, puis réessayez.');
+  });
+
+  it('affiche un message générique lorsque Pinterest est indisponible', () => {
+    store.load();
+
+    api.latestResponse.error(
+      new HttpErrorResponse({
+        status: 503,
+      }),
+    );
+
+    expect(store.loading()).toBe(false);
+
+    expect(store.error()).toBe('Le service Pinterest est temporairement indisponible.');
   });
 });
 

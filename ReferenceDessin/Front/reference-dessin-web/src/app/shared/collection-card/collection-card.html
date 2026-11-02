@@ -1,0 +1,83 @@
+@if (error()) {
+  <article
+    class="collection-card collection-card--error"
+    [class.collection-card--compact]="displayMode() === 'compact'"
+    [class.collection-card--detailed]="displayMode() === 'detailed'"
+  >
+    <div class="collection-preview">
+      <div class="preview-error">
+        <p>{{ error() }}</p>
+
+        <button
+          type="button"
+          class="app-button app-button--secondary"
+          (click)="retryRequested.emit()"
+        >
+          Réessayer
+        </button>
+      </div>
+    </div>
+
+    <div class="collection-content">
+      <strong>{{ collectionName() }}</strong>
+
+      @if (displayMode() === 'detailed' && referenceCount() !== null && sectionCount() !== null) {
+        <span class="collection-metadata">
+          {{ referenceCount() }}
+          {{ referenceCount() === 1 ? 'référence' : 'références' }}
+
+          <span aria-hidden="true">·</span>
+
+          {{ sectionCount() }}
+          {{ sectionCount() === 1 ? 'section' : 'sections' }}
+        </span>
+      }
+
+      @if (displayMode() === 'detailed' && collectionDescription()) {
+        <p class="collection-description">
+          {{ collectionDescription() }}
+        </p>
+      }
+    </div>
+  </article>
+} @else {
+  <a
+    class="collection-card"
+    [class.collection-card--compact]="displayMode() === 'compact'"
+    [class.collection-card--detailed]="displayMode() === 'detailed'"
+    [routerLink]="['/collections', collectionId()]"
+    [attr.aria-busy]="loading()"
+  >
+    <span class="collection-preview" [class.collection-preview--loading]="loading()">
+      @if (loading()) {
+        <span class="sr-only" role="status"> Chargement de l’aperçu… </span>
+      } @else {
+        @for (image of images(); track image.sourceName + ':' + image.externalId) {
+          <img [src]="image.imageUrl" alt="" loading="lazy" />
+        }
+      }
+    </span>
+
+    <span class="collection-content">
+      <strong>{{ collectionName() }}</strong>
+
+      @if (displayMode() === 'detailed' && referenceCount() !== null && sectionCount() !== null) {
+        <span class="collection-metadata">
+          {{ referenceCount() }}
+          {{ referenceCount() === 1 ? 'référence' : 'références' }}
+
+          <span aria-hidden="true">·</span>
+
+          {{ sectionCount() }}
+          {{ sectionCount() === 1 ? 'section' : 'sections' }}
+        </span>
+      }
+
+      @if (displayMode() === 'detailed' && collectionDescription()) {
+        <span class="collection-description">
+          {{ collectionDescription() }}
+        </span>
+      }
+    </span>
+  </a>
+}

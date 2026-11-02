@@ -28,9 +28,11 @@ describe('PinterestApi', () => {
   it('récupère les tableaux Pinterest', () => {
     const expectedBoards: PinterestBoard[] = [
       {
-        id: '123',
+        id: 'board-123',
         name: 'Portraits',
         description: 'Références de portraits',
+        referenceCount: 42,
+        sectionCount: 3,
       },
     ];
 
@@ -52,8 +54,9 @@ describe('PinterestApi', () => {
   it('récupère les sections d’un tableau', () => {
     const expectedSections: PinterestBoardSection[] = [
       {
-        id: '456',
+        id: 'section-123',
         name: 'Visages',
+        referenceCount: 12,
       },
     ];
 

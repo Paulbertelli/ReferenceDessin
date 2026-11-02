@@ -13,12 +13,17 @@ export class PinterestBoardsStore {
   private readonly boardItems = signal<PinterestBoard[]>([]);
 
   private readonly loadingState = signal(false);
+
   private readonly errorMessage = signal('');
+
   private readonly loadedState = signal(false);
 
   readonly boards = this.boardItems.asReadonly();
+
   readonly loading = this.loadingState.asReadonly();
+
   readonly error = this.errorMessage.asReadonly();
+
   readonly loaded = this.loadedState.asReadonly();
 
   load(force: boolean = false): void {
@@ -40,11 +45,13 @@ export class PinterestBoardsStore {
         error: (response: HttpErrorResponse) => {
           const detail = response.error?.detail;
 
-          this.errorMessage.set(
-            typeof detail === 'string' && detail.trim().length > 0
-              ? detail
-              : 'Impossible de récupérer les collections Pinterest.',
-          );
+          if (typeof detail === 'string' && detail.trim().length > 0) {
+            this.errorMessage.set(detail);
+          } else if (response.status === 0) {
+            this.errorMessage.set('Vérifiez votre connexion internet, puis réessayez.');
+          } else {
+            this.errorMessage.set('Le service Pinterest est temporairement indisponible.');
+          }
         },
       });
   }

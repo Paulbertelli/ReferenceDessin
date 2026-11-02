@@ -27,27 +27,20 @@ describe('PinterestBoardDetailStore', () => {
     store = TestBed.inject(PinterestBoardDetailStore);
   });
 
-  it('charge le tableau, les sections et leurs références', () => {
-    const sections: PinterestBoardSection[] = [
-      {
-        id: 'section-1',
-        name: 'Portraits',
-      },
-      {
-        id: 'section-2',
-        name: 'Personnages',
-      },
-    ];
+  it('charge le tableau et les sections sans charger leurs images', () => {
+    const sections = createSections();
 
     const boardImages = [createImage('1'), createImage('2'), createImage('3')];
 
     store.load('  board-1  ');
 
     expect(store.boardId()).toBe('board-1');
+
+    expect(store.initialLoading()).toBe(true);
+    expect(store.sectionLoading()).toBe(false);
     expect(store.loading()).toBe(true);
 
     expect(api.sectionListRequests).toHaveLength(1);
-
     expect(api.boardImageRequests).toHaveLength(1);
 
     expect(api.sectionListRequests[0].boardId).toBe('board-1');
@@ -56,25 +49,9 @@ describe('PinterestBoardDetailStore', () => {
 
     flush(api.boardImageRequests[0], boardImages);
 
-    /*
-     * Les requêtes de sections commencent après
-     * le chargement de la liste des sections et
-     * des références du tableau.
-     */
-    expect(api.sectionImageRequests).toHaveLength(2);
-
-    expect(api.sectionImageRequests[0].sectionId).toBe('section-1');
-
-    expect(api.sectionImageRequests[1].sectionId).toBe('section-2');
-
-    expect(store.loading()).toBe(true);
-
-    flush(api.sectionImageRequests[0], [createImage('1'), createImage('2')]);
-
-    flush(api.sectionImageRequests[1], [createImage('3')]);
+    expect(api.sectionImageRequests).toHaveLength(0);
 
     expect(store.sections()).toEqual(sections);
-
     expect(store.images()).toEqual(boardImages);
 
     expect(store.totalImageCount()).toBe(3);
@@ -83,36 +60,76 @@ describe('PinterestBoardDetailStore', () => {
 
     expect(store.sectionImageCount('section-2')).toBe(1);
 
+    expect(store.initialLoading()).toBe(false);
+    expect(store.sectionLoading()).toBe(false);
     expect(store.loading()).toBe(false);
     expect(store.error()).toBe('');
   });
 
-  it('sélectionne une section depuis le cache', () => {
+  it('charge une section lorsqu’elle est sélectionnée', () => {
     completeInitialLoad();
-
-    const requestCountBeforeSelection = api.sectionImageRequests.length;
 
     store.selectSection('  section-1  ');
 
     expect(store.selectedSectionId()).toBe('section-1');
 
-    expect(store.images()).toEqual([createImage('3')]);
+    expect(api.sectionImageRequests).toHaveLength(1);
 
-    expect(store.totalImageCount()).toBe(2);
+    expect(api.sectionImageRequests[0].boardId).toBe('board-1');
+
+    expect(api.sectionImageRequests[0].sectionId).toBe('section-1');
+
+    expect(store.images()).toEqual([]);
+
+    expect(store.initialLoading()).toBe(false);
+    expect(store.sectionLoading()).toBe(true);
+    expect(store.loading()).toBe(true);
+
+    const sectionImages = [createImage('3'), createImage('4')];
+
+    flush(api.sectionImageRequests[0], sectionImages);
+
+    expect(store.images()).toEqual(sectionImages);
 
     /*
-     * La sélection ne déclenche pas de nouvelle
-     * requête HTTP.
+     * Le total reste celui de la collection,
+     * indépendamment de la section affichée.
      */
-    expect(api.sectionImageRequests).toHaveLength(requestCountBeforeSelection);
+    expect(store.totalImageCount()).toBe(2);
+
+    expect(store.initialLoading()).toBe(false);
+    expect(store.sectionLoading()).toBe(false);
+    expect(store.loading()).toBe(false);
   });
 
-  it('revient aux références complètes depuis le cache', () => {
+  it('réutilise les images d’une section depuis le cache', () => {
     completeInitialLoad();
 
     store.selectSection('section-1');
 
+    flush(api.sectionImageRequests[0], [createImage('3')]);
+
+    store.selectSection(null);
+
+    expect(store.images()).toEqual([createImage('1'), createImage('2')]);
+
+    const requestCount = api.sectionImageRequests.length;
+
+    store.selectSection('section-1');
+
     expect(store.images()).toEqual([createImage('3')]);
+
+    expect(api.sectionImageRequests).toHaveLength(requestCount);
+
+    expect(store.sectionLoading()).toBe(false);
+  });
+
+  it('revient aux références complètes du tableau', () => {
+    completeInitialLoad();
+
+    store.selectSection('section-1');
+
+    flush(api.sectionImageRequests[0], [createImage('3')]);
 
     store.selectSection(null);
 
@@ -121,22 +138,67 @@ describe('PinterestBoardDetailStore', () => {
     expect(store.images()).toEqual([createImage('1'), createImage('2')]);
 
     expect(store.totalImageCount()).toBe(2);
+
+    expect(store.sectionLoading()).toBe(false);
   });
 
-  it('ne change rien lorsque la section est déjà sélectionnée', () => {
+  it('ne relance pas le chargement lorsque la section est déjà sélectionnée', () => {
     completeInitialLoad();
 
     store.selectSection('section-1');
 
-    const imagesBeforeSecondSelection = store.images();
+    expect(api.sectionImageRequests).toHaveLength(1);
 
     store.selectSection('section-1');
 
-    expect(store.images()).toBe(imagesBeforeSecondSelection);
+    expect(api.sectionImageRequests).toHaveLength(1);
+  });
+
+  it('réessaie uniquement le chargement de la section en erreur', () => {
+    completeInitialLoad();
+
+    store.selectSection('section-1');
+
+    api.sectionImageRequests[0].response.error(
+      new HttpErrorResponse({
+        status: 503,
+        error: {
+          detail: 'Section temporairement indisponible.',
+        },
+      }),
+    );
+
+    expect(store.error()).toBe('Section temporairement indisponible.');
+
+    expect(store.initialLoading()).toBe(false);
+    expect(store.sectionLoading()).toBe(false);
+    expect(store.loading()).toBe(false);
+
+    expect(api.sectionImageRequests).toHaveLength(1);
+
+    store.retrySelectedSection();
+
+    expect(api.sectionImageRequests).toHaveLength(2);
+
+    expect(store.initialLoading()).toBe(false);
+    expect(store.sectionLoading()).toBe(true);
+    expect(store.loading()).toBe(true);
+    expect(store.error()).toBe('');
+
+    flush(api.sectionImageRequests[1], [createImage('3')]);
+
+    expect(store.images()).toEqual([createImage('3')]);
+
+    expect(store.initialLoading()).toBe(false);
+    expect(store.sectionLoading()).toBe(false);
+    expect(store.loading()).toBe(false);
+    expect(store.error()).toBe('');
   });
 
   it('charge correctement un tableau sans section', () => {
     store.load('board-1');
+
+    expect(store.initialLoading()).toBe(true);
 
     flush(api.sectionListRequests[0], []);
 
@@ -145,9 +207,13 @@ describe('PinterestBoardDetailStore', () => {
     expect(api.sectionImageRequests).toHaveLength(0);
 
     expect(store.sections()).toEqual([]);
+
     expect(store.images()).toEqual([createImage('1')]);
 
     expect(store.totalImageCount()).toBe(1);
+
+    expect(store.initialLoading()).toBe(false);
+    expect(store.sectionLoading()).toBe(false);
     expect(store.loading()).toBe(false);
   });
 
@@ -163,6 +229,8 @@ describe('PinterestBoardDetailStore', () => {
       }),
     );
 
+    expect(store.initialLoading()).toBe(false);
+    expect(store.sectionLoading()).toBe(false);
     expect(store.loading()).toBe(false);
 
     expect(store.error()).toBe('Pinterest est temporairement indisponible.');
@@ -178,24 +246,122 @@ describe('PinterestBoardDetailStore', () => {
       }),
     );
 
+    expect(store.initialLoading()).toBe(false);
+    expect(store.sectionLoading()).toBe(false);
     expect(store.loading()).toBe(false);
 
     expect(store.error()).toBe('Impossible de récupérer cette collection Pinterest.');
   });
 
+  it('ignore une réponse obsolète après un changement de section', () => {
+    completeInitialLoad();
+
+    store.selectSection('section-1');
+    const oldRequest = api.sectionImageRequests[0];
+
+    store.selectSection('section-2');
+    const newRequest = api.sectionImageRequests[1];
+
+    expect(store.selectedSectionId()).toBe('section-2');
+    expect(store.sectionLoading()).toBe(true);
+
+    flush(oldRequest, [createImage('old')]);
+
+    expect(store.images()).toEqual([]);
+    expect(store.sectionLoading()).toBe(true);
+    expect(store.error()).toBe('');
+
+    flush(newRequest, [createImage('new')]);
+
+    expect(store.images()).toEqual([createImage('new')]);
+    expect(store.selectedSectionId()).toBe('section-2');
+    expect(store.sectionLoading()).toBe(false);
+    expect(store.loading()).toBe(false);
+    expect(store.error()).toBe('');
+  });
+
+  it('ignore les réponses obsolètes après un changement de collection', () => {
+    store.load('board-1');
+
+    const oldSectionsRequest = api.sectionListRequests[0];
+    const oldImagesRequest = api.boardImageRequests[0];
+
+    store.load('board-2');
+
+    const newSectionsRequest = api.sectionListRequests[1];
+    const newImagesRequest = api.boardImageRequests[1];
+
+    expect(store.boardId()).toBe('board-2');
+    expect(store.initialLoading()).toBe(true);
+
+    flush(oldSectionsRequest, createSections());
+    flush(oldImagesRequest, [createImage('old')]);
+
+    expect(store.sections()).toEqual([]);
+    expect(store.images()).toEqual([]);
+    expect(store.totalImageCount()).toBe(0);
+    expect(store.initialLoading()).toBe(true);
+    expect(store.error()).toBe('');
+
+    const newSections = [createSections()[1]];
+    const newImages = [createImage('new')];
+
+    flush(newSectionsRequest, newSections);
+    flush(newImagesRequest, newImages);
+
+    expect(store.boardId()).toBe('board-2');
+    expect(store.sections()).toEqual(newSections);
+    expect(store.images()).toEqual(newImages);
+    expect(store.totalImageCount()).toBe(1);
+    expect(store.initialLoading()).toBe(false);
+    expect(store.loading()).toBe(false);
+    expect(store.error()).toBe('');
+  });
+
+
+it('recharge la collection après une erreur initiale', () => {
+  store.load('board-1');
+
+  api.boardImageRequests[0].response.error(
+    new HttpErrorResponse({
+      status: 503,
+      error: {
+        detail: 'Pinterest temporairement indisponible.',
+      },
+    }),
+  );
+
+  expect(store.loading()).toBe(false);
+  expect(store.error()).toBe('Pinterest temporairement indisponible.');
+
+  store.retrySelectedSection();
+
+  expect(api.sectionListRequests).toHaveLength(2);
+  expect(api.boardImageRequests).toHaveLength(2);
+  expect(store.initialLoading()).toBe(true);
+  expect(store.error()).toBe('');
+
+  const sections = createSections();
+  const images = [createImage('1'), createImage('2')];
+
+  flush(api.sectionListRequests[1], sections);
+  flush(api.boardImageRequests[1], images);
+
+  expect(store.sections()).toEqual(sections);
+  expect(store.images()).toEqual(images);
+  expect(store.totalImageCount()).toBe(2);
+  expect(store.initialLoading()).toBe(false);
+  expect(store.loading()).toBe(false);
+  expect(store.error()).toBe('');
+});
+
+
   function completeInitialLoad(): void {
     store.load('board-1');
 
-    flush(api.sectionListRequests[0], [
-      {
-        id: 'section-1',
-        name: 'Portraits',
-      },
-    ]);
+    flush(api.sectionListRequests[0], createSections());
 
     flush(api.boardImageRequests[0], [createImage('1'), createImage('2')]);
-
-    flush(api.sectionImageRequests[0], [createImage('3')]);
   }
 });
 
@@ -243,20 +409,17 @@ class StubPinterestApi {
 
 interface SectionListRequest {
   boardId: string;
-
   response: Subject<PinterestBoardSection[]>;
 }
 
 interface BoardImageRequest {
   boardId: string;
-
   response: Subject<ReferenceImage[]>;
 }
 
 interface SectionImageRequest {
   boardId: string;
   sectionId: string;
-
   response: Subject<ReferenceImage[]>;
 }
 
@@ -268,6 +431,21 @@ function flush<T>(
 ): void {
   request.response.next(value);
   request.response.complete();
+}
+
+function createSections(): PinterestBoardSection[] {
+  return [
+    {
+      id: 'section-1',
+      name: 'Portraits',
+      referenceCount: 2,
+    },
+    {
+      id: 'section-2',
+      name: 'Personnages',
+      referenceCount: 1,
+    },
+  ];
 }
 
 function createImage(externalId: string): ReferenceImage {

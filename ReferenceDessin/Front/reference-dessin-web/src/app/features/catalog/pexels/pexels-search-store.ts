@@ -63,11 +63,13 @@ export class PexelsSearchStore {
 
           const detail = response.error?.detail;
 
-          this.errorMessage.set(
-            typeof detail === 'string' && detail.trim().length > 0
-              ? detail
-              : 'Impossible de récupérer les références.',
-          );
+          if (typeof detail === 'string' && detail.trim().length > 0) {
+            this.errorMessage.set(detail);
+          } else if (response.status === 0) {
+            this.errorMessage.set('Vérifiez votre connexion internet, puis réessayez.');
+          } else {
+            this.errorMessage.set('Le service d’images est temporairement indisponible.');
+          }
 
           this.searchedState.set(true);
         },

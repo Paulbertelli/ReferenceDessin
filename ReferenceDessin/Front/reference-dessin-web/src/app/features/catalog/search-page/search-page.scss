@@ -1,6 +1,88 @@
+:host {
+  min-width: 0;
+  display: block;
+}
+
+.search-page {
+  width: 100%;
+  min-height: 100%;
+
+  padding:
+    1.5rem clamp(0.75rem, 2vw, 2rem) 7rem;
+}
+
+.selection-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Galerie */
+
 .reference-grid {
-  display: grid;
-  grid-template-columns:
-    repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  width: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  columns: clamp(140px, 18vw, 220px);
+  column-gap: 0.6rem;
+
+  app-reference-card {
+    width: 100%;
+
+    display: inline-block;
+    vertical-align: top;
+
+    margin: 0 0 0.6rem;
+    padding: 0;
+
+    break-inside: avoid;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+  .search-page {
+    padding:
+      1rem 0.65rem 6.5rem;
+  }
+
+  .selection-actions {
+    width: 100%;
+
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+  }
+
+  .selection-actions .app-button {
+    min-width: 0;
+
+    padding-inline: 0.55rem;
+
+    font-size: 0.7rem;
+  }
+
+  .selection-actions
+    .app-button__framed-icon {
+    width: 21px;
+    height: 21px;
+
+    flex: 0 0 21px;
+
+    margin-left: 0;
+  }
+
+
+  .reference-grid {
+    column-gap: 0.45rem;
+
+    app-reference-card {
+      margin-bottom: 0.45rem;
+    }
+  }
 }

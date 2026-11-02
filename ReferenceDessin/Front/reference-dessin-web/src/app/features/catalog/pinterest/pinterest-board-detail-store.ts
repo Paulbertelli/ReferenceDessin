@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
-import { finalize, forkJoin, map, of, Subscription, switchMap } from 'rxjs';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { finalize, forkJoin, Subscription } from 'rxjs';
 import { ReferenceImage } from '../../../shared/models/reference-image';
 import { PinterestApi } from './pinterest-api';
 import { PinterestBoardSection } from './pinterest-board-section';
@@ -23,13 +23,19 @@ export class PinterestBoardDetailStore {
 
   private readonly selectedSectionIdentifier = signal<string | null>(null);
 
-  private readonly loadingState = signal(false);
+  private readonly initialLoadingState = signal(false);
+
+  private readonly sectionLoadingState = signal(false);
 
   private readonly errorMessage = signal('');
 
-  private activeRequest?: Subscription;
+  private activeLoadRequest?: Subscription;
 
-  private currentRequestId = 0;
+  private activeSectionRequest?: Subscription;
+
+  private currentLoadRequestId = 0;
+
+  private currentSectionRequestId = 0;
 
   readonly boardId = this.boardIdentifier.asReadonly();
 
@@ -41,7 +47,11 @@ export class PinterestBoardDetailStore {
 
   readonly selectedSectionId = this.selectedSectionIdentifier.asReadonly();
 
-  readonly loading = this.loadingState.asReadonly();
+  readonly initialLoading = this.initialLoadingState.asReadonly();
+
+  readonly sectionLoading = this.sectionLoadingState.asReadonly();
+
+  readonly loading = computed(() => this.initialLoading() || this.sectionLoading());
 
   readonly error = this.errorMessage.asReadonly();
 
@@ -54,9 +64,12 @@ export class PinterestBoardDetailStore {
       return;
     }
 
-    const requestId = ++this.currentRequestId;
+    const requestId = ++this.currentLoadRequestId;
 
-    this.activeRequest?.unsubscribe();
+    this.currentSectionRequestId++;
+
+    this.activeLoadRequest?.unsubscribe();
+    this.activeSectionRequest?.unsubscribe();
 
     this.boardIdentifier.set(normalizedBoardId);
     this.selectedSectionIdentifier.set(null);
@@ -67,46 +80,24 @@ export class PinterestBoardDetailStore {
     this.sectionImagesState.set({});
     this.totalImageCountState.set(0);
 
-    this.loadingState.set(true);
+    this.initialLoadingState.set(true);
+    this.sectionLoadingState.set(false);
     this.errorMessage.set('');
 
-    this.activeRequest = forkJoin({
+    this.activeLoadRequest = forkJoin({
       sections: this.pinterestApi.getBoardSections(normalizedBoardId),
       images: this.pinterestApi.getBoardImages(normalizedBoardId),
     })
       .pipe(
-        switchMap(({ sections, images }) => {
-          if (sections.length === 0) {
-            return of({
-              sections,
-              images,
-              sectionImages: {} as Record<string, ReferenceImage[]>,
-            });
-          }
-
-          const sectionRequests = sections.map((section) =>
-            this.pinterestApi
-              .getSectionImages(normalizedBoardId, section.id)
-              .pipe(map((sectionImages) => [section.id, sectionImages] as const)),
-          );
-
-          return forkJoin(sectionRequests).pipe(
-            map((entries) => ({
-              sections,
-              images,
-              sectionImages: Object.fromEntries(entries) as Record<string, ReferenceImage[]>,
-            })),
-          );
-        }),
         finalize(() => {
-          if (requestId === this.currentRequestId) {
-            this.loadingState.set(false);
+          if (requestId === this.currentLoadRequestId) {
+            this.initialLoadingState.set(false);
           }
         }),
       )
       .subscribe({
-        next: ({ sections, images, sectionImages }) => {
-          if (requestId !== this.currentRequestId) {
+        next: ({ sections, images }) => {
+          if (requestId !== this.currentLoadRequestId) {
             return;
           }
 
@@ -115,12 +106,10 @@ export class PinterestBoardDetailStore {
           this.boardImagesState.set(images);
           this.referenceImages.set(images);
 
-          this.sectionImagesState.set(sectionImages);
-
           this.totalImageCountState.set(images.length);
         },
         error: (response: HttpErrorResponse) => {
-          if (requestId !== this.currentRequestId) {
+          if (requestId !== this.currentLoadRequestId) {
             return;
           }
 
@@ -129,26 +118,102 @@ export class PinterestBoardDetailStore {
       });
   }
 
-  selectSection(sectionId: string | null): void {
+  selectSection(sectionId: string | null, force: boolean = false): void {
     const normalizedSectionId = sectionId?.trim() || null;
 
-    if (normalizedSectionId === this.selectedSectionIdentifier()) {
+    if (normalizedSectionId === this.selectedSectionIdentifier() && !force) {
       return;
     }
 
+    this.currentSectionRequestId++;
+    this.activeSectionRequest?.unsubscribe();
+
     this.selectedSectionIdentifier.set(normalizedSectionId);
 
+    this.sectionLoadingState.set(false);
     this.errorMessage.set('');
 
-    const images = normalizedSectionId
-      ? (this.sectionImagesState()[normalizedSectionId] ?? [])
-      : this.boardImagesState();
+    if (normalizedSectionId === null) {
+      this.referenceImages.set(this.boardImagesState());
 
-    this.referenceImages.set(images);
+      return;
+    }
+
+    const cachedSectionImages = this.sectionImagesState();
+
+    if (!force && Object.prototype.hasOwnProperty.call(cachedSectionImages, normalizedSectionId)) {
+      this.referenceImages.set(cachedSectionImages[normalizedSectionId]);
+
+      return;
+    }
+
+    const boardId = this.boardIdentifier();
+
+    if (boardId === null) {
+      this.referenceImages.set([]);
+      return;
+    }
+
+    const requestId = this.currentSectionRequestId;
+
+    this.referenceImages.set([]);
+    this.sectionLoadingState.set(true);
+
+    this.activeSectionRequest = this.pinterestApi
+      .getSectionImages(boardId, normalizedSectionId)
+      .pipe(
+        finalize(() => {
+          if (requestId === this.currentSectionRequestId) {
+            this.sectionLoadingState.set(false);
+          }
+        }),
+      )
+      .subscribe({
+        next: (images) => {
+          if (
+            requestId !== this.currentSectionRequestId ||
+            normalizedSectionId !== this.selectedSectionIdentifier()
+          ) {
+            return;
+          }
+
+          this.sectionImagesState.update((currentImages) => ({
+            ...currentImages,
+            [normalizedSectionId]: images,
+          }));
+
+          this.referenceImages.set(images);
+        },
+        error: (response: HttpErrorResponse) => {
+          if (requestId !== this.currentSectionRequestId) {
+            return;
+          }
+
+          this.errorMessage.set(this.getErrorMessage(response));
+        },
+      });
   }
 
   sectionImageCount(sectionId: string): number {
-    return this.sectionImagesState()[sectionId]?.length ?? 0;
+    const section = this.sectionItems().find((candidate) => candidate.id === sectionId);
+
+    return section?.referenceCount ?? 0;
+  }
+
+  retrySelectedSection(): void {
+    const sectionId = this.selectedSectionIdentifier();
+
+    if (sectionId === null) {
+      const boardId = this.boardIdentifier();
+
+      if (boardId !== null) {
+        this.load(boardId);
+      }
+
+      return;
+    }
+
+    this.selectSection(sectionId, true);
   }
 
   private getErrorMessage(response: HttpErrorResponse): string {

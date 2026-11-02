@@ -1,261 +1,494 @@
 :host {
   min-width: 0;
   display: block;
+
   margin: 0;
   padding: 0;
 }
 
 .reference-card {
   position: relative;
+
   width: 100%;
   display: block;
+
   margin: 0;
   padding: 0;
 
   overflow: hidden;
-  border: 2px solid transparent;
+
+  border: 0;
   border-radius: 14px;
 
-  background: transparent;
-  transform: translateZ(0);
+  background: var(--color-surface);
+
+  isolation: isolate;
+  contain: paint;
 }
 
-.reference-card--selected {
-    border-color: var(--color-accent);
-  background: var(--color-accent);
+.reference-card--selected::after {
+  content: "";
+
+  position: absolute;
+  z-index: 6;
+  inset: 0;
+
+  border: 2px solid var(--color-accent);
+  border-radius: 14px;
+
+  pointer-events: none;
 }
 
-/* Bouton et image */
+/* Image */
 
-.reference-card__selection {
+.reference-card__media {
   position: relative;
 
   width: 100%;
-  display: block;
-  margin: 0;
-  padding: 0;
+  min-width: 0;
 
   overflow: hidden;
-  border: 0;
-  border-radius: 12px;
 
-  background: transparent;
-  color: inherit;
+  border-radius: 14px;
 
-  cursor: pointer;
-  appearance: none;
+  background: var(--color-surface);
+
+  line-height: 0;
 }
 
-.reference-card img {
+.reference-card__image {
   width: 100%;
   height: auto;
   display: block;
+
   margin: 0;
 
-  border-radius: 12px;
+  border-radius: 0;
+
   object-fit: cover;
 
-  filter:
-    brightness(0.97)
-    contrast(1.03);
+  transition: opacity 140ms ease;
 }
 
-.reference-card__selection:focus-visible {
-  outline: 3px solid var(--color-focus);
-  outline-offset: -3px;
-}
+/* Dégradé et calque de survol */
 
-/* Calque commun au survol */
-
-.reference-card__selection::after {
+.reference-card__media::before,
+.reference-card__media::after {
   content: "";
 
   position: absolute;
   z-index: 1;
   inset: 0;
 
-  border-radius: 12px;
-  background: var(--color-media-hover-overlay);
-
-  opacity: 0;
-  pointer-events: none;
-
-  transition: opacity 120ms ease;
-}
-
-.reference-card:hover
-  .reference-card__selection::after,
-.reference-card:focus-within
-  .reference-card__selection::after {
-  opacity: 1;
-}
-
-/* Indicateur de sélection */
-
-.selection-indicator {
-  position: absolute;
-  z-index: 3;
-  top: 0.5rem;
-  right: 0.5rem;
-
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-
-  border: 1px solid rgb(255 255 255 / 75%);
-  border-radius: 50%;
-
-  background: rgb(255 255 255 / 88%);
-  color: var(--color-accent);
-
-  font-size: 0.85rem;
-  font-weight: 800;
-
-  box-shadow: 0 2px 8px rgb(0 0 0 / 18%);
-
-  opacity: 0;
-  transform: scale(0.85);
-
-  pointer-events: none;
-
-  transition:
-    opacity 140ms ease,
-    transform 140ms ease;
-}
-
-.selection-indicator svg {
-  display: block;
-}
-
-.reference-card:hover .selection-indicator,
-.reference-card:focus-within .selection-indicator,
-.reference-card--selected .selection-indicator {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.reference-card--selected .selection-indicator {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-}
-
-/* Mode suppression */
-
-.reference-card--removable {
-  border-color: transparent;
-}
-
-.reference-card--removable
-  .selection-indicator--remove {
-  top: 50%;
-  right: auto;
-  left: 50%;
-
-  width: 80px;
-  height: 80px;
-
-  border: 0;
-  border-radius: 0;
-
-  background: transparent;
-  color: var(--color-danger);
-
-  box-shadow: none;
-
-  opacity: 0;
-
-  transform:
-    translate(-50%, -50%);
-
-  transition: none;
-}
-
-.reference-card--removable:hover
-  .selection-indicator--remove,
-.reference-card--removable:focus-within
-  .selection-indicator--remove {
-  border: 0;
-  background: transparent;
-  color: var(--color-danger);
+  border-radius: inherit;
 
   opacity: 1;
-
-  transform:
-    translate(-50%, -50%);
-}
-
-.reference-card--removable
-  .selection-indicator--remove svg {
-  width: 60px;
-  height: 60px;
-  display: block;
-
-  stroke-width: 1.5;
-}
-
-/* Crédit */
-
-.reference-credit {
-  position: absolute;
-  z-index: 2;
-  right: 0;
-  bottom: 0;
-  left: 0;
-
-  margin: 0;
-  padding: 2.5rem 0.65rem 0.55rem;
-
-  border-radius: 0 0 12px 12px;
-
-  background:
-    linear-gradient(
-      transparent,
-      rgb(0 0 0 / 65%)
-    );
-
-  color: #fff;
-  font-size: 0.7rem;
-  line-height: 1.3;
-
-  opacity: 0;
   pointer-events: none;
 
   transition: opacity 140ms ease;
+}
 
-  a {
-    color: var(--color-accent);
-    font: inherit;
-    font-weight: 600;
-    text-decoration: none;
-    pointer-events: auto;
+.reference-card__media::before {
+  background: var(--color-media-hover-overlay);
 
-    &:hover {
-      color: var(--color-accent-hover);
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
+  opacity: 0;
+}
 
-    &:focus-visible {
-      border-radius: 3px;
-      outline: 2px solid var(--color-accent);
-      outline-offset: 2px;
-    }
+.reference-card__media::after {
+  background:
+    linear-gradient(to bottom,
+      rgb(0 0 0 / 28%),
+      transparent 24%,
+      transparent 66%,
+      rgb(0 0 0 / 36%));
+}
+
+/* Surface de sélection */
+
+.reference-card__selection-surface {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  border-radius: inherit;
+
+  background: transparent;
+
+  cursor: pointer;
+  appearance: none;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: -3px;
   }
 }
 
-.reference-card:hover .reference-credit,
-.reference-card:focus-within .reference-credit {
+/* Bouton de sélection ou de retrait */
+
+.selection-indicator {
+  position: absolute;
+  z-index: 7;
+  top: 0.5rem;
+  right: 0.5rem;
+
+  width: 30px;
+  height: 30px;
+
+  display: grid;
+  place-items: center;
+
+  margin: 0;
+  padding: 0;
+
+  border: 1px solid rgb(255 255 255 / 72%);
+  border-radius: 50%;
+
+  background: rgb(255 255 255 / 92%);
+  color: var(--color-accent);
+
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1;
+
+  box-shadow: 0 2px 8px rgb(0 0 0 / 18%);
+
+  cursor: pointer;
+  appearance: none;
+
+  backface-visibility: hidden;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
+
+  svg {
+    display: block;
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}
+
+/* Case sélectionnée toujours visible */
+
+.selection-indicator--selected {
+  border-color: var(--color-accent);
+
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+
   opacity: 1;
+  transform: translateZ(0);
+
+  pointer-events: auto;
+
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+/* Mode retrait */
+
+.selection-indicator--remove {
+  width: 28px;
+  height: 28px;
+
+  border-color: rgb(255 255 255 / 65%);
+
+  background: rgb(255 255 255 / 88%);
+  color: var(--color-text-secondary);
+
+  font-weight: 500;
+
+  box-shadow: 0 2px 7px rgb(0 0 0 / 14%);
+
+  svg {
+    stroke-width: 1.8;
+  }
+}
+
+/* Bouton vers la référence d’origine */
+
+.reference-source {
+  position: absolute;
+  z-index: 7;
+  right: 0.5rem;
+  bottom: 0.5rem;
+
+  width: 36px;
+  height: 36px;
+
+  display: grid;
+  place-items: center;
+
+  margin: 0;
+  padding: 0;
+
+  overflow: hidden;
+
+  border: 1px solid rgb(255 255 255 / 65%);
+  border-radius: 10px;
+
+  background: rgb(255 255 255 / 92%);
+  color: var(--color-text);
+
+  box-shadow: 0 2px 9px rgb(0 0 0 / 18%);
+
+  text-decoration: none;
+
+  backface-visibility: hidden;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    background-color 140ms ease;
+
+  &:active {
+    transform: scale(0.94);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}
+
+.reference-source__logo {
+  width: 20px;
+  height: 20px;
+
+  display: block;
+
+  margin: 0;
+
+  border-radius: 4px;
+
+  object-fit: contain;
+}
+
+/* Chargement */
+
+.reference-card--loading .reference-card__media,
+.reference-card--error .reference-card__media {
+  min-height: clamp(180px, 24vw, 300px);
+}
+
+.reference-card--loading .reference-card__media {
+  background:
+    linear-gradient(110deg,
+      var(--color-surface) 30%,
+      var(--color-background) 45%,
+      var(--color-surface) 60%);
+
+  background-size: 240% 100%;
+
+  animation:
+    reference-card-loading 1.2s linear infinite;
+}
+
+.reference-card--loading .reference-card__image {
+  opacity: 0;
+}
+
+.reference-card__loading {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+}
+
+@keyframes reference-card-loading {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
+/* Erreur */
+
+.reference-card--error .reference-card__image {
+  display: none;
+}
+
+.reference-card--error .reference-card__media {
+  border: 1px dashed var(--color-divider);
+
+  background: var(--color-surface);
+}
+
+.reference-card--error .reference-card__media::before,
+.reference-card--error .reference-card__media::after {
+  display: none;
+}
+
+.reference-card__error {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  padding: 1rem 1rem 3.25rem;
+
+  color: var(--color-text-secondary);
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+
+  pointer-events: none;
+}
+
+/* Ordinateur : actions visibles au survol */
+
+@media (hover: hover) and (pointer: fine) {
+  /*
+   * Les actions non sélectionnées sont masquées.
+   * Une case cochée reste toujours visible.
+   */
+
+  .selection-indicator:not(.selection-indicator--selected),
+  .reference-source {
+    opacity: 0;
+
+    transform: translateY(3px);
+
+    pointer-events: none;
+  }
+
+  .reference-card__media::after {
+    opacity: 0;
+  }
+
+  .reference-card:hover .selection-indicator,
+  .reference-card:hover .reference-source,
+  .reference-card:focus-within .selection-indicator,
+  .reference-card:focus-within .reference-source {
+    opacity: 1;
+
+    transform: translateY(0);
+
+    pointer-events: auto;
+  }
+
+  /*
+   * La case cochée ne participe pas à l’animation
+   * des commandes affichées au survol.
+   */
+
+  .selection-indicator--selected,
+  .reference-card:hover .selection-indicator--selected,
+  .reference-card:focus-within .selection-indicator--selected {
+    opacity: 1;
+
+    transform: translateZ(0);
+
+    pointer-events: auto;
+  }
+
+  .reference-card:hover .reference-card__media::before,
+  .reference-card:focus-within .reference-card__media::before {
+    opacity: 1;
+  }
+
+  .reference-card:hover .reference-card__media::after,
+  .reference-card:focus-within .reference-card__media::after {
+    opacity: 1;
+  }
+
+  .selection-indicator:not(.selection-indicator--selected):hover,
+  .reference-source:hover {
+    transform: translateY(-1px);
+  }
+
+  .selection-indicator:not(.selection-indicator--selected):not(.selection-indicator--remove):hover {
+    background: #fff;
+  }
+
+  .selection-indicator--selected:hover {
+    background: var(--color-accent-hover);
+
+    transform: translateZ(0);
+  }
+
+  .selection-indicator--remove:hover {
+    background: #fff;
+    color: var(--color-text);
+  }
+
+  .reference-source:hover {
+    background: #fff;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 480px) {
+  .selection-indicator {
+    width: 28px;
+    height: 28px;
+  }
+
+  .selection-indicator--remove {
+    width: 26px;
+    height: 26px;
+  }
+
+  .reference-source {
+    width: 34px;
+    height: 34px;
+  }
+
+  .reference-source__logo {
+    width: 19px;
+    height: 19px;
+  }
 }
 
 /* Accessibilité */
 
 @media (prefers-reduced-motion: reduce) {
-  .reference-card__selection::after,
+
+  .reference-card__image,
+  .reference-card__media::before,
+  .reference-card__media::after,
   .selection-indicator,
-  .reference-credit {
+  .reference-source {
     transition: none;
+  }
+
+  .reference-card--loading .reference-card__media {
+    animation: none;
   }
 }
