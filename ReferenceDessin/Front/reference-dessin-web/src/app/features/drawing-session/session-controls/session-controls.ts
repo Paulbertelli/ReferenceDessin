@@ -11,9 +11,7 @@ import { Timer } from '../timer/timer';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SessionControls {
-  readonly previewImages = input.required<readonly ReferenceImage[]>();
-
-  readonly totalImages = input.required<number>();
+  readonly previousImage = input<ReferenceImage | null>(null);
 
   readonly nextImage = input<ReferenceImage | null>(null);
 

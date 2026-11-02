@@ -143,8 +143,10 @@ export class ReferenceSelectionStore {
   removeAll(imagesToRemove: readonly ReferenceImage[]): void {
     const keysToRemove = new Set(imagesToRemove.map((image) => this.getImageKey(image)));
 
-    this.selectedImages.update((images) =>
-      images.filter((image) => !keysToRemove.has(this.getImageKey(image))),
+    const remainingImages = this.selectedImages().filter(
+      (image) => !keysToRemove.has(this.getImageKey(image)),
     );
+
+    this.replaceSelection(remainingImages);
   }
 }

@@ -1,5 +1,6 @@
 import { computed, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ReferenceImage } from '../../shared/models/reference-image';
 import { DrawingSession } from './drawing-session';
@@ -15,6 +16,7 @@ describe('DrawingSession', () => {
     await TestBed.configureTestingModule({
       imports: [DrawingSession],
       providers: [
+        provideRouter([]),
         {
           provide: DrawingSessionStore,
           useValue: store,
@@ -29,10 +31,15 @@ describe('DrawingSession', () => {
 
   it('désactive la navigation sans référence', () => {
     const previousButton = fixture.nativeElement.querySelector(
-      '.previous-button',
+      '.navigation-preview--previous',
     ) as HTMLButtonElement;
 
-    const nextButton = fixture.nativeElement.querySelector('.next-button') as HTMLButtonElement;
+    const nextButton = fixture.nativeElement.querySelector(
+      '.navigation-preview--next',
+    ) as HTMLButtonElement;
+
+    expect(previousButton).not.toBeNull();
+    expect(nextButton).not.toBeNull();
 
     expect(previousButton.disabled).toBe(true);
     expect(nextButton.disabled).toBe(true);
@@ -40,23 +47,27 @@ describe('DrawingSession', () => {
 
   it('navigue vers la référence suivante', () => {
     store.images.set(createImages());
+
     fixture.detectChanges();
 
-    const nextButton = fixture.nativeElement.querySelector('.next-button') as HTMLButtonElement;
+    const nextButton = fixture.nativeElement.querySelector(
+      '.navigation-preview--next',
+    ) as HTMLButtonElement;
 
+    expect(nextButton).not.toBeNull();
     expect(nextButton.disabled).toBe(false);
 
     nextButton.click();
 
-    expect(store.currentIndex()).toBe(1);
-
     fixture.detectChanges();
 
+    expect(store.currentIndex()).toBe(1);
     expect(nextButton.disabled).toBe(true);
   });
 
   it('navigue avec les touches directionnelles', () => {
     store.images.set(createImages());
+
     fixture.detectChanges();
 
     window.dispatchEvent(

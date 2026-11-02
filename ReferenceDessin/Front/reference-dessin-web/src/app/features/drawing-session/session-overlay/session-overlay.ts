@@ -1,17 +1,19 @@
 import { ChangeDetectionStrategy, Component, input, model, output } from '@angular/core';
-import { LucideX } from '@lucide/angular';
+import { LucideChevronLeft, LucideChevronRight, LucideX } from '@lucide/angular';
 import { ReferenceImage } from '../../../shared/models/reference-image';
 import { Timer } from '../timer/timer';
 
 @Component({
   selector: 'app-session-overlay',
-  imports: [Timer, LucideX],
+  imports: [Timer, LucideX, LucideChevronLeft, LucideChevronRight],
   templateUrl: './session-overlay.html',
   styleUrl: './session-overlay.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SessionOverlay {
   readonly image = input.required<ReferenceImage>();
+
+  readonly previousImage = input<ReferenceImage | null>(null);
 
   readonly nextImage = input<ReferenceImage | null>(null);
 
@@ -28,6 +30,8 @@ export class SessionOverlay {
   readonly durationMinutes = model.required<number>();
 
   readonly closeRequested = output<void>();
+
+  readonly previousRequested = output<void>();
 
   readonly nextRequested = output<void>();
 

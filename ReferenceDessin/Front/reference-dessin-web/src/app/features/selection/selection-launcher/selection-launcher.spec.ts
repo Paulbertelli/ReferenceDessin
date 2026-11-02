@@ -14,6 +14,7 @@ describe('SelectionLauncher', () => {
 
   beforeEach(async () => {
     sessionStorage.clear();
+
     await TestBed.configureTestingModule({
       imports: [SelectionLauncher],
       providers: [ReferenceSelectionStore, DrawingSessionStore, provideRouter([])],
@@ -22,12 +23,10 @@ describe('SelectionLauncher', () => {
     fixture = TestBed.createComponent(SelectionLauncher);
 
     selectionStore = TestBed.inject(ReferenceSelectionStore);
+    sessionStore = TestBed.inject(DrawingSessionStore);
+    router = TestBed.inject(Router);
 
     selectionStore.clear();
-
-    sessionStore = TestBed.inject(DrawingSessionStore);
-
-    router = TestBed.inject(Router);
 
     fixture.detectChanges();
   });
@@ -36,17 +35,40 @@ describe('SelectionLauncher', () => {
     expect(fixture.nativeElement.querySelector('.selection-launcher')).toBeNull();
   });
 
+  it('affiche le résumé de la sélection en mode normal', () => {
+    selectionStore.addAll([createImage('1'), createImage('2')]);
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.selection-summary')).not.toBeNull();
+
+    expect(fixture.nativeElement.querySelector('app-reference-stack')).not.toBeNull();
+  });
+
+  it('affiche uniquement le bouton en mode action-only', () => {
+    selectionStore.addAll([createImage('1'), createImage('2')]);
+
+    fixture.componentRef.setInput('displayMode', 'action-only');
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.selection-summary')).toBeNull();
+
+    expect(fixture.nativeElement.querySelector('app-reference-stack')).toBeNull();
+
+    expect(fixture.nativeElement.querySelector('.launch-button')).not.toBeNull();
+  });
+
   it('démarre une séance et navigue vers celle-ci', () => {
     const images = [createImage('1'), createImage('2')];
 
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     selectionStore.addAll(images);
+
     fixture.detectChanges();
 
-    const launchButton = fixture.nativeElement.querySelector(
-      '.selection-launcher button',
-    ) as HTMLButtonElement;
+    const launchButton = fixture.nativeElement.querySelector('.launch-button') as HTMLButtonElement;
 
     launchButton.click();
 

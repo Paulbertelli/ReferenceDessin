@@ -97,6 +97,7 @@
 @if (imageExpanded() && displayedImage(); as image) {
   <app-session-overlay
     [image]="image"
+    [previousImage]="previousImage()"
     [nextImage]="nextImage()"
     [currentIndex]="displayedIndex()"
     [totalImages]="store.images().length"
@@ -105,6 +106,7 @@
     [formattedTime]="formattedTime()"
     [progress]="timerProgress()"
     (closeRequested)="closeImageOverlay()"
+    (previousRequested)="previous()"
     (nextRequested)="next()"
     (toggleTimerRequested)="toggleTimer()"
     (resetTimerRequested)="resetTimer()"
@@ -112,8 +114,7 @@
 }
 
 <app-session-controls
-  [previewImages]="previewImages()"
-  [totalImages]="store.images().length"
+  [previousImage]="previousImage()"
   [nextImage]="nextImage()"
   [hasPrevious]="store.hasPrevious()"
   [hasNext]="store.hasNext()"

@@ -1,71 +1,61 @@
 <main class="selection-page">
-  <header class="page-header">
-    <a class="back-link" routerLink="/">
-      <span aria-hidden="true">‹</span>
-      Retour
-    </a>
-
-    <div class="selection-heading">
-      <h1>Votre sélection</h1>
-
-      <p>
-        {{ selectionStore.count() }}
-
-        {{ selectionStore.count() === 1 ? 'référence sélectionnée' : 'références sélectionnées' }}
-      </p>
-    </div>
-
-    @if (!selectionStore.isEmpty()) {
-      <button
-  type="button"
-  class="clear-button"
-  (click)="clear()"
->
-  <svg
-    lucideTrash2
-    [size]="15"
-    aria-hidden="true"
-  ></svg>
-
-  Vider la sélection
-</button>
-    }
-  </header>
+  <app-page-header
+    title="Votre sélection"
+    [subtitle]="
+      selectionStore.count() +
+      (selectionStore.count() === 1 ? ' référence sélectionnée' : ' références sélectionnées')
+    "
+    fallbackUrl="/"
+    alignment="center"
+  />
 
   @if (selectionStore.isEmpty()) {
     <section class="empty-selection">
-      <div
-  class="empty-selection__icon"
-  aria-hidden="true"
->
-  <svg
-    lucidePlus
-    [size]="24"
-  ></svg>
-</div>
+      <div class="empty-selection__icon" aria-hidden="true">
+        <svg lucidePlus [size]="24"></svg>
+      </div>
 
       <h2>Votre sélection est vide</h2>
 
       <p>Recherchez des références ou explorez vos collections pour préparer une séance.</p>
 
       <div class="empty-selection__actions">
-        <a class="primary-link" routerLink="/search"> Rechercher des références </a>
-
-        <a class="secondary-link" routerLink="/collections"> Explorer les collections </a>
+        <a class="primary-link app-button app-button--primary" routerLink="/search">
+          Rechercher des références
+        </a>
+        @if (isSignedIn()) {
+          <a class="secondary-link app-button app-button--secondary" routerLink="/collections">
+            Explorer les collections
+          </a>
+        }
       </div>
     </section>
   } @else {
+    <app-content-header title="Références sélectionnées">
+      <div contentHeaderActions>
+        <button
+          type="button"
+          class="clear-button app-button app-button--secondary"
+          (click)="clear()"
+        >
+          <svg lucideTrash2 [size]="15" aria-hidden="true"></svg>
+
+          Vider la sélection
+        </button>
+      </div>
+    </app-content-header>
+
     <section class="reference-grid" aria-label="Références sélectionnées">
       @for (image of selectionStore.images(); track image.sourceName + ':' + image.externalId) {
         <app-reference-card
-  [image]="image"
-  [selected]="true"
-  action="remove"
-  (selectionRequested)="remove($event)"
-/>
+          [image]="image"
+          [selected]="true"
+          action="remove"
+          (selectionRequested)="remove($event)"
+        />
       }
     </section>
   }
 </main>
 
-<app-selection-launcher />
+<app-selection-launcher displayMode="action-only" />

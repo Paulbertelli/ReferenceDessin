@@ -1,13 +1,4 @@
-import {
-  Component,
-  computed,
-  effect,
-  HostListener,
-  inject,
-  OnDestroy,
-  signal,
-  untracked,
-} from '@angular/core';
+import {Component, computed, effect, HostListener, inject, OnDestroy, signal, untracked,} from '@angular/core';
 import { LucideMaximize2 } from '@lucide/angular';
 import { ReferenceImage } from '../../shared/models/reference-image';
 import { DrawingSessionStore } from './drawing-session-store';
@@ -35,7 +26,11 @@ export class DrawingSession implements OnDestroy {
   protected readonly imageError = signal(false);
   protected readonly imageExpanded = signal(false);
 
-  protected readonly previewImages = computed(() => this.store.images().slice(0, 5));
+  protected readonly previousImage = computed(() => {
+    const previousIndex = this.store.currentIndex() - 1;
+
+    return this.store.images()[previousIndex] ?? null;
+  });
 
   protected readonly nextImage = computed(() => {
     const nextIndex = this.store.currentIndex() + 1;

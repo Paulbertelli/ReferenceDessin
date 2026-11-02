@@ -15,74 +15,101 @@ describe('SessionControls', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(SessionControls);
-
     component = fixture.componentInstance;
 
     configureRequiredInputs();
   });
 
-  it('affiche les références et leur nombre total', () => {
+  it('affiche les images précédente et suivante', () => {
     fixture.detectChanges();
 
-    const element = fixture.nativeElement as HTMLElement;
-
-    const previews = element.querySelectorAll('.session-preview__images img');
-
-    expect(component).toBeTruthy();
-    expect(previews.length).toBe(3);
-
-    expect(element.querySelector('.session-preview__count')?.textContent?.trim()).toBe('5');
-  });
-
-  it('affiche l’image suivante', () => {
-    fixture.componentRef.setInput('nextImage', images[1]);
-
-    fixture.detectChanges();
-
-    const nextImage = fixture.nativeElement.querySelector(
-      '.next-image-preview img',
+    const previousImage = fixture.nativeElement.querySelector(
+      '.navigation-preview--previous img',
     ) as HTMLImageElement;
 
-    expect(nextImage.src).toContain('2.jpg');
+    const nextImage = fixture.nativeElement.querySelector(
+      '.navigation-preview--next img',
+    ) as HTMLImageElement;
+
+    expect(previousImage).not.toBeNull();
+    expect(nextImage).not.toBeNull();
+
+    expect(previousImage.src).toContain('1.jpg');
+    expect(nextImage.src).toContain('3.jpg');
   });
 
-  it('émet une demande de navigation vers l’image suivante', () => {
-    fixture.componentRef.setInput('nextImage', images[1]);
+  it('émet une demande de navigation vers l’image précédente', () => {
+    let requested = false;
 
-    let nextRequested = false;
-
-    component.nextRequested.subscribe(() => {
-      nextRequested = true;
+    component.previousRequested.subscribe(() => {
+      requested = true;
     });
 
     fixture.detectChanges();
 
-    const nextButton = fixture.nativeElement.querySelector(
-      '.next-image-preview',
+    const button = fixture.nativeElement.querySelector(
+      '.navigation-preview--previous',
     ) as HTMLButtonElement;
 
-    nextButton.click();
+    button.click();
 
-    expect(nextRequested).toBe(true);
+    expect(requested).toBe(true);
+  });
+
+  it('émet une demande de navigation vers l’image suivante', () => {
+    let requested = false;
+
+    component.nextRequested.subscribe(() => {
+      requested = true;
+    });
+
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector(
+      '.navigation-preview--next',
+    ) as HTMLButtonElement;
+
+    button.click();
+
+    expect(requested).toBe(true);
+  });
+
+  it('désactive la navigation lorsqu’aucune image adjacente n’est disponible', () => {
+    fixture.componentRef.setInput('previousImage', null);
+    fixture.componentRef.setInput('nextImage', null);
+
+    fixture.componentRef.setInput('hasPrevious', false);
+    fixture.componentRef.setInput('hasNext', false);
+
+    fixture.detectChanges();
+
+    const previousButton = fixture.nativeElement.querySelector(
+      '.navigation-preview--previous',
+    ) as HTMLButtonElement;
+
+    const nextButton = fixture.nativeElement.querySelector(
+      '.navigation-preview--next',
+    ) as HTMLButtonElement;
+
+    expect(previousButton.disabled).toBe(true);
+    expect(nextButton.disabled).toBe(true);
+
+    expect(previousButton.querySelector('img')).toBeNull();
+    expect(nextButton.querySelector('img')).toBeNull();
   });
 
   function configureRequiredInputs(): void {
-    fixture.componentRef.setInput('previewImages', images);
-
-    fixture.componentRef.setInput('totalImages', 5);
+    fixture.componentRef.setInput('previousImage', images[0]);
+    fixture.componentRef.setInput('nextImage', images[2]);
 
     fixture.componentRef.setInput('hasPrevious', true);
-
     fixture.componentRef.setInput('hasNext', true);
 
     fixture.componentRef.setInput('running', false);
-
     fixture.componentRef.setInput('disabled', false);
 
     fixture.componentRef.setInput('formattedTime', '02:00');
-
     fixture.componentRef.setInput('progress', 100);
-
     fixture.componentRef.setInput('durationMinutes', 2);
   }
 });

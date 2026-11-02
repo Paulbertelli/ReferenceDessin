@@ -13,7 +13,6 @@ describe('SessionOverlay', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(SessionOverlay);
-
     component = fixture.componentInstance;
 
     configureRequiredInputs();
@@ -26,70 +25,102 @@ describe('SessionOverlay', () => {
 
     const displayedImage = element.querySelector<HTMLImageElement>('.overlay-content img');
 
-    expect(component).toBeTruthy();
+    const counter = element.querySelector('.overlay-image-counter');
 
+    expect(component).toBeTruthy();
     expect(displayedImage?.src).toContain('current.jpg');
 
-    expect(
-      element.querySelector('.overlay-image-counter')?.textContent?.replace(/\s+/g, ' ').trim(),
-    ).toBe('2 / 5');
+    expect(counter?.textContent?.replace(/\s+/g, ' ').trim()).toBe('2 / 5');
   });
 
   it('demande la fermeture de l’overlay', () => {
-    let closeRequested = false;
+    let requested = false;
 
     component.closeRequested.subscribe(() => {
-      closeRequested = true;
+      requested = true;
     });
 
     fixture.detectChanges();
 
-    const closeButton = fixture.nativeElement.querySelector('.overlay-close') as HTMLButtonElement;
+    const button = fixture.nativeElement.querySelector('.overlay-close') as HTMLButtonElement;
 
-    closeButton.click();
+    button.click();
 
-    expect(closeRequested).toBe(true);
+    expect(requested).toBe(true);
   });
 
-  it('affiche la référence suivante et demande son ouverture', () => {
-    const nextImage = createImage('next', 'next.jpg');
+  it('affiche l’image précédente et demande son ouverture', () => {
+    fixture.componentRef.setInput('previousImage', createImage('previous', 'previous.jpg'));
 
-    fixture.componentRef.setInput('nextImage', nextImage);
+    let requested = false;
 
-    let nextRequested = false;
-
-    component.nextRequested.subscribe(() => {
-      nextRequested = true;
+    component.previousRequested.subscribe(() => {
+      requested = true;
     });
 
     fixture.detectChanges();
 
-    const nextButton = fixture.nativeElement.querySelector(
-      '.overlay-next-image',
+    const button = fixture.nativeElement.querySelector(
+      '.overlay-navigation--previous',
     ) as HTMLButtonElement;
 
-    const nextImageElement = nextButton.querySelector('img');
+    const image = button.querySelector('img');
 
-    expect(nextImageElement?.getAttribute('src')).toContain('next.jpg');
+    expect(image?.getAttribute('src')).toContain('previous.jpg');
 
-    nextButton.click();
+    button.click();
 
-    expect(nextRequested).toBe(true);
+    expect(requested).toBe(true);
+  });
+
+  it('affiche l’image suivante et demande son ouverture', () => {
+    fixture.componentRef.setInput('nextImage', createImage('next', 'next.jpg'));
+
+    let requested = false;
+
+    component.nextRequested.subscribe(() => {
+      requested = true;
+    });
+
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector(
+      '.overlay-navigation--next',
+    ) as HTMLButtonElement;
+
+    const image = button.querySelector('img');
+
+    expect(image?.getAttribute('src')).toContain('next.jpg');
+
+    button.click();
+
+    expect(requested).toBe(true);
+  });
+
+  it('désactive la navigation sans image adjacente', () => {
+    fixture.detectChanges();
+
+    const previousButton = fixture.nativeElement.querySelector(
+      '.overlay-navigation--previous',
+    ) as HTMLButtonElement;
+
+    const nextButton = fixture.nativeElement.querySelector(
+      '.overlay-navigation--next',
+    ) as HTMLButtonElement;
+
+    expect(previousButton.disabled).toBe(true);
+    expect(nextButton.disabled).toBe(true);
   });
 
   function configureRequiredInputs(): void {
     fixture.componentRef.setInput('image', createImage('current', 'current.jpg'));
 
     fixture.componentRef.setInput('currentIndex', 1);
-
     fixture.componentRef.setInput('totalImages', 5);
 
     fixture.componentRef.setInput('running', false);
-
     fixture.componentRef.setInput('formattedTime', '02:00');
-
     fixture.componentRef.setInput('progress', 100);
-
     fixture.componentRef.setInput('durationMinutes', 2);
   }
 });
