@@ -1,0 +1,129 @@
+<article
+  class="reference-card"
+  [class.reference-card--selected]="
+    selected() && action() === 'select'
+  "
+  [class.reference-card--removable]="
+    action() === 'remove'
+  "
+  [class.reference-card--loading]="imageLoading()"
+  [class.reference-card--error]="imageError()"
+>
+  <div class="reference-card__media">
+    <img
+      class="reference-card__image"
+      [src]="image().imageUrl"
+      [alt]="
+        image().description ||
+        'Référence de dessin'
+      "
+      loading="lazy"
+      (load)="handleImageLoaded()"
+      (error)="handleImageError()"
+    />
+
+    @if (imageLoading()) {
+      <span
+        class="reference-card__loading"
+        aria-hidden="true"
+      ></span>
+    }
+
+    @if (imageError()) {
+      <span
+        class="reference-card__error"
+        role="status"
+      >
+        Image indisponible
+      </span>
+    }
+
+    @if (
+      action() === 'select' &&
+      !imageLoading() &&
+      !imageError()
+    ) {
+      <button
+        type="button"
+        class="reference-card__selection-surface"
+        (click)="toggleSelection()"
+        [attr.aria-pressed]="selected()"
+        [attr.aria-label]="
+          selected()
+            ? 'Retirer cette référence de la sélection'
+            : 'Ajouter cette référence à la sélection'
+        "
+      ></button>
+    }
+
+    @if (
+      action() === 'remove' ||
+      (!imageLoading() && !imageError())
+    ) {
+      <button
+        type="button"
+        class="selection-indicator"
+        [class.selection-indicator--selected]="
+          selected() && action() === 'select'
+        "
+        [class.selection-indicator--remove]="
+          action() === 'remove'
+        "
+        (click)="toggleSelection()"
+        [attr.aria-pressed]="
+          action() === 'select'
+            ? selected()
+            : null
+        "
+        [attr.aria-label]="
+          action() === 'remove'
+            ? 'Retirer cette référence de la sélection'
+            : selected()
+              ? 'Retirer cette référence de la sélection'
+              : 'Ajouter cette référence à la sélection'
+        "
+      >
+        @if (action() === 'remove') {
+          <svg
+            lucideX
+            [size]="17"
+            aria-hidden="true"
+          ></svg>
+        } @else {
+          <span aria-hidden="true">
+            {{ selected() ? '✓' : '+' }}
+          </span>
+        }
+      </button>
+    }
+
+    <a
+      class="reference-source"
+      [href]="image().originalUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      [attr.aria-label]="
+        'Ouvrir la référence d’origine sur ' +
+        image().sourceName
+      "
+      [title]="
+        'Ouvrir la référence d’origine sur ' +
+        image().sourceName
+      "
+    >
+      @if (providerLogo(); as logo) {
+        <img
+          class="reference-source__logo"
+          [src]="logo"
+          alt=""
+        />
+      } @else {
+        <svg
+          lucideExternalLink
+          [size]="17"
+          aria-hidden="true"
+        ></svg>
+      }
+    </a>
+  </div>
+</article>

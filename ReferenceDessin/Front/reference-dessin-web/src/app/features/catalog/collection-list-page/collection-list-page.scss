@@ -1,0 +1,56 @@
+:host {
+  min-width: 0;
+
+  display: block;
+}
+
+.collection-list-page {
+  width: min(100% - 2rem, 1200px);
+  min-height: 100%;
+
+  margin: 0 auto;
+  padding: 2rem 0 7rem;
+}
+
+/* Grille */
+
+.collection-grid {
+  min-width: 0;
+
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+
+  app-collection-card {
+    min-width: 0;
+  }
+}
+
+/* Tablette */
+
+@media (max-width: 900px) {
+  .collection-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 0.85rem;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+  .collection-list-page {
+    width: min(100% - 1rem, 1200px);
+
+    padding-top: 1.25rem;
+  }
+
+  .collection-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 0.65rem;
+  }
+}

@@ -1,0 +1,68 @@
+<main class="collection-list-page">
+  <app-page-header
+    title="Collections"
+    subtitle="Explorez les collections Pinterest disponibles pour préparer votre séance."
+    fallbackUrl="/"
+    alignment="center"
+  />
+
+  @if (boardsStore.error()) {
+    <app-page-state
+      type="error"
+      title="Impossible de charger les collections"
+      [message]="boardsStore.error()"
+      actionLabel="Réessayer"
+      (actionRequested)="reload()"
+    />
+  } @else if (boardsStore.loading() || !boardsStore.loaded()) {
+    <app-page-state type="loading" message="Chargement des collections…" />
+  } @else if (boardsStore.boards().length === 0) {
+    <app-page-state
+      type="empty"
+      title="Aucune collection disponible"
+      message="Les collections apparaîtront ici dès qu’elles seront disponibles."
+    />
+  } @else if (displayedBoards().length === 0) {
+    <app-page-state
+      type="empty"
+      title="Aucune référence disponible"
+      message="Les collections disponibles ne contiennent aucune référence exploitable."
+    />
+  } @else {
+    <app-content-header title="Collections disponibles">
+      <div contentHeaderActions>
+        <button
+          type="button"
+          class="app-button app-button--secondary"
+          (click)="toggleDisplayMode()"
+          [attr.aria-label]="
+            displayMode() === 'compact'
+              ? 'Afficher les collections en vue détaillée'
+              : 'Afficher les collections en vue compacte'
+          "
+        >
+          {{ displayMode() === 'compact' ? 'Vue détaillée' : 'Vue compacte' }}
+        </button>
+      </div>
+    </app-content-header>
+
+    <section class="collection-grid" aria-label="Collections Pinterest">
+      @for (board of displayedBoards(); track board.id) {
+        <app-collection-card
+          [collectionId]="board.id"
+          [collectionName]="board.name"
+          [collectionDescription]="board.description"
+          [images]="previewsStore.imagesFor(board.id)"
+          [displayMode]="displayMode()"
+          [loading]="previewsStore.isLoading(board.id)"
+          [error]="previewsStore.errorFor(board.id)"
+          [referenceCount]="board.referenceCount"
+          [sectionCount]="board.sectionCount"
+          (retryRequested)="reloadPreview(board.id)"
+        />
+      }
+    </section>
+  }
+</main>
+
+<app-selection-launcher />

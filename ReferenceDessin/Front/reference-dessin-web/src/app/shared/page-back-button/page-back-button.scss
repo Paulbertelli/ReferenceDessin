@@ -1,0 +1,45 @@
+:host {
+  display: inline-flex;
+}
+
+.page-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  margin-bottom: 1rem;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+  color: var(--color-accent);
+
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  cursor: pointer;
+
+  span {
+    font-size: 1.25rem;
+    // line-height: 1;
+  }
+
+  &:hover {
+    color: var(--color-accent-hover);
+  }
+
+  &:focus-visible {
+    border-radius: 5px;
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-back-link {
+    transition: none;
+  }
+}

@@ -1,0 +1,13 @@
+<header class="content-header">
+  <div class="content-header__main">
+    @if (title()) {
+      <h2>{{ title() }}</h2>
+    }
+
+    <ng-content select="[contentHeaderMain]" />
+  </div>
+
+  <div class="content-header__actions">
+    <ng-content select="[contentHeaderActions]" />
+  </div>
+</header>

@@ -1,0 +1,19 @@
+@if (!selectionStore.isEmpty()) {
+  <aside
+    class="selection-launcher"
+    [class.selection-launcher--action-only]="displayMode() === 'action-only'"
+    aria-label="Sélection active"
+  >
+    @if (displayMode() === 'summary') {
+      <a class="selection-summary" routerLink="/selection" aria-label="Voir la sélection active">
+        <app-reference-stack [images]="selectionStore.images()" [total]="selectionStore.count()" />
+      </a>
+    }
+
+    <button type="button" class="launch-button" (click)="launchSession()">
+      Lancer la séance
+
+      <span aria-hidden="true">→</span>
+    </button>
+  </aside>
+}

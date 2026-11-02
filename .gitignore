@@ -6,6 +6,7 @@
 
 # Rider
 .idea/
+**/.idea/indexLayout.xml
 
 # Angular / Node
 **/node_modules/

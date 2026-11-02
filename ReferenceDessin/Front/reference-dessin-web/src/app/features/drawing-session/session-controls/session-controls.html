@@ -1,0 +1,43 @@
+<footer class="controls">
+  <div class="session-controls">
+    <button
+      type="button"
+      class="navigation-preview navigation-preview--previous"
+      (click)="previousRequested.emit()"
+      [disabled]="!hasPrevious()"
+      aria-label="Afficher l’image précédente"
+      [title]="hasPrevious() ? 'Image précédente' : 'Début de la séance'"
+    >
+      <svg lucideChevronLeft [size]="18" aria-hidden="true"></svg>
+
+      @if (previousImage(); as previousReference) {
+        <img [src]="previousReference.imageUrl" alt="" draggable="false" />
+      }
+    </button>
+
+    <app-timer
+      [(durationMinutes)]="durationMinutes"
+      [running]="running()"
+      [disabled]="disabled()"
+      [formattedTime]="formattedTime()"
+      [progress]="progress()"
+      (toggleRequested)="toggleTimerRequested.emit()"
+      (resetRequested)="resetTimerRequested.emit()"
+    />
+
+    <button
+      type="button"
+      class="navigation-preview navigation-preview--next"
+      (click)="nextRequested.emit()"
+      [disabled]="!hasNext()"
+      aria-label="Afficher l’image suivante"
+      [title]="hasNext() ? 'Image suivante' : 'Fin de la séance'"
+    >
+      @if (nextImage(); as nextReference) {
+        <img [src]="nextReference.imageUrl" alt="" draggable="false" />
+      }
+
+      <svg lucideChevronRight [size]="18" aria-hidden="true"></svg>
+    </button>
+  </div>
+</footer>

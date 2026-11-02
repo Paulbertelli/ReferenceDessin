@@ -1,0 +1,65 @@
+<main class="search-page">
+  <app-page-header
+    [title]="searchTerm() ? 'Résultats pour « ' + searchTerm() + ' »' : 'Références à découvrir'"
+    [subtitle]="resultSubtitle()"
+    fallbackUrl="/"
+  >
+    @if (searchStore.images().length > 0) {
+      <div pageHeaderActions class="selection-actions">
+        @if (hasDisplayedSelection()) {
+          <button
+            type="button"
+            class="app-button app-button--secondary"
+            (click)="deselectAllDisplayed()"
+          >
+            <span class="app-button__framed-icon" aria-hidden="true">
+              <svg lucideX [size]="15"></svg>
+            </span>
+
+            Tout désélectionner
+          </button>
+        }
+
+        @if (!allDisplayedSelected()) {
+          <button
+            type="button"
+            class="app-button app-button--secondary"
+            (click)="selectAllDisplayed()"
+          >
+            <span class="app-button__framed-icon" aria-hidden="true">
+              <svg lucidePlus [size]="15"></svg>
+            </span>
+
+            Tout sélectionner
+          </button>
+        }
+      </div>
+    }
+  </app-page-header>
+
+  @if (searchStore.loading()) {
+    <app-page-state type="loading" message="Chargement des références…" />
+  } @else if (searchStore.error()) {
+    <app-page-state
+      type="error"
+      title="Impossible de charger les références"
+      [message]="searchStore.error()"
+      actionLabel="Réessayer"
+      (actionRequested)="retrySearch()"
+    />
+  } @else if (searchStore.noResults()) {
+    <app-page-state type="empty" [title]="emptyStateTitle()" [message]="emptyStateMessage()" />
+  } @else if (searchStore.images().length > 0) {
+    <section class="reference-grid" aria-label="Résultats de la recherche">
+      @for (image of searchStore.images(); track image.sourceName + ':' + image.externalId) {
+        <app-reference-card
+          [image]="image"
+          [selected]="selectionStore.isSelected(image)"
+          (selectionRequested)="toggleSelection($event)"
+        />
+      }
+    </section>
+  }
+</main>
+
+<app-selection-launcher />

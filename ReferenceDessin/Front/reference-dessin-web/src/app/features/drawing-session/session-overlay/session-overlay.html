@@ -1,0 +1,79 @@
+<div
+  class="image-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Image agrandie"
+  (click)="closeRequested.emit()"
+>
+  <button
+    type="button"
+    class="overlay-close"
+    (click)="$event.stopPropagation(); closeRequested.emit()"
+    aria-label="Fermer l’image agrandie"
+    title="Fermer"
+  >
+    <svg lucideX [size]="24" aria-hidden="true"></svg>
+  </button>
+
+  <div class="overlay-content">
+    <img
+      [src]="image().imageUrl"
+      [alt]="image().description"
+      draggable="false"
+      (click)="$event.stopPropagation()"
+    />
+  </div>
+
+  <div class="overlay-controls" (click)="$event.stopPropagation()">
+    <span class="overlay-image-counter" aria-label="Position de l’image dans la séance">
+      {{ currentIndex() + 1 }} /
+      {{ totalImages() }}
+    </span>
+
+    <div class="overlay-session-controls">
+      <button
+        type="button"
+        class="overlay-navigation overlay-navigation--previous"
+        (click)="previousRequested.emit()"
+        [disabled]="!previousImage()"
+        aria-label="Afficher l’image précédente"
+        [title]="previousImage() ? 'Image précédente' : 'Début de la séance'"
+      >
+        <svg lucideChevronLeft [size]="18" aria-hidden="true"></svg>
+
+        @if (previousImage(); as previousReference) {
+          <img [src]="previousReference.imageUrl" alt="" draggable="false" />
+        }
+      </button>
+
+      <div class="overlay-timer">
+        <app-timer
+          [(durationMinutes)]="durationMinutes"
+          [running]="running()"
+          [disabled]="false"
+          [formattedTime]="formattedTime()"
+          [progress]="progress()"
+          (toggleRequested)="toggleTimerRequested.emit()"
+          (resetRequested)="resetTimerRequested.emit()"
+        />
+      </div>
+
+      <button
+        type="button"
+        class="overlay-navigation overlay-navigation--next"
+        (click)="nextRequested.emit()"
+        [disabled]="!nextImage()"
+        aria-label="Afficher l’image suivante"
+        [title]="nextImage() ? 'Image suivante' : 'Fin de la séance'"
+      >
+        @if (nextImage(); as nextReference) {
+          <img [src]="nextReference.imageUrl" alt="" draggable="false" />
+        }
+
+        <svg lucideChevronRight [size]="18" aria-hidden="true"></svg>
+      </button>
+    </div>
+
+    <span class="overlay-controls__spacer" aria-hidden="true"></span>
+  </div>
+</div>

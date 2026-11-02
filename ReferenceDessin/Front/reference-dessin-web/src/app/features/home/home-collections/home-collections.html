@@ -1,0 +1,31 @@
+<section class="collections-section" aria-labelledby="collections-title">
+  <header class="collections-header">
+    <h2 id="collections-title">Explorer une collection</h2>
+
+    <a routerLink="/collections">
+      Voir toutes
+      <span aria-hidden="true">→</span>
+    </a>
+  </header>
+
+  @if (boardsStore.loading() || !previewsResolved()) {
+    <p class="collection-state" role="status">Chargement des collections…</p>
+  } @else if (boardsStore.error()) {
+    <p class="collection-state collection-state--error" role="alert">
+      {{ boardsStore.error() }}
+    </p>
+  } @else if (displayedBoards().length === 0) {
+    <p class="collection-state">Aucune collection contenant des références n’est disponible.</p>
+  } @else {
+    <div class="collection-grid">
+      @for (board of displayedBoards(); track board.id) {
+        <app-collection-card
+          [collectionId]="board.id"
+          [collectionName]="board.name"
+          [images]="previewsStore.imagesFor(board.id)"
+          displayMode="compact"
+        />
+      }
+    </div>
+  }
+</section>

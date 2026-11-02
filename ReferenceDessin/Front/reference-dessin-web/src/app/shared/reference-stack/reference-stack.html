@@ -1,0 +1,17 @@
+<span class="reference-stack" aria-hidden="true">
+  <span class="reference-stack__images">
+    @for (
+      image of displayedImages();
+      track image.sourceName + ':' + image.externalId;
+      let index = $index
+    ) {
+      <img [src]="image.imageUrl" alt="" [style.--stack-index]="index" draggable="false" />
+    }
+  </span>
+
+  <span class="reference-stack__label selection-summary__text">
+    <strong>{{ total() }}</strong>
+
+    {{ total() === 1 ? 'référence sélectionnée' : 'références sélectionnées' }}
+  </span>
+</span>
