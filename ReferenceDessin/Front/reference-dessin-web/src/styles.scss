@@ -1,33 +1,35 @@
+@use "./styles/buttons";
+
 :root {
   color-scheme: light;
 
   --color-background: #ffffff;
   --color-surface: #f7f8fa;
-  --color-surface-emphasis: #eef2ff;
+  --color-surface-emphasis: #eef3ff;
 
   --color-text: #182033;
   --color-text-secondary: #667085;
   --color-text-muted: #98a2b3;
 
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
-  --color-accent-soft: #e9efff;
+  --color-accent: #3377ff;
+  --color-accent-hover: #245fe5;
+  --color-accent-soft: #edf3ff;
   --color-on-accent: #ffffff;
 
-  --color-divider: #e7eaf0;
-  --color-focus: rgb(37 99 235 / 25%);
+  --color-divider: #e4e7ec;
+  --color-focus: rgb(51 119 255 / 28%);
 
-  --color-danger: #ef233c;
-  --color-danger-hover: #d90429;
-  --color-danger-soft: #fff0f2;
+  --color-danger: #d92d20;
+  --color-danger-hover: #b42318;
+  --color-danger-soft: #fef3f2;
 
   --color-media-hover-overlay:
-    rgb(0 22 67 / 70%);
+    rgb(10 28 58 / 68%);
 
   --color-scrollbar-track: #f7f7f7;
-  --color-scrollbar-thumb: #8b8b8b;
-  --color-scrollbar-thumb-hover: #666666;
-  --color-scrollbar-thumb-active: #4f4f4f;
+  --color-scrollbar-thumb: #98a2b3;
+  --color-scrollbar-thumb-hover: #667085;
+  --color-scrollbar-thumb-active: #475467;
 
   scrollbar-width: auto;
   scrollbar-color:
@@ -62,6 +64,12 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+
+  font-size: 1rem;
+  line-height: 1.5;
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 app-root {
@@ -92,7 +100,9 @@ body:has(.image-overlay) {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 

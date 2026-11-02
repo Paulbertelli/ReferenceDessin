@@ -1,46 +1,95 @@
 <main class="login-page">
-  <section aria-labelledby="login-title">
-    <a routerLink="/" aria-label="Référence Dessin — Accueil">
-      <img src="/logo-32.png?v=2" width="32" height="32" alt="" />
+  <section class="login-card" aria-labelledby="login-title">
+    <a class="login-brand" routerLink="/" aria-label="Référence Dessin — Accueil">
+      <img src="/logo.png?v=2" width="32" height="32" alt="" />
 
       <span>Référence Dessin</span>
     </a>
 
-    <h1 id="login-title">Connectez-vous pour commencer</h1>
+    <div class="login-heading">
+      <h1 id="login-title">Connectez-vous</h1>
 
-    <p>Préparez vos références et lancez vos séances de dessin.</p>
+      <p>Préparez vos références et retrouvez vos séances de dessin.</p>
+    </div>
 
     @if (authenticationStore.state(); as authenticationState) {
       @switch (authenticationState.status) {
         @case ('loading') {
-          <p role="status">Vérification de votre connexion…</p>
+          <div class="login-status login-status--loading" role="status">
+            <span class="login-spinner" aria-hidden="true"></span>
+
+            <span>Vérification de votre connexion…</span>
+          </div>
         }
 
         @case ('signedOut') {
-          <a class="google-login" href="/api/auth/google"> Continuer avec Google </a>
+          <div class="login-actions">
+            <a class="google-login" href="/api/auth/google">
+              <img class="google-login__logo" src="/g-logo.png" width="20" height="20" alt="" />
+
+              <span>Continuer avec Google</span>
+            </a>
+
+            <p class="login-notice">
+              La connexion permet de sécuriser votre compte et vos préférences.
+            </p>
+          </div>
         }
 
         @case ('signedIn') {
-          <p>
-            Vous êtes connecté en tant que
-            {{ authenticationState.account.displayName }}.
-          </p>
+          <div class="account-state">
+            <span class="account-state__avatar" aria-hidden="true">
+              {{ authenticationState.account.displayName.trim().charAt(0).toUpperCase() }}
+            </span>
 
-          <a routerLink="/"> Accéder à l’application </a>
+            <div>
+              <span>Vous êtes connecté en tant que</span>
+
+              <strong>
+                {{ authenticationState.account.displayName }}
+              </strong>
+            </div>
+          </div>
+
+          <a class="app-access" routerLink="/">
+            Accéder à l’application
+
+            <span aria-hidden="true">→</span>
+          </a>
         }
 
         @case ('error') {
-          <p role="alert">Impossible de vérifier votre compte.</p>
+          <div class="login-status login-status--error" role="alert">
+            <strong>Connexion indisponible</strong>
+
+            <span> Impossible de vérifier votre compte pour le moment. </span>
+          </div>
+
+          <a class="retry-link" href="/login"> Réessayer </a>
         }
 
         @case ('signingOut') {
-          <p role="status">Déconnexion…</p>
+          <div class="login-status login-status--loading" role="status">
+            <span class="login-spinner" aria-hidden="true"></span>
+
+            <span>Déconnexion…</span>
+          </div>
         }
 
         @case ('deleting') {
-          <p role="status">Suppression du compte…</p>
+          <div class="login-status login-status--loading" role="status">
+            <span class="login-spinner" aria-hidden="true"></span>
+
+            <span>Suppression du compte…</span>
+          </div>
         }
       }
     }
+
+    <a class="login-back" routerLink="/">
+      <span aria-hidden="true">←</span>
+
+      Retour à l’accueil
+    </a>
   </section>
 </main>
