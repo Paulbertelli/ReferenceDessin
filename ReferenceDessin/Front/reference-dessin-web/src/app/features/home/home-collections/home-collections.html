@@ -1,5 +1,5 @@
 <section class="collections-section" aria-labelledby="collections-title">
-  <header>
+  <header class="collections-header">
     <h2 id="collections-title">Explorer une collection</h2>
 
     <a routerLink="/collections">
@@ -11,7 +11,7 @@
   @if (boardsStore.loading() || !previewsResolved()) {
     <p class="collection-state" role="status">Chargement des collections…</p>
   } @else if (boardsStore.error()) {
-    <p class="collection-state" role="alert">
+    <p class="collection-state collection-state--error" role="alert">
       {{ boardsStore.error() }}
     </p>
   } @else if (displayedBoards().length === 0) {
@@ -19,18 +19,12 @@
   } @else {
     <div class="collection-grid">
       @for (board of displayedBoards(); track board.id) {
-        <a class="collection-card" [routerLink]="['/collections', board.id]">
-          <span class="collection-preview">
-            @for (
-              image of previewsStore.imagesFor(board.id);
-              track image.sourceName + ':' + image.externalId
-            ) {
-              <img [src]="image.imageUrl" alt="" loading="lazy" />
-            }
-          </span>
-
-          <strong>{{ board.name }}</strong>
-        </a>
+        <app-collection-card
+          [collectionId]="board.id"
+          [collectionName]="board.name"
+          [images]="previewsStore.imagesFor(board.id)"
+          displayMode="compact"
+        />
       }
     </div>
   }

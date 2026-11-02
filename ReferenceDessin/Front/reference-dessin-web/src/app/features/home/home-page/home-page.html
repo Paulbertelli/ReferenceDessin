@@ -6,14 +6,12 @@
       <p>Composez votre sélection, puis lancez votre séance de dessin.</p>
     </div>
 
-    <img
-      class="hero__image"
-      src="/home-hero.png"
-      alt="Artiste préparant une séance de dessin"
-    />
+    <img class="hero__image" src="/home-hero.png" alt="Artiste préparant une séance de dessin" />
   </section>
 
   <app-home-session />
 
-  <app-home-collections />
+  @if (isSignedIn()) {
+    <app-home-collections />
+  }
 </main>

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { AuthenticationStore } from '../../account/authentication-store';
 import { HomeCollections } from '../home-collections/home-collections';
 import { HomeSession } from '../home-session/home-session';
 
@@ -9,4 +10,10 @@ import { HomeSession } from '../home-session/home-session';
   styleUrl: './home-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomePage {}
+export class HomePage {
+  private readonly authenticationStore = inject(AuthenticationStore);
+
+  protected readonly isSignedIn = computed(
+    () => this.authenticationStore.state()?.status === 'signedIn',
+  );
+}

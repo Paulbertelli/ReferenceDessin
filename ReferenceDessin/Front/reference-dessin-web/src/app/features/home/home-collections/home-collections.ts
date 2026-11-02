@@ -1,11 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  untracked,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CollectionCard } from '../../../shared/collection-card/collection-card';
 import { PinterestBoardPreviewsStore } from '../../catalog/pinterest/pinterest-board-previews-store';
 import { PinterestBoardsStore } from '../../catalog/pinterest/pinterest-boards-store';
 
 @Component({
   selector: 'app-home-collections',
-  imports: [RouterLink],
+  imports: [RouterLink, CollectionCard],
   templateUrl: './home-collections.html',
   styleUrl: './home-collections.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -14,6 +22,20 @@ export class HomeCollections {
   protected readonly boardsStore = inject(PinterestBoardsStore);
 
   protected readonly previewsStore = inject(PinterestBoardPreviewsStore);
+
+  constructor() {
+    effect(() => {
+      const boards = this.boardsStore.boards();
+
+      untracked(() => {
+        for (const board of boards) {
+          this.previewsStore.load(board.id);
+        }
+      });
+    });
+
+    this.boardsStore.load();
+  }
 
   protected readonly displayedBoards = computed(() =>
     this.boardsStore
@@ -31,14 +53,4 @@ export class HomeCollections {
           this.previewsStore.errorFor(board.id).length > 0,
       ),
   );
-
-  constructor() {
-    effect(() => {
-      for (const board of this.boardsStore.boards()) {
-        this.previewsStore.load(board.id);
-      }
-    });
-
-    this.boardsStore.load();
-  }
 }

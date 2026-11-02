@@ -6,31 +6,39 @@
     margin-top: 1.75rem;
 }
 
+/* En-tête */
+
 .section-header {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 1rem;
+
     margin-bottom: 0.75rem;
 
     h2 {
         margin: 0;
+
         font-size: 1.2rem;
         letter-spacing: -0.025em;
     }
 
     p {
         margin: 0.2rem 0 0;
+
         color: var(--color-text-secondary);
+
         font-size: 0.75rem;
     }
 }
 
 .clear-button {
     min-height: 30px;
+
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+
     padding: 0 0.65rem;
 
     border: 1px solid var(--color-divider);
@@ -38,21 +46,35 @@
 
     background: var(--color-background);
     color: var(--color-text-secondary);
+
+    font: inherit;
     font-size: 0.7rem;
     font-weight: 600;
+
     cursor: pointer;
+
+    transition:
+        border-color 150ms ease,
+        background-color 150ms ease,
+        color 150ms ease;
 
     &:hover {
         border-color: var(--color-danger);
         background: var(--color-danger-soft);
         color: var(--color-danger);
     }
+
+    &:focus-visible {
+        outline: 3px solid var(--color-focus);
+        outline-offset: 2px;
+    }
 }
+
+/* Carrousel */
 
 .selection-carousel {
     display: grid;
-    grid-template-columns:
-        34px minmax(0, 1fr) 34px;
+    grid-template-columns: 34px minmax(0, 1fr) 34px;
     align-items: center;
     gap: 0.6rem;
 }
@@ -60,8 +82,10 @@
 .carousel-button {
     width: 30px;
     height: 30px;
+
     display: grid;
     place-items: center;
+
     padding: 0;
 
     border: 1px solid var(--color-divider);
@@ -69,81 +93,153 @@
 
     background: var(--color-background);
     color: var(--color-text);
+
     cursor: pointer;
+
+    transition:
+        border-color 150ms ease,
+        color 150ms ease;
 
     &:hover {
         border-color: var(--color-accent);
         color: var(--color-accent);
     }
+
+    &:focus-visible {
+        outline: 3px solid var(--color-focus);
+        outline-offset: 2px;
+    }
 }
 
 .selection-track {
     min-width: 0;
+
     display: flex;
     gap: 0.55rem;
+
     overflow-x: auto;
 
     scrollbar-width: none;
+    overscroll-behavior-inline: contain;
 
     &::-webkit-scrollbar {
         display: none;
     }
 }
 
+/* Carte de la sélection */
+
 .selection-image {
+    position: relative;
+
     width: 72px;
     height: 88px;
-    position: relative;
     flex: 0 0 auto;
 
     overflow: hidden;
+
     border-radius: 10px;
     background: var(--color-surface);
+}
 
-    >img {
+.selection-image__link {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    overflow: hidden;
+
+    border-radius: inherit;
+
+    color: inherit;
+    text-decoration: none;
+
+    cursor: pointer;
+
+    img {
         width: 100%;
         height: 100%;
+
         display: block;
 
         object-fit: cover;
+
         filter: brightness(0.97) contrast(1.03);
+
+        transition:
+            filter 150ms ease,
+            transform 150ms ease;
     }
 
-    >button {
-        width: 22px;
-        height: 22px;
-        position: absolute;
-        top: 0.3rem;
-        right: 0.3rem;
-
-        display: grid;
-        place-items: center;
-        padding: 0;
-
-        border: 1px solid rgb(255 255 255 / 75%);
-        border-radius: 50%;
-
-        background: rgb(255 255 255 / 90%);
-        color: var(--color-text);
-        cursor: pointer;
-        opacity: 0;
-
-        &:focus-visible {
-            outline: 3px solid var(--color-focus);
-            outline-offset: 2px;
-        }
-    }
-
-    &:focus-within>button {
-        opacity: 1;
+    &:focus-visible {
+        outline: 3px solid var(--color-focus);
+        outline-offset: -3px;
     }
 }
+
+/* Bouton de retrait */
+
+.selection-image>button {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.3rem;
+    z-index: 2;
+
+    width: 22px;
+    height: 22px;
+
+    display: grid;
+    place-items: center;
+
+    padding: 0;
+
+    border: 1px solid rgb(255 255 255 / 75%);
+    border-radius: 50%;
+
+    background: rgb(255 255 255 / 90%);
+    color: var(--color-text);
+
+    cursor: pointer;
+    opacity: 0;
+
+    box-shadow: 0 2px 7px rgb(16 24 40 / 15%);
+
+    transition:
+        opacity 150ms ease,
+        border-color 150ms ease,
+        background-color 150ms ease,
+        color 150ms ease,
+        transform 100ms ease;
+
+    svg {
+        display: block;
+    }
+
+    &:active {
+        transform: scale(0.92);
+    }
+
+    &:focus-visible {
+        opacity: 1;
+
+        outline: 3px solid var(--color-focus);
+        outline-offset: 2px;
+    }
+}
+
+.selection-image:focus-within>button {
+    opacity: 1;
+}
+
+/* Paramètres */
 
 .session-settings {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+
     margin-top: 0.8rem;
 }
 
@@ -158,6 +254,7 @@
         gap: 0.45rem;
 
         color: var(--color-text-secondary);
+
         font-size: 0.75rem;
         font-weight: 600;
     }
@@ -165,6 +262,7 @@
     select {
         height: 34px;
         min-width: 130px;
+
         padding: 0 1.8rem 0 0.65rem;
 
         border: 1px solid var(--color-divider);
@@ -172,21 +270,30 @@
 
         background: var(--color-background);
         color: var(--color-text-secondary);
+
+        font: inherit;
     }
 }
 
 .number-field {
     height: 34px;
+
     display: flex;
     align-items: center;
 
     border: 1px solid var(--color-divider);
     border-radius: 7px;
+
     color: var(--color-text-muted);
+
+    transition:
+        border-color 150ms ease,
+        box-shadow 150ms ease;
 
     input {
         width: 48px;
         height: 100%;
+
         padding: 0 0.15rem 0 0.55rem;
 
         border: 0;
@@ -194,10 +301,13 @@
 
         background: transparent;
         color: var(--color-text);
+
+        font: inherit;
     }
 
     >span {
         padding-right: 0.45rem;
+
         font-size: 0.7rem;
     }
 
@@ -209,15 +319,19 @@
 
 .estimated-duration {
     color: var(--color-text-secondary);
+
     font-size: 1rem;
     white-space: nowrap;
 }
 
 .launch-button {
     min-height: 42px;
+
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.55rem;
+
     padding: 0 1.25rem;
 
     border: 1px solid var(--color-accent);
@@ -225,15 +339,34 @@
 
     background: var(--color-accent);
     color: var(--color-on-accent);
+
+    font: inherit;
     font-size: 0.78rem;
     font-weight: 700;
+
     cursor: pointer;
+
+    transition:
+        border-color 150ms ease,
+        background-color 150ms ease,
+        transform 100ms ease;
 
     &:hover {
         border-color: var(--color-accent-hover);
         background: var(--color-accent-hover);
     }
+
+    &:active {
+        transform: scale(0.98);
+    }
+
+    &:focus-visible {
+        outline: 3px solid var(--color-focus);
+        outline-offset: 2px;
+    }
 }
+
+/* Sélection vide */
 
 .empty-selection {
     padding: 2rem;
@@ -251,14 +384,30 @@
     a {
         display: inline-flex;
         gap: 0.5rem;
+
         margin-top: 0.75rem;
 
         color: var(--color-accent);
+
         font-size: 0.8rem;
         font-weight: 650;
         text-decoration: none;
+
+        &:hover {
+            color: var(--color-accent-hover);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        &:focus-visible {
+            border-radius: 3px;
+            outline: 3px solid var(--color-focus);
+            outline-offset: 3px;
+        }
     }
 }
+
+/* Mobile */
 
 @media (max-width: 640px) {
     .session-settings {
@@ -267,12 +416,47 @@
     }
 
     .session-fields {
-        align-items: flex-start;
+        align-items: flex-end;
         flex-wrap: wrap;
+        gap: 0.75rem;
+
+        label {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 0.35rem;
+
+            font-size: 0.75rem;
+        }
+
+        select,
+        .number-field {
+            height: 40px;
+        }
+
+        select {
+            min-width: 140px;
+
+            font-size: 16px;
+        }
+    }
+
+    .number-field {
+        input {
+            width: 56px;
+
+            padding-left: 0.65rem;
+
+            font-size: 16px;
+        }
+
+        >span {
+            padding-right: 0.6rem;
+
+            font-size: 0.8rem;
+        }
     }
 
     .launch-button {
-        justify-content: center;
         width: 100%;
     }
 
@@ -286,79 +470,33 @@
 
     .selection-track {
         width: 100%;
+
         touch-action: pan-x;
     }
-
-   .session-fields {
-  align-items: flex-end;
-  gap: 0.75rem;
-
-  label {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.35rem;
-
-    font-size: 0.75rem;
-  }
-
-  select,
-  .number-field {
-    height: 40px;
-  }
-
-  select {
-    min-width: 140px;
-    font-size: 16px;
-  }
 }
 
-.number-field {
-  input {
-    width: 56px;
-    padding-left: 0.65rem;
-    font-size: 16px;
-  }
-
-  > span {
-    padding-right: 0.6rem;
-    font-size: 0.8rem;
-  }
-}
-}
+/* Souris */
 
 @media (hover: hover) and (pointer: fine) {
-  .selection-image::after {
-    content: "";
 
-    position: absolute;
-    inset: 0;
-    z-index: 1;
+    .selection-image:hover .selection-image__link img,
+    .selection-image:focus-within .selection-image__link img {
+        filter: brightness(0.9) contrast(1.03);
+        transform: scale(1.025);
+    }
 
-    background: var(--color-focus);
-    opacity: 0;
-    pointer-events: none;
+    .selection-image:hover>button {
+        opacity: 1;
+    }
 
-    transition: opacity 150ms ease;
-  }
-
-  .selection-image:hover::after {
-    opacity: 1;
-  }
-
-  .selection-image:hover > button {
-    opacity: 1;
-  }
-
-  .selection-image > button {
-    z-index: 2;
-  }
-
-  .selection-image > button:hover {
-    border-color: var(--color-danger);
-    background: var(--color-danger);
-    color: #fff;
-  }
+    .selection-image>button:hover {
+        border-color: var(--color-danger);
+        background: var(--color-danger);
+        color: #fff;
+    }
 }
+
+/* Écran tactile */
 
 @media (hover: none) {
     .selection-image>button {
@@ -369,5 +507,18 @@
         border-color: var(--color-danger);
         background: var(--color-danger);
         color: #fff;
+    }
+}
+
+/* Accessibilité */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .clear-button,
+    .carousel-button,
+    .selection-image__link img,
+    .selection-image>button,
+    .launch-button {
+        transition: none;
     }
 }

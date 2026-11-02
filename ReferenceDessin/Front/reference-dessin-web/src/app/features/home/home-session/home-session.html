@@ -41,7 +41,13 @@
       <div #selectionTrack class="selection-track">
         @for (image of selectionStore.images(); track image.sourceName + ':' + image.externalId) {
           <article class="selection-image">
-            <img [src]="image.imageUrl" [alt]="image.description || 'Référence de dessin'" />
+            <a
+              class="selection-image__link"
+              routerLink="/selection"
+              aria-label="Ouvrir la sélection"
+            >
+              <img [src]="image.imageUrl" [alt]="image.description || 'Référence de dessin'" />
+            </a>
 
             <button type="button" (click)="removeImage(image)" aria-label="Retirer cette référence">
               <svg lucideX [size]="14" aria-hidden="true"></svg>
@@ -79,7 +85,7 @@
           </span>
         </label>
 
-        <label>
+        <!-- <label>
           <span>Ordre</span>
 
           <select [ngModel]="sessionOrder()" (ngModelChange)="updateOrder($event)">
@@ -87,7 +93,7 @@
 
             <option value="random">Aléatoire</option>
           </select>
-        </label>
+        </label> -->
 
         <strong class="estimated-duration">
           {{ estimatedDuration() }}
