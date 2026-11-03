@@ -76,6 +76,9 @@ public static class DependencyInjection
 
                 client.Timeout = TimeSpan.FromSeconds(10);
             });
+
+        services.AddSingleton<PexelsSearchCache>();
+        services.AddTransient<IPexelsPhotoProvider, CachedPexelsPhotoProvider>();
     }
 
     private static void AddPinterest(
