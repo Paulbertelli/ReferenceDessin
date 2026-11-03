@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using ReferenceDessin.Api.Configuration;
@@ -22,10 +23,33 @@ public static class DependencyInjection
         services.AddExceptionHandler<ExternalApiExceptionHandler>();
         services.AddControllersWithViews();
         
+        // Local, per-IP protection. Does not enforce the global Pexels quota.
+        var maxRequests = configuration.GetValue<int?>("RateLimiting:Photos:PermitLimit") ?? 10;
+        var windowSeconds = configuration.GetValue<int?>("RateLimiting:Photos:WindowSeconds") ?? 60;
+
+        if (maxRequests <= 0 || windowSeconds <= 0)
+        {
+            throw new InvalidOperationException("RateLimiting:Photos requires positive limits.");
+        }
+
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.AddPolicy("photos-by-ip", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString()
+                                  ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = maxRequests,
+                        Window = TimeSpan.FromSeconds(windowSeconds),
+                        QueueLimit = 0,
+                        AutoReplenishment = true
+                    }));
+        });
+        
         services.AddApplicationAntiforgery(environment);
-        services.AddApplicationAuthentication(
-            configuration,
-            environment);
+        services.AddApplicationAuthentication(configuration, environment);
 
         services.AddAuthorization();
         
@@ -34,9 +58,7 @@ public static class DependencyInjection
         services.AddScoped<ListPinterestBoardSectionsHandler>();
         services.AddScoped<GetPinterestReferenceImagesHandler>();
         
-        services
-            .AddOptions<PinterestFeatureOptions>()
-            .BindConfiguration(PinterestFeatureOptions.SectionName);
+        services.AddOptions<PinterestFeatureOptions>().BindConfiguration(PinterestFeatureOptions.SectionName);
 
         return services;
     }
