@@ -4,6 +4,9 @@ using ReferenceDessin.Application.Photos;
 
 namespace ReferenceDessin.Infrastructure.Pexels;
 
+/// <summary>
+/// Communiquer avec l'API Pexels et transformer les réponses.
+/// </summary>
 public sealed class PexelsClient(HttpClient httpClient) : IPexelsPhotoProvider
 {
     public async Task<IReadOnlyCollection<ReferenceImage>> SearchAsync(
@@ -34,15 +37,15 @@ public sealed class PexelsClient(HttpClient httpClient) : IPexelsPhotoProvider
         return result.Photos
             .OrderBy(_ => Random.Shared.Next())
             .Select(image => new ReferenceImage(
-                ExternalId: image.Id.ToString(
+                image.Id.ToString(
                     CultureInfo.InvariantCulture),
-                ImageUrl: image.Sources.Large2X,
-                SourceName: "Pexels",
-                OriginalUrl: image.Url,
-                AuthorName: image.Photographer,
-                AuthorUrl: image.PhotographerUrl,
-                Description: image.Alt,
-                AverageColor: image.AverageColor))
+                image.Sources.Large2X,
+                "Pexels",
+                image.Url,
+                image.Photographer,
+                image.PhotographerUrl,
+                image.Alt,
+                image.AverageColor))
             .ToArray();
     }
 }
