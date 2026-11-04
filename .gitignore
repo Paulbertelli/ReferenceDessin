@@ -4,8 +4,9 @@
 *.user
 *.suo
 
-# Rider
+# JetBrains Rider / IntelliJ
 .idea/
+*.DotSettings.user
 **/.idea/indexLayout.xml
 
 # Angular / Node
