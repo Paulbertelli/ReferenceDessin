@@ -16,7 +16,8 @@ public sealed class CachedPexelsPhotoProviderTests
             Interlocked.Increment(ref calls);
             return Task.FromResult(Success());
         });
-        var provider = new CachedPexelsPhotoProvider(new PexelsClient(http), cache);
+        var quotaTracker = new PexelsQuotaTracker(TimeProvider.System);
+        var provider = new CachedPexelsPhotoProvider(new PexelsClient(http, quotaTracker), cache);
 
         await provider.SearchAsync("  chat  ", 10);
         await provider.SearchAsync("chat", 10);
@@ -34,7 +35,8 @@ public sealed class CachedPexelsPhotoProviderTests
             Interlocked.Increment(ref calls);
             return Task.FromResult(Success());
         });
-        var provider = new CachedPexelsPhotoProvider(new PexelsClient(http), cache);
+        var quotaTracker = new PexelsQuotaTracker(TimeProvider.System);
+        var provider = new CachedPexelsPhotoProvider(new PexelsClient(http, quotaTracker), cache);
 
         await provider.SearchAsync("chat", 10);
         await provider.SearchAsync("chien", 10);
@@ -52,7 +54,8 @@ public sealed class CachedPexelsPhotoProviderTests
             Task.FromResult(Interlocked.Increment(ref calls) == 1
                 ? new HttpResponseMessage(HttpStatusCode.BadGateway)
                 : Success()));
-        var provider = new CachedPexelsPhotoProvider(new PexelsClient(http), cache);
+        var quotaTracker = new PexelsQuotaTracker(TimeProvider.System);
+        var provider = new CachedPexelsPhotoProvider(new PexelsClient(http, quotaTracker), cache);
 
         await Assert.ThrowsAsync<HttpRequestException>(
             () => provider.SearchAsync("chat", 10));
@@ -73,7 +76,8 @@ public sealed class CachedPexelsPhotoProviderTests
             Interlocked.Increment(ref calls);
             return release.Task;
         });
-        var provider = new CachedPexelsPhotoProvider(new PexelsClient(http), cache);
+        var quotaTracker = new PexelsQuotaTracker(TimeProvider.System);
+        var provider = new CachedPexelsPhotoProvider(new PexelsClient(http, quotaTracker), cache);
 
         var first = provider.SearchAsync("chat", 10);
         var second = provider.SearchAsync("chat", 10);
@@ -96,7 +100,8 @@ public sealed class CachedPexelsPhotoProviderTests
             Interlocked.Increment(ref calls);
             return release.Task;
         });
-        var provider = new CachedPexelsPhotoProvider(new PexelsClient(http), cache);
+        var quotaTracker = new PexelsQuotaTracker(TimeProvider.System);
+        var provider = new CachedPexelsPhotoProvider(new PexelsClient(http, quotaTracker), cache);
         using var cancellation = new CancellationTokenSource();
         var cancelled = provider.SearchAsync("chat", 10, cancellation.Token);
         var other = provider.SearchAsync("chat", 10);
