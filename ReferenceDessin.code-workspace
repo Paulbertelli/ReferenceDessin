@@ -1,0 +1,33 @@
+{
+	"folders": [
+		{
+			"name": "Backend",
+			"path": "ReferenceDessin/Back/ReferenceDessin"
+		},
+		{
+			"name": "Frontend",
+			"path": "ReferenceDessin/Front/reference-dessin-web"
+		}
+	],
+	"settings": {},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [],
+		"compounds": [
+			{
+				"name": "Full-stack : Angular + ASP.NET Core",
+				"configurations": [
+					{
+						"folder": "Backend",
+						"name": "ASP.NET Core - HTTPS"
+					},
+					{
+						"folder": "Frontend",
+						"name": "Angular - Chrome"
+					}
+				],
+				"stopAll": true
+			}
+		]
+	}
+}
