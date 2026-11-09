@@ -18,7 +18,9 @@ public sealed class AuthenticationController(
     : ControllerBase
 {
     private const string ProfileImageClaimType = "picture";
-    
+    private const string VerifiedEmailClaimType = "google:verified_email";
+
+
    [AllowAnonymous]
     [HttpGet("google")]
     public IActionResult GoogleLogin()
@@ -26,7 +28,7 @@ public sealed class AuthenticationController(
         var callbackUrl = Url.Action(
             nameof(GoogleCallback),
             "Authentication");
-        
+
         if (callbackUrl is null)
         {
             return Problem(
@@ -34,9 +36,9 @@ public sealed class AuthenticationController(
                 statusCode: StatusCodes.Status500InternalServerError);
         }
 
-        var authenticationProperties = 
+        var authenticationProperties =
             signInManager.ConfigureExternalAuthenticationProperties(
-                GoogleDefaults.AuthenticationScheme, 
+                GoogleDefaults.AuthenticationScheme,
                 callbackUrl);
 
         return Challenge(
@@ -48,19 +50,21 @@ public sealed class AuthenticationController(
     [HttpGet("google/retour")]
     public async Task<IActionResult> GoogleCallback()
     {
-        var externalLoginInfo =
-            await signInManager
-                .GetExternalLoginInfoAsync();
-        
+        var externalLoginInfo = await signInManager.GetExternalLoginInfoAsync();
+
         if (externalLoginInfo is null)
         {
-            return Problem(
-                title: "La réponse de Google est invalide.",
-                statusCode: StatusCodes.Status401Unauthorized);
+            return Problem(title: "La réponse de Google est invalide.", statusCode: StatusCodes.Status401Unauthorized);
         }
-        
-        var profileImageUrl = GetProfileImageUrl(
-            externalLoginInfo.Principal);
+
+        // An email address alone is insufficient to create or link a local account.
+        // The claim is mapped from Google's verified_email userinfo property.
+        if (!string.Equals(externalLoginInfo.Principal.FindFirstValue(VerifiedEmailClaimType), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return Problem(title: "L’adresse e-mail Google n’est pas vérifiée.", statusCode: StatusCodes.Status401Unauthorized);
+        }
+
+        var profileImageUrl = GetProfileImageUrl(externalLoginInfo.Principal);
 
         var signInResult =
             await signInManager
@@ -83,10 +87,10 @@ public sealed class AuthenticationController(
                     existingUser,
                     profileImageUrl);
             }
-            
+
             await HttpContext.SignOutAsync(
                 IdentityConstants.ExternalScheme);
-            
+
             return RedirectToApplication();
         }
 
@@ -128,7 +132,7 @@ public sealed class AuthenticationController(
             var creationResult =
                 await userManager
                     .CreateAsync(user);
-            
+
             if (!creationResult.Succeeded)
             {
                 LogErrors(
@@ -149,7 +153,7 @@ public sealed class AuthenticationController(
                 user,
                 profileImageUrl);
         }
-        
+
 
         var loginAssociationResult =
             await userManager.AddLoginAsync(
@@ -161,7 +165,7 @@ public sealed class AuthenticationController(
             LogErrors(
                 "association du compte Google",
                 loginAssociationResult.Errors);
-            
+
             if (userCreated)
             {
                 await userManager
@@ -173,14 +177,14 @@ public sealed class AuthenticationController(
                 statusCode:
                     StatusCodes.Status500InternalServerError);
         }
-        
+
         await signInManager.SignInAsync(
             user,
             isPersistent: true);
-        
+
         await HttpContext.SignOutAsync(
             IdentityConstants.ExternalScheme);
-        
+
         return RedirectToApplication();
     }
 
@@ -253,7 +257,7 @@ public sealed class AuthenticationController(
                 updateResult.Errors);
         }
     }
-    
+
     private IActionResult RedirectToApplication()
     {
         var applicationUrl =
