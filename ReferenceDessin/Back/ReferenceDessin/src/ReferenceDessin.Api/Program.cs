@@ -1,16 +1,37 @@
+using System.Net;
+using Microsoft.AspNetCore.HttpOverrides;
 using ReferenceDessin.Api;
 using ReferenceDessin.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddInfrastructure(
-    builder.Configuration);
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    var proxyAddress = builder.Configuration["ReverseProxy:KnownProxy"];
 
-builder.Services.AddApiServices(
-    builder.Configuration,
-    builder.Environment);
+    options.ForwardedHeaders = ForwardedHeaders.None;
+
+    if (IPAddress.TryParse(proxyAddress, out var trustedProxy))
+    {
+        options.KnownProxies.Clear();
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Add(trustedProxy);
+
+        options.ForwardedHeaders =
+            ForwardedHeaders.XForwardedFor |
+            ForwardedHeaders.XForwardedProto;
+
+        options.ForwardLimit = 1;
+    }
+});
+
+builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {
