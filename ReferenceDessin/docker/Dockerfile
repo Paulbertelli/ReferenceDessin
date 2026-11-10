@@ -29,6 +29,12 @@ RUN dotnet publish \
     --output /app/publish \
     --no-restore
 
+FROM construction-backend AS construction-migrations
+
+RUN dotnet publish \
+    src/ReferenceDessin.Migrations/ReferenceDessin.Migrations.csproj \
+    --configuration Release \
+    --output /app/migrations
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS execution
 
@@ -49,3 +55,13 @@ RUN chmod -R a+rX /app/wwwroot
 USER $APP_UID
 
 ENTRYPOINT ["dotnet", "ReferenceDessin.Api.dll"]
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS migrations
+
+WORKDIR /app
+
+COPY --from=construction-migrations /app/migrations ./
+
+USER $APP_UID
+
+ENTRYPOINT ["dotnet", "ReferenceDessin.Migrations.dll"]
