@@ -1,0 +1,93 @@
+# Déploiement de test sur Raspberry Pi, LAN uniquement.
+# Utiliser : docker compose --env-file docker/.env.pi -f docker/compose.pi.yaml up -d
+name: referencedessin-pi
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: reference_dessin
+      POSTGRES_USER: reference_dessin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Mot de passe PostgreSQL requis}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reference_dessin -d reference_dessin"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - database
+
+  init-keys:
+    image: ${APP_IMAGE:-ghcr.io/paulbertelli/reference-dessin:latest}
+    user: "0"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["chown -R 1654:1654 /keys && chmod 700 /keys"]
+    volumes:
+      - data-protection:/keys
+
+  migrations:
+    image: ${MIGRATIONS_IMAGE:-ghcr.io/paulbertelli/reference-dessin-migrations:latest}
+    restart: "no"
+    environment:
+      ConnectionStrings__Database: "Host=postgres;Port=5432;Database=reference_dessin;Username=reference_dessin;Password=${POSTGRES_PASSWORD:?Mot de passe requis}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - database
+
+  reference-dessin-app:
+    image: ${APP_IMAGE:-ghcr.io/paulbertelli/reference-dessin:latest}
+    restart: unless-stopped
+    env_file:
+      - ./.env.pi
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ApplicationCliente__Url: https://pi-paul.local:8443
+      ReverseProxy__KnownProxy: 172.30.250.10
+      ConnectionStrings__Database: "Host=postgres;Port=5432;Database=reference_dessin;Username=reference_dessin;Password=${POSTGRES_PASSWORD:?Mot de passe requis}"
+    volumes:
+      - data-protection:/home/app/.aspnet/DataProtection-Keys
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+      init-keys:
+        condition: service_completed_successfully
+    networks:
+      - database
+      - proxy
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "8443:443"
+    volumes:
+      - ./Caddyfile.pi:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - reference-dessin-app
+    networks:
+      proxy:
+        ipv4_address: 172.30.250.10
+
+volumes:
+  postgres-data:
+  data-protection:
+  caddy-data:
+  caddy-config:
+
+networks:
+  database:
+    internal: true
+  proxy:
+    ipam:
+      config:
+        - subnet: 172.30.250.0/24
