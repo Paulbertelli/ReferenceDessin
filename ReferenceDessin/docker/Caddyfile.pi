@@ -1,0 +1,4 @@
+https://pi-paul.local {
+    tls internal
+    reverse_proxy reference-dessin-app:8080
+}
