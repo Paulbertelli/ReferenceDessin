@@ -73,7 +73,7 @@ jobs:
 
       - name: Compiler le frontend
         run: npm run build
-        
+
   docker:
     name: Image Docker
     runs-on: ubuntu-latest
@@ -90,7 +90,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: ./ReferenceDessin
-          file: ./ReferenceDessin/Dockerfile
+          file: ./ReferenceDessin/docker/Dockerfile
           push: false
           tags: reference-dessin:ci
           cache-from: type=gha
