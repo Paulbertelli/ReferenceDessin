@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using ReferenceDessin.Application.Photos;
 using ReferenceDessin.Application.Photos.SearchPexelsPhotos;
 
@@ -6,38 +7,29 @@ namespace ReferenceDessin.Api.Controllers;
 
 [ApiController]
 [Route("api/photos")]
-public sealed class PhotosController(
-    SearchPexelsPhotosHandler searchPexelsPhotosHandler)
-    : ControllerBase
+[EnableRateLimiting("photos-by-ip")]
+public sealed class PhotosController(SearchPexelsPhotosHandler searchPexelsPhotosHandler) : ControllerBase
 {
     [HttpGet]
-    public async Task<
-        ActionResult<IReadOnlyCollection<ReferenceImage>>> Get(
+    public async Task<ActionResult<IReadOnlyCollection<ReferenceImage>>> Get(
         [FromQuery(Name = "query")] string? searchTerm,
         [FromQuery] int count = 30,
         CancellationToken cancellationToken = default)
     {
-        var result =
-            await searchPexelsPhotosHandler.HandleAsync(
-                new SearchPexelsPhotosQuery(
-                    searchTerm,
-                    count),
-                cancellationToken);
+        var result = await searchPexelsPhotosHandler.HandleAsync(
+            new SearchPexelsPhotosQuery(searchTerm, count),
+            cancellationToken);
 
         if (!result.IsSuccess)
         {
             return result.Error switch
             {
-                SearchPexelsPhotosError.InvalidCount =>
-                    BadRequest(
-                        "Le nombre de photos doit être compris entre 1 et 80."),
+                SearchPexelsPhotosError.InvalidCount => BadRequest(
+                    "Le nombre de photos doit être compris entre 1 et 80."),
 
                 _ => Problem(
-                    title:
-                    "Impossible de récupérer les photos.",
-                    statusCode:
-                    StatusCodes
-                        .Status500InternalServerError)
+                    title: "Impossible de récupérer les photos.",
+                    statusCode: StatusCodes.Status500InternalServerError)
             };
         }
 

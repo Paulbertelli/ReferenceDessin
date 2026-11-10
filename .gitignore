@@ -4,8 +4,9 @@
 *.user
 *.suo
 
-# Rider
+# JetBrains Rider / IntelliJ
 .idea/
+*.DotSettings.user
 **/.idea/indexLayout.xml
 
 # Angular / Node
@@ -20,3 +21,4 @@
 appsettings.Development.json
 .env
 .env.*
+caddy-local-root.crt

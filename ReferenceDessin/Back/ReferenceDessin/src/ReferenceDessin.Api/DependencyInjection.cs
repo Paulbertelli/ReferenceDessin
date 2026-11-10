@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using ReferenceDessin.Api.Configuration;
@@ -21,26 +22,47 @@ public static class DependencyInjection
         services.AddHealthChecks();
         services.AddExceptionHandler<ExternalApiExceptionHandler>();
         services.AddControllersWithViews();
-        
+
+        // Local, per-IP protection. Does not enforce the global Pexels quota.
+        var maxRequests = configuration.GetValue<int?>("RateLimiting:Photos:PermitLimit") ?? 10;
+        var windowSeconds = configuration.GetValue<int?>("RateLimiting:Photos:WindowSeconds") ?? 60;
+
+        if (maxRequests <= 0 || windowSeconds <= 0)
+        {
+            throw new InvalidOperationException("RateLimiting:Photos requires positive limits.");
+        }
+
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.AddPolicy("photos-by-ip", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString()
+                                  ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = maxRequests,
+                        Window = TimeSpan.FromSeconds(windowSeconds),
+                        QueueLimit = 0,
+                        AutoReplenishment = true
+                    }));
+        });
+
         services.AddApplicationAntiforgery(environment);
-        services.AddApplicationAuthentication(
-            configuration,
-            environment);
+        services.AddApplicationAuthentication(configuration, environment);
 
         services.AddAuthorization();
-        
+
         services.AddScoped<SearchPexelsPhotosHandler>();
         services.AddScoped<ListPinterestBoardsHandler>();
         services.AddScoped<ListPinterestBoardSectionsHandler>();
         services.AddScoped<GetPinterestReferenceImagesHandler>();
-        
-        services
-            .AddOptions<PinterestFeatureOptions>()
-            .BindConfiguration(PinterestFeatureOptions.SectionName);
+
+        services.AddOptions<PinterestFeatureOptions>().BindConfiguration(PinterestFeatureOptions.SectionName);
 
         return services;
     }
-    
+
     private static IServiceCollection AddApplicationAntiforgery(
         this IServiceCollection services,
         IWebHostEnvironment environment)
@@ -63,7 +85,7 @@ public static class DependencyInjection
 
         return services;
     }
-    
+
     private static IServiceCollection AddApplicationAuthentication(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -101,9 +123,10 @@ public static class DependencyInjection
             options.SignInScheme =
                 IdentityConstants.ExternalScheme;
 
-            options.ClaimActions.MapJsonKey(
-                "picture",
-                "picture");
+            options.ClaimActions.MapJsonKey("picture", "picture");
+
+            // Google OAuth v2 userinfo returns verified_email; map it explicitly.
+            options.ClaimActions.MapJsonKey("google:verified_email", "email_verified");
 
             if (environment.IsDevelopment())
             {

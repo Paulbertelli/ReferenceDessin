@@ -1,4 +1,4 @@
-name: Publication de l'image Docker
+name: Publication des images Docker
 
 on:
   push:
@@ -12,18 +12,19 @@ permissions:
 
 jobs:
   publier:
-    name: Publier l'image multiplateforme
+    name: Publier application et migrations multiplateformes
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
 
     steps:
       - name: Récupérer le dépôt
         uses: actions/checkout@v7
 
-      - name: Définir le nom de l'image
+      - name: Définir le nom des images
         shell: bash
         run: |
           echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/reference-dessin" >> "$GITHUB_ENV"
+          echo "MIGRATIONS_IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/reference-dessin-migrations" >> "$GITHUB_ENV"
 
       - name: Préparer l'émulation ARM64
         uses: docker/setup-qemu-action@v4
@@ -40,15 +41,30 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Construire et publier l'image
+      - name: Construire et publier l'application
         uses: docker/build-push-action@v7
         with:
           context: ./ReferenceDessin
-          file: ./ReferenceDessin/Dockerfile
+          file: ./ReferenceDessin/docker/Dockerfile
+          target: execution
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,mode=max,scope=app
+
+      - name: Construire et publier les migrations
+        uses: docker/build-push-action@v7
+        with:
+          context: ./ReferenceDessin
+          file: ./ReferenceDessin/docker/Dockerfile
+          target: migrations
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.MIGRATIONS_IMAGE_NAME }}:latest
+            ${{ env.MIGRATIONS_IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha,scope=migrations
+          cache-to: type=gha,mode=max,scope=migrations

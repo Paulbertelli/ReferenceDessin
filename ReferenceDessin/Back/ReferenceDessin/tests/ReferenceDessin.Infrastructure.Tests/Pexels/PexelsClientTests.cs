@@ -24,7 +24,7 @@ public sealed class PexelsClientTests
                 """);
         });
 
-        var client = new PexelsClient(httpClient);
+        var client = new PexelsClient(httpClient, new PexelsQuotaTracker(TimeProvider.System));
 
         // Act
         var photos = await client.SearchAsync(
@@ -57,7 +57,7 @@ public sealed class PexelsClientTests
                 """);
         });
 
-        var client = new PexelsClient(httpClient);
+        var client = new PexelsClient(httpClient, new PexelsQuotaTracker(TimeProvider.System));
 
         // Act
         await client.SearchAsync(
@@ -95,7 +95,7 @@ public sealed class PexelsClientTests
                 }
                 """));
 
-        var client = new PexelsClient(httpClient);
+        var client = new PexelsClient(httpClient, new PexelsQuotaTracker(TimeProvider.System));
 
         // Act
         var photos = await client.SearchAsync(
@@ -128,7 +128,7 @@ public sealed class PexelsClientTests
         using var httpClient = CreateHttpClient(_ =>
             new HttpResponseMessage(HttpStatusCode.BadGateway));
 
-        var client = new PexelsClient(httpClient);
+        var client = new PexelsClient(httpClient, new PexelsQuotaTracker(TimeProvider.System));
 
         // Act
         var action = async () =>
@@ -147,7 +147,7 @@ public sealed class PexelsClientTests
         using var httpClient = CreateHttpClient(_ =>
             CreateJsonResponse("null"));
 
-        var client = new PexelsClient(httpClient);
+        var client = new PexelsClient(httpClient, new PexelsQuotaTracker(TimeProvider.System));
 
         // Act
         var photos = await client.SearchAsync(

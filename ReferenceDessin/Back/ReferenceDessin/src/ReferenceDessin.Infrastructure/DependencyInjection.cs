@@ -19,6 +19,8 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddSingleton(TimeProvider.System);
+
         services.AddPersistence(configuration);
         services.AddApplicationIdentity();
         services.AddPexels();
@@ -61,7 +63,7 @@ public static class DependencyInjection
                 "La clé API Pexels est absente.")
             .ValidateOnStart();
 
-        services.AddHttpClient<IPexelsPhotoProvider, PexelsClient>(
+        services.AddHttpClient<PexelsClient>(
             (serviceProvider, client) =>
             {
                 var options = serviceProvider
@@ -76,6 +78,10 @@ public static class DependencyInjection
 
                 client.Timeout = TimeSpan.FromSeconds(10);
             });
+        services.AddSingleton<PexelsQuotaTracker>();
+
+        services.AddSingleton<PexelsSearchCache>();
+        services.AddTransient<IPexelsPhotoProvider, CachedPexelsPhotoProvider>();
     }
 
     private static void AddPinterest(
@@ -112,7 +118,6 @@ public static class DependencyInjection
 
         // Services utilisés pour obtenir et mettre en cache
         // le jeton OAuth Pinterest.
-        services.AddSingleton(TimeProvider.System);
 
         services.AddHttpClient(
             PinterestAccessTokenProvider.HttpClientName,

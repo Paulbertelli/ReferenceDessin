@@ -1,5 +1,8 @@
 namespace ReferenceDessin.Infrastructure.Pexels;
 
+/// <summary>
+/// Regrouper les paramètres de configuration de Pexels.
+/// </summary>
 public sealed class PexelsOptions
 {
     public const string SectionName = "Pexels";
