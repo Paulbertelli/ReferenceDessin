@@ -1,4 +1,20 @@
+{
+	servers {
+		trusted_proxies static 172.30.250.11
+		client_ip_headers CF-Connecting-IP
+	}
+}
+
 https://pi-paul.local {
     tls internal
-    reverse_proxy reference-dessin-app:8080
+    reverse_proxy reference-dessin-app:8080 {
+ 	   header_up X-Forwarded-For {client_ip}
+	}
+}
+
+https://app.reference-dessin.fr {
+    tls internal
+    reverse_proxy reference-dessin-app:8080 {
+ 	   header_up X-Forwarded-For {client_ip}
+	}
 }
