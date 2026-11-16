@@ -42,14 +42,18 @@ services:
   reference-dessin-app:
     image: ${APP_IMAGE:-ghcr.io/paulbertelli/reference-dessin:latest}
     restart: unless-stopped
-    env_file:
-      - ./.env.pi
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: "8080"
       ApplicationCliente__Url: https://app.reference-dessin.fr
       ReverseProxy__KnownProxy: 172.30.250.10
       ConnectionStrings__Database: "Host=postgres;Port=5432;Database=reference_dessin;Username=reference_dessin;Password=${POSTGRES_PASSWORD:?Mot de passe requis}"
+      Pexels__ApiKey: ${Pexels__ApiKey:?Clé Pexels requise}
+      Authentication__Google__ClientId: ${Authentication__Google__ClientId:?Client Google requis}
+      Authentication__Google__ClientSecret: ${Authentication__Google__ClientSecret:?Secret Google requis}
+      Pinterest__Enabled: "${Pinterest__Enabled:-false}"
+      Pinterest__AppId: "${Pinterest__AppId:-}"
+      Pinterest__AppSecret: "${Pinterest__AppSecret:-}"
     volumes:
       - data-protection:/home/app/.aspnet/DataProtection-Keys
     depends_on:
