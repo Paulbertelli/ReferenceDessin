@@ -2,9 +2,16 @@
 # Utiliser : docker compose --env-file docker/.env.pi -f docker/compose.pi.yaml up -d
 name: referencedessin-pi
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:17-alpine
+    logging: *default-logging
     restart: unless-stopped
     environment:
       POSTGRES_DB: reference_dessin
@@ -22,6 +29,7 @@ services:
 
   init-keys:
     image: ${APP_IMAGE:-ghcr.io/paulbertelli/reference-dessin:latest}
+    logging: *default-logging
     user: "0"
     entrypoint: ["/bin/sh", "-c"]
     command: ["chown -R 1654:1654 /keys && chmod 700 /keys"]
@@ -30,6 +38,7 @@ services:
 
   migrations:
     image: ${MIGRATIONS_IMAGE:-ghcr.io/paulbertelli/reference-dessin-migrations:latest}
+    logging: *default-logging
     restart: "no"
     environment:
       ConnectionStrings__Database: "Host=postgres;Port=5432;Database=reference_dessin;Username=reference_dessin;Password=${POSTGRES_PASSWORD:?Mot de passe requis}"
@@ -41,6 +50,7 @@ services:
 
   reference-dessin-app:
     image: ${APP_IMAGE:-ghcr.io/paulbertelli/reference-dessin:latest}
+    logging: *default-logging
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Production
@@ -69,6 +79,7 @@ services:
 
   caddy:
     image: caddy:2
+    logging: *default-logging
     restart: unless-stopped
     ports:
       - "192.168.1.38:8443:443"
@@ -84,6 +95,7 @@ services:
 
   cloudflared:
     image: cloudflare/cloudflared:latest
+    logging: *default-logging
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:

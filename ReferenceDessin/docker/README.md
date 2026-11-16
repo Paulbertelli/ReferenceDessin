@@ -117,3 +117,14 @@ Un test de restauration est nécessaire pour valider les sauvegardes.
 
 La synchronisation nécessite un accès au réseau local.
 Les journaux de synchronisation restent à faire tourner.
+
+## Journalisation en production
+
+- EF Core et HttpClient : niveau Warning.
+- Pilote Docker : json-file.
+- Taille maximale par fichier : 10 Mo.
+- Nombre maximal de fichiers par conteneur : 3.
+- Rotation automatique par taille.
+
+La durée maximale de conservation n'est pas garantie
+par cette configuration.
