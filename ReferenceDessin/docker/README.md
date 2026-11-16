@@ -105,3 +105,15 @@ La sauvegarde est réalisée par le script
 
 La copie hors Raspberry Pi reste à automatiser.
 Un test de restauration est nécessaire pour valider les sauvegardes.
+
+## Copie des sauvegardes sur macOS
+
+- Synchronisation via rsync et SSH.
+- Exécution horaire via launchd pendant la session utilisateur.
+- Destination : ~/reference-dessin-backups/.
+- Conservation : 30 jours.
+- Authentification SSH via le trousseau macOS.
+- Protection du stockage par FileVault.
+
+La synchronisation nécessite un accès au réseau local.
+Les journaux de synchronisation restent à faire tourner.
