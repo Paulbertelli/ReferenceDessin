@@ -63,7 +63,11 @@ export class PexelsSearchStore {
 
           const detail = response.error?.detail;
 
-          if (typeof detail === 'string' && detail.trim().length > 0) {
+          if (response.status === 429) {
+            this.errorMessage.set(
+              'Trop de recherches en peu de temps. Réessayez dans quelques instants.',
+            );
+          } else if (typeof detail === 'string' && detail.trim().length > 0) {
             this.errorMessage.set(detail);
           } else if (response.status === 0) {
             this.errorMessage.set('Vérifiez votre connexion internet, puis réessayez.');
