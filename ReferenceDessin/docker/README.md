@@ -128,3 +128,19 @@ Les journaux de synchronisation restent à faire tourner.
 
 La durée maximale de conservation n'est pas garantie
 par cette configuration.
+
+## Journalisation en production
+
+- EF Core et HttpClient : niveau Warning.
+- Pilote Docker : journald.
+- Stockage volatil en RAM.
+- Plafond global des journaux système : 50 Mo.
+- Rétention configurée : 30 jours.
+- Rotation temporelle des fichiers : 1 jour.
+- Perte des journaux au redémarrage du Raspberry Pi.
+
+La configuration système est disponible dans
+journald/90-reference-dessin.conf.
+
+Elle doit être installée dans
+/etc/systemd/journald.conf.d/ lors du déploiement.
