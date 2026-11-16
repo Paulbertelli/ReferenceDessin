@@ -1,0 +1,12 @@
+[Unit]
+Description=Sauvegarde PostgreSQL de Reference Dessin
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=paul
+WorkingDirectory=/home/paul/reference-dessin
+ExecStart=/home/paul/reference-dessin/scripts/backup-postgres.sh
+UMask=0077
+TimeoutStartSec=15min

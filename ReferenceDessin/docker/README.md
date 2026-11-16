@@ -89,3 +89,19 @@ La vérification du certificat HTTPS entre cloudflared et Caddy doit rester acti
 Dans Google Cloud, autoriser également l'URI de redirection OAuth suivante :
 
 `https://app.reference-dessin.fr/signin-google`
+
+## Sauvegarde automatique PostgreSQL
+
+La sauvegarde est réalisée par le script
+`scripts/backup-postgres.sh`, planifié par systemd.
+
+- Fréquence : chaque jour à 3 h.
+- Format : PostgreSQL custom (.dump).
+- Destination : /home/paul/reference-dessin/backups/.
+- Conservation locale : 30 jours.
+- Permissions restrictives.
+- Purge des anciennes sauvegardes après réussite de la nouvelle.
+- Vérification du catalogue avec pg_restore --list.
+
+La copie hors Raspberry Pi reste à automatiser.
+Un test de restauration est nécessaire pour valider les sauvegardes.
