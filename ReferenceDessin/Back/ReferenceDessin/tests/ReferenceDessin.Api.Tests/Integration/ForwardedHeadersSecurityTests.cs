@@ -46,6 +46,30 @@ public sealed class ForwardedHeadersSecurityTests
         Assert.False(context.Request.Headers.ContainsKey("X-Original-Proto"));
     }
 
+    [Fact]
+    public async Task TrustedProxy_AcceptsForwardedClientIp()
+    {
+        using var factory = new ProxySecurityFactory(TrustedProxy);
+
+        var context = await SendRequestAsync(factory, TrustedProxy);
+
+        Assert.Equal(
+            IPAddress.Parse("203.0.113.10"),
+            context.Connection.RemoteIpAddress);
+    }
+
+    [Fact]
+    public async Task UnknownProxy_IgnoresForwardedClientIp()
+    {
+        using var factory = new ProxySecurityFactory(TrustedProxy);
+
+        var context = await SendRequestAsync(factory, UnknownProxy);
+
+        Assert.Equal(
+            IPAddress.Parse(UnknownProxy),
+            context.Connection.RemoteIpAddress);
+    }
+
     private static async Task<Microsoft.AspNetCore.Http.HttpContext>
         SendRequestAsync(ProxySecurityFactory factory, string remoteIp)
     {
