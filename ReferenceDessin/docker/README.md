@@ -121,17 +121,6 @@ Les journaux de synchronisation restent à faire tourner.
 ## Journalisation en production
 
 - EF Core et HttpClient : niveau Warning.
-- Pilote Docker : json-file.
-- Taille maximale par fichier : 10 Mo.
-- Nombre maximal de fichiers par conteneur : 3.
-- Rotation automatique par taille.
-
-La durée maximale de conservation n'est pas garantie
-par cette configuration.
-
-## Journalisation en production
-
-- EF Core et HttpClient : niveau Warning.
 - Pilote Docker : journald.
 - Stockage volatil en RAM.
 - Plafond global des journaux système : 50 Mo.
@@ -156,3 +145,7 @@ Configuration disponible dans newsyslog/reference-dessin.conf.
 
 La durée de conservation visée est d'environ 30 jours,
 sans garantie temporelle stricte.
+
+## État du déploiement
+
+Ces configurations sont intégrées dans dev. Leur installation et leur validation en conditions réelles restent nécessaires.
