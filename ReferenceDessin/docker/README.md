@@ -144,3 +144,15 @@ journald/90-reference-dessin.conf.
 
 Elle doit être installée dans
 /etc/systemd/journald.conf.d/ lors du déploiement.
+
+## Rotation des journaux macOS
+
+Configuration disponible dans newsyslog/reference-dessin.conf.
+
+- Rotation quotidienne ou à partir de 1 Mio.
+- Conservation de 29 archives compressées par journal.
+- Permissions restrictives (600).
+- Installation dans /etc/newsyslog.d/ lors du déploiement.
+
+La durée de conservation visée est d'environ 30 jours,
+sans garantie temporelle stricte.
