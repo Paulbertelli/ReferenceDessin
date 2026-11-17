@@ -59,6 +59,14 @@ export const routes: Routes = [
         title: 'Séance — Référence Dessin',
       },
       {
+        path: 'confidentialite',
+        loadComponent: () =>
+          import('./features/legal/privacy-policy-page/privacy-policy-page').then(
+            (module) => module.PrivacyPolicyPage,
+          ),
+        title: 'Politique de confidentialité — Référence Dessin',
+      },
+      {
         path: '**',
         loadComponent: () =>
           import('./features/not-found-page/not-found-page').then((module) => module.NotFoundPage),

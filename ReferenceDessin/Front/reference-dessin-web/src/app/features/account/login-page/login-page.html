@@ -9,7 +9,7 @@
     <div class="login-heading">
       <h1 id="login-title">Connectez-vous</h1>
 
-      <p>Préparez vos références et retrouvez vos séances de dessin.</p>
+      <p>Accédez à nos collections et préparez vos prochaines séances de dessin.</p>
     </div>
 
     @if (authenticationStore.state(); as authenticationState) {
@@ -30,8 +30,9 @@
               <span>Continuer avec Google</span>
             </a>
 
-            <p class="login-notice">
-              La connexion permet de sécuriser votre compte et vos préférences.
+            <p class="login-legal">
+              Pour en savoir plus sur le traitement de vos données, consultez notre
+              <a routerLink="/confidentialite">politique de confidentialité</a>.
             </p>
           </div>
         }
@@ -87,9 +88,8 @@
     }
 
     <a class="login-back" routerLink="/">
-      <span aria-hidden="true">←</span>
-
-      Retour à l’accueil
+      Continuer sans compte
+      <svg lucideMoveRight aria-hidden="true"></svg>
     </a>
   </section>
 </main>

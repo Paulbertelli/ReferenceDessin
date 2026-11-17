@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { AuthenticationStore } from '../../account/authentication-store';
 import { HomeCollections } from '../home-collections/home-collections';
 import { HomeSession } from '../home-session/home-session';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-home-page',
-  imports: [HomeSession, HomeCollections],
+  imports: [HomeSession, HomeCollections, RouterLink],
   templateUrl: './home-page.html',
   styleUrl: './home-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
