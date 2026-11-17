@@ -62,7 +62,7 @@ services:
     restart: unless-stopped
 
     env_file:
-      - ../../.env.docker.local
+      - ./.env.prod-test
 
     environment:
       ASPNETCORE_ENVIRONMENT: Production

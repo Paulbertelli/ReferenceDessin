@@ -101,7 +101,7 @@ services:
       proxy:
         ipv4_address: 172.30.250.11
     volumes:
-      - ./caddy-root.crt:/etc/cloudflared/caddy-root.crt:ro
+      - ./certificates/caddy-root.crt:/etc/cloudflared/caddy-root.crt:ro
 
 volumes:
   postgres-data:

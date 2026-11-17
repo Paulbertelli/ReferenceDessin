@@ -1,6 +1,21 @@
-# Déploiement sur Raspberry Pi
+# Configuration Docker et déploiement sur Raspberry Pi
 
-## Architecture
+## Environnements Docker
+
+| Fichier | Utilisation |
+|---|---|
+| `compose.dev.yaml` | Développement local |
+| `compose.prod-test.yaml` | Simulation locale de la production |
+| `compose.pi.yaml` | Production sur Raspberry Pi |
+| `Caddyfile.prod-test` | Configuration HTTPS de simulation |
+| `Caddyfile.pi` | Configuration HTTPS de production |
+| `certificates/` | Certificats locaux non versionnés |
+| `.env.dev` | Développement local |
+| `.env.prod-test` | Simulation de production |
+| `.env.pi.example` | Modèle versionné pour la production |
+| `.env.pi` | Secrets de production sur le Pi |
+
+## Architecture de production
 
 L'application est déployée avec Docker Compose et utilise PostgreSQL, Caddy et Cloudflare Tunnel.
 
@@ -11,9 +26,9 @@ L'application est déployée avec Docker Compose et utilise PostgreSQL, Caddy et
 
 ## Configuration des secrets
 
-Le fichier `.env.pi` doit contenir les paramètres nécessaires à PostgreSQL, Google OAuth, Pexels et Cloudflare Tunnel.
+Le fichier `.env.pi.example` fournit un modèle de configuration pour PostgreSQL, Google OAuth, Pexels, Pinterest et Cloudflare Tunnel.
 
-Le jeton du tunnel est renseigné dans la variable `CLOUDFLARE_TUNNEL_TOKEN`.
+Chaque conteneur reçoit uniquement les variables nécessaires à son fonctionnement.
 
 Le fichier `.env.pi` ne doit jamais être versionné dans Git. Sur le Raspberry Pi, ses permissions doivent être limitées au propriétaire (`chmod 600`).
 
@@ -25,17 +40,33 @@ Après le premier démarrage de Caddy, exécuter sur le Raspberry Pi :
 
 ```bash
 cd ~/reference-dessin
+mkdir -p certificates
 
-docker cp referencedessin-pi-caddy-1:/data/caddy/pki/authorities/local/root.crt ./caddy-root.crt
+docker cp referencedessin-pi-caddy-1:/data/caddy/pki/authorities/local/root.crt ./certificates/caddy-root.crt
 
-chmod 644 caddy-root.crt
+chmod 644 certificates/caddy-root.crt
 ```
 
 Le certificat est monté en lecture seule dans le conteneur cloudflared, à l'emplacement `/etc/cloudflared/caddy-root.crt`.
 
-Ce certificat doit rester local au déploiement. Ne jamais copier ni versionner la clé privée de l'autorité de certification.
+Les certificats locaux sont exclus de Git et du contexte de construction Docker.
 
-En cas de recréation de l'autorité de certification Caddy, il faudra extraire à nouveau son certificat racine et recréer le conteneur cloudflared.
+Ne jamais copier ni versionner la clé privée de l'autorité de certification. Préserver les volumes Caddy pour conserver cette autorité.
+
+En cas de recréation de l'autorité, extraire à nouveau son certificat racine et recréer le conteneur cloudflared.
+
+### Migration d'un déploiement existant
+
+Avant d'appliquer la nouvelle configuration Docker Compose, exécuter sur le Raspberry Pi :
+
+```bash
+cd ~/reference-dessin
+mkdir -p certificates
+cp caddy-root.crt certificates/caddy-root.crt
+chmod 644 certificates/caddy-root.crt
+```
+
+Conserver l'ancien certificat jusqu'à validation du fonctionnement du tunnel avec le nouveau chemin.
 
 ## Premier démarrage
 
@@ -68,6 +99,7 @@ Pour les démarrages suivants, lorsque le certificat existe déjà :
 ```bash
 docker compose --env-file .env.pi -f compose.pi.yaml up -d
 ```
+
 ## Configuration de la route publique Cloudflare
 
 Dans le tunnel `reference-dessin-pi`, créer une route de type **Published application** avec les paramètres suivants :
@@ -92,60 +124,60 @@ Dans Google Cloud, autoriser également l'URI de redirection OAuth suivante :
 
 ## Sauvegarde automatique PostgreSQL
 
-La sauvegarde est réalisée par le script
-`scripts/backup-postgres.sh`, planifié par systemd.
+La sauvegarde est réalisée par le script `scripts/backup-postgres.sh`, planifié par systemd.
 
 - Fréquence : chaque jour à 3 h.
-- Format : PostgreSQL custom (.dump).
-- Destination : /home/paul/reference-dessin/backups/.
-- Conservation locale : 30 jours.
+- Format : PostgreSQL custom (`.dump`).
+- Destination : `/home/paul/reference-dessin/backups/`.
+- Conservation prévue : 30 jours.
 - Permissions restrictives.
 - Purge des anciennes sauvegardes après réussite de la nouvelle.
-- Vérification du catalogue avec pg_restore --list.
+- Vérification du catalogue avec `pg_restore --list`.
 
-La copie hors Raspberry Pi reste à automatiser.
-Un test de restauration est nécessaire pour valider les sauvegardes.
+Le service et le timer sont disponibles dans le dossier `systemd/`.
+
+Un test de restauration reste nécessaire pour valider les sauvegardes.
 
 ## Copie des sauvegardes sur macOS
 
 - Synchronisation via rsync et SSH.
 - Exécution horaire via launchd pendant la session utilisateur.
-- Destination : ~/reference-dessin-backups/.
-- Conservation : 30 jours.
+- Destination : `~/reference-dessin-backups/`.
+- Conservation prévue : 30 jours.
 - Authentification SSH via le trousseau macOS.
 - Protection du stockage par FileVault.
 
+Le script est disponible dans `scripts/sync-backups-mac.sh` et sa planification dans le dossier `launchd/`.
+
 La synchronisation nécessite un accès au réseau local.
-Les journaux de synchronisation restent à faire tourner.
 
 ## Journalisation en production
 
 - EF Core et HttpClient : niveau Warning.
 - Pilote Docker : journald.
 - Stockage volatil en RAM.
-- Plafond global des journaux système : 50 Mo.
+- Plafond global configuré : 50 Mo.
 - Rétention configurée : 30 jours.
 - Rotation temporelle des fichiers : 1 jour.
 - Perte des journaux au redémarrage du Raspberry Pi.
 
-La configuration système est disponible dans
-journald/90-reference-dessin.conf.
+La configuration `journald/90-reference-dessin.conf` doit être installée dans `/etc/systemd/journald.conf.d/` lors du déploiement.
 
-Elle doit être installée dans
-/etc/systemd/journald.conf.d/ lors du déploiement.
+La rétention s'applique par fichiers journaux et ne constitue pas une garantie temporelle stricte pour chaque entrée.
 
 ## Rotation des journaux macOS
 
-Configuration disponible dans newsyslog/reference-dessin.conf.
+Configuration disponible dans `newsyslog/reference-dessin.conf`.
 
 - Rotation quotidienne ou à partir de 1 Mio.
 - Conservation de 29 archives compressées par journal.
-- Permissions restrictives (600).
-- Installation dans /etc/newsyslog.d/ lors du déploiement.
+- Permissions restrictives (`600`).
+- Installation dans `/etc/newsyslog.d/` lors du déploiement.
 
-La durée de conservation visée est d'environ 30 jours,
-sans garantie temporelle stricte.
+La durée de conservation visée est d'environ 30 jours, sans garantie temporelle stricte.
 
 ## État du déploiement
 
-Ces configurations sont intégrées dans dev. Leur installation et leur validation en conditions réelles restent nécessaires.
+Les évolutions relatives à l'isolation des secrets, aux sauvegardes automatiques, à la synchronisation macOS et à la journalisation restent à déployer et à valider en conditions réelles.
+
+La nouvelle organisation des certificats doit également être appliquée lors du prochain déploiement.
