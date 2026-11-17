@@ -8,5 +8,12 @@
 **/*.suo
 .idea/
 .git/
-.env
-.env.*
+
+# Configuration locale et certificats
+**/.env
+**/.env.*
+**/certificates/
+**/caddy-*-root.crt
+**/caddy-root.crt
+**/backups/
+**/*.dump
