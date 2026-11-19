@@ -161,7 +161,9 @@ La synchronisation nécessite un accès au réseau local.
 - Rotation temporelle des fichiers : 1 jour.
 - Perte des journaux au redémarrage du Raspberry Pi.
 
-La configuration `journald/90-reference-dessin.conf` doit être installée dans `/etc/systemd/journald.conf.d/` lors du déploiement.
+La configuration `journald/zz-reference-dessin.conf` doit être installée dans `/etc/systemd/journald.conf.d/` lors du déploiement.
+
+Le préfixe `zz-` garantit que cette configuration est chargée après le fichier `syslog.conf` fourni par le système.
 
 La rétention s'applique par fichiers journaux et ne constitue pas une garantie temporelle stricte pour chaque entrée.
 
