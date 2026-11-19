@@ -1,111 +1,86 @@
 # Référence Dessin
 
-Application web d’entraînement au dessin utilisant des photographies Pexels comme références visuelles.
+Application web d’entraînement au dessin à partir de références photographiques. Elle permet de rechercher des images, de préparer une sélection et de réaliser des séances de dessin chronométrées.
 
-L’utilisateur peut obtenir des références aléatoires ou rechercher un thème, configurer une durée de dessin et naviguer entre les images.
+**Application :** [app.reference-dessin.fr](https://app.reference-dessin.fr)
 
 ## Fonctionnalités
 
-- affichage de références aléatoires fournies par Pexels ;
-- recherche par mot-clé ;
-- navigation précédente et suivante ;
-- raccourcis clavier ;
-- minuteur configurable avec lecture, pause et réinitialisation ;
-- passage automatique à l’image suivante ;
-- préchargement de l’image suivante ;
-- gestion des erreurs de chargement ;
-- affichage étendu de l’image dans un overlay ;
-- interface responsive ;
-- attribution du photographe et lien vers Pexels.
+- Références photographiques Pexels : recherche par mot-clé et découverte d’images.
+- Consultation des collections Pinterest proposées par l’application.
+- Sélection d’images et préparation d’une séance de dessin.
+- Minuteur configurable, navigation entre les images et passage automatique à l’image suivante.
+- Raccourcis clavier, affichage agrandi et interface responsive.
+- Attribution des photographes Pexels et liens vers les sources.
+- Authentification Google et gestion du compte utilisateur.
+- Gestion des erreurs de chargement et des limitations de requêtes.
 
 ## Technologies
 
-### Backend
-
-- C# ;
-- .NET 10 ;
-- ASP.NET Core Web API ;
-- `HttpClient` ;
-- OpenAPI ;
-- xUnit.
-
-### Frontend
-
-- Angular 22 ;
-- TypeScript ;
-- Angular Signals ;
-- RxJS ;
-- Vitest ;
-- Lucide Icons ;
-- SCSS.
+| Backend | Frontend | Infrastructure |
+|---|---|---|
+| C#, .NET 10, ASP.NET Core | Angular 22, TypeScript | PostgreSQL 17 |
+| Entity Framework Core, ASP.NET Core Identity | Angular Signals, RxJS | Docker Compose |
+| HttpClient, OpenAPI | SCSS, Lucide Icons | Caddy, Cloudflare Tunnel |
+| xUnit | Vitest | GitHub Actions, GHCR |
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    A["Angular"] --> B["API ASP.NET Core"]
-    B --> C["IPhotoProvider"]
-    C --> D["PexelsPhotoProvider"]
-    D --> E["API Pexels"]
+    A[Angular] --> B[API ASP.NET Core]
+    B --> C[Application]
+    C --> D[Infrastructure]
+    D --> E[API Pexels]
+    D --> F[API Pinterest]
+    D --> G[(PostgreSQL)]
+    B --> H[Google OAuth]
 ```
 
-Le backend est organisé en trois projets :
+Le backend est organisé en quatre projets :
 
-- **Application** définit les modèles et les contrats nécessaires au cas d’utilisation ;
-- **Infrastructure** implémente l’accès au service Pexels ;
-- **Api** expose les fonctionnalités au client Angular et configure l’application.
+- **Application** : modèles, contrats et cas d’utilisation.
+- **Infrastructure** : persistance, identité et intégrations Pexels et Pinterest.
+- **Api** : contrôleurs HTTP, authentification et configuration de l’application.
+- **Migrations** : application des migrations Entity Framework Core.
 
 ```text
 ReferenceDessin/
-├── Back/
-│   └── ReferenceDessin/
-│       ├── src/
-│       │   ├── ReferenceDessin.Api/
-│       │   ├── ReferenceDessin.Application/
-│       │   └── ReferenceDessin.Infrastructure/
-│       └── tests/
-│           ├── ReferenceDessin.Api.Tests/
-│           └── ReferenceDessin.Infrastructure.Tests/
-│
-└── Front/
-    └── reference-dessin-web/
-        └── src/app/
-            ├── core/
-            └── features/
+├── Back/ReferenceDessin/
+│   ├── src/
+│   │   ├── ReferenceDessin.Api/
+│   │   ├── ReferenceDessin.Application/
+│   │   ├── ReferenceDessin.Infrastructure/
+│   │   └── ReferenceDessin.Migrations/
+│   └── tests/
+├── Front/reference-dessin-web/
+│   └── src/app/
+│       ├── core/
+│       └── features/
+└── docker/
 ```
 
-La clé Pexels reste exclusivement côté serveur. Elle n’est jamais transmise au navigateur ni enregistrée dans le dépôt Git.
-
-## API
-
-### Récupérer des références
-
-```http
-GET /api/photos?query=portrait&count=30
-```
-
-Paramètres :
-
-| Paramètre | Obligatoire | Description |
-|---|---:|---|
-| `query` | Non | Thème recherché. Sans valeur, les photos sélectionnées par Pexels sont utilisées. |
-| `count` | Non | Nombre de photos demandé, compris entre 1 et 80. La valeur par défaut est 30. |
-
-Les erreurs provenant de Pexels sont renvoyées au format standard `ProblemDetails` :
-
-- `502 Bad Gateway` lorsque le service externe retourne une erreur ;
-- `504 Gateway Timeout` lorsque le service externe met trop de temps à répondre.
-
-## Installation
+## Développement local
 
 ### Prérequis
 
 - SDK .NET 10 ;
-- Node.js 24 ;
-- npm ;
-- une clé API Pexels.
+- Node.js 24 et npm ;
+- Docker avec Docker Compose ;
+- clé API Pexels ;
+- identifiants OAuth Google ;
+- identifiants Pinterest si cette intégration est activée.
 
-### Configurer le backend
+### Base de données
+
+Depuis la racine du dépôt, créer un fichier local non versionné `ReferenceDessin/docker/.env.dev` contenant `POSTGRES_PASSWORD` avec un mot de passe de développement.
+
+```bash
+cd ReferenceDessin/docker
+docker compose --env-file .env.dev -f compose.dev.yaml up -d
+```
+
+### Backend
 
 Depuis la racine du dépôt :
 
@@ -113,13 +88,28 @@ Depuis la racine du dépôt :
 cd ReferenceDessin/Back/ReferenceDessin
 ```
 
-Configurer la clé Pexels avec .NET User Secrets :
+Configurer les secrets locaux, en remplaçant les valeurs d’exemple :
 
 ```bash
-dotnet user-secrets set \
-  "Pexels:ApiKey" \
-  "VOTRE_CLE_PEXELS" \
+dotnet user-secrets set "ConnectionStrings:Database" \
+  "Host=localhost;Port=5432;Database=reference_dessin;Username=reference_dessin;Password=MOT_DE_PASSE_LOCAL" \
   --project src/ReferenceDessin.Api
+
+dotnet user-secrets set "Pexels:ApiKey" "CLE_PEXELS" \
+  --project src/ReferenceDessin.Api
+
+dotnet user-secrets set "Authentication:Google:ClientId" "CLIENT_ID" \
+  --project src/ReferenceDessin.Api
+
+dotnet user-secrets set "Authentication:Google:ClientSecret" "CLIENT_SECRET" \
+  --project src/ReferenceDessin.Api
+```
+
+Appliquer les migrations à la base de développement avant le premier démarrage. Le projet `ReferenceDessin.Migrations` utilise une chaîne de connexion fournie par variable d’environnement :
+
+```bash
+ConnectionStrings__Database='Host=localhost;Port=5432;Database=reference_dessin;Username=reference_dessin;Password=MOT_DE_PASSE_LOCAL' \
+  dotnet run --project src/ReferenceDessin.Migrations
 ```
 
 Démarrer l’API :
@@ -128,43 +118,36 @@ Démarrer l’API :
 dotnet run --project src/ReferenceDessin.Api
 ```
 
-En développement, l’API HTTP est disponible par défaut sur :
+L’API est disponible par défaut sur `http://localhost:5183`. Pour l’authentification Google, utiliser une URI de redirection autorisée correspondant à l’environnement local.
 
-```text
-http://localhost:5183
-```
-
-### Configurer le frontend
+### Frontend
 
 Depuis la racine du dépôt :
 
 ```bash
 cd ReferenceDessin/Front/reference-dessin-web
-```
-
-Installer les dépendances :
-
-```bash
 npm ci
-```
-
-Démarrer Angular :
-
-```bash
 npm start
 ```
 
-L’application est alors disponible sur :
+L’application est disponible sur `http://localhost:4200`. Le proxy Angular transmet les appels API au backend.
 
-```text
-http://localhost:4200
+## API
+
+Exemple de recherche Pexels :
+
+```http
+GET /api/photos?query=portrait&count=30
 ```
 
-Le serveur de développement Angular transmet les appels `/api` au backend grâce au proxy configuré dans `proxy.conf.json`.
+| Paramètre | Description |
+|---|---|
+| `query` | Thème facultatif ; sans valeur, photos sélectionnées par Pexels. |
+| `count` | Nombre de photos, de 1 à 80 (30 par défaut). |
+
+Les erreurs externes sont notamment traitées avec les statuts `502` et `504`. La recherche est également soumise à une limitation de requêtes par adresse IP (`429`). La documentation OpenAPI est disponible en développement.
 
 ## Tests
-
-### Backend
 
 Depuis la racine du dépôt :
 
@@ -172,75 +155,49 @@ Depuis la racine du dépôt :
 dotnet test ReferenceDessin/Back/ReferenceDessin/ReferenceDessin.sln
 ```
 
-Les tests couvrent notamment :
-
-- la construction des requêtes vers Pexels ;
-- la conversion des réponses Pexels ;
-- les erreurs du service externe ;
-- la validation du nombre de photos ;
-- les réponses HTTP `ProblemDetails`.
-
-### Frontend
+Pour le frontend :
 
 ```bash
 cd ReferenceDessin/Front/reference-dessin-web
+npm ci
 npm test -- --watch=false
 ```
 
-Les tests couvrent notamment :
-
-- l’affichage et les actions du minuteur ;
-- la construction des requêtes HTTP ;
-- la transmission des mots-clés ;
-- la réception des photos ;
-- la propagation des erreurs HTTP.
-
 ## Compilation
 
-### Backend
+Depuis la racine du dépôt :
 
 ```bash
-dotnet build \
-  ReferenceDessin/Back/ReferenceDessin/ReferenceDessin.sln \
+dotnet build ReferenceDessin/Back/ReferenceDessin/ReferenceDessin.sln \
   --configuration Release
 ```
 
-### Frontend
+Pour le frontend :
 
 ```bash
 cd ReferenceDessin/Front/reference-dessin-web
 npm run build
 ```
 
-## Intégration continue
+## Intégration et publication continues
 
-Le workflow GitHub Actions exécute automatiquement à chaque `push` et pull request :
+- `dev` : branche d’intégration.
+- `main` : branche de publication.
+- [Intégration continue](.github/workflows/integration-continue.yml) : compilation et tests backend et frontend à chaque push et pull request.
+- [Publication Docker](.github/workflows/publication-image.yml) : publication des images application et migrations sur GHCR lors des pushes sur `main`, pour AMD64 et ARM64.
 
-- la restauration des dépendances ;
-- la compilation du backend ;
-- les tests .NET ;
-- l’installation des dépendances Angular ;
-- les tests Vitest ;
-- la compilation du frontend.
+Le déploiement en production utilise les images épinglées au SHA complet du commit publié. La publication des images ne constitue pas un déploiement automatique sur le serveur.
 
-Le workflow se trouve dans :
+## Déploiement et exploitation
 
-```text
-.github/workflows/integration-continue.yml
-```
+L’application est hébergée sur Raspberry Pi, avec PostgreSQL, Caddy et Cloudflare Tunnel. Une simulation locale de la production est également disponible avec Docker Compose.
 
-## Sécurité
+Consulter la [documentation Docker et exploitation](ReferenceDessin/docker/README.md) pour les environnements, les configurations, le déploiement, le retour arrière, les sauvegardes, la restauration et les journaux.
 
-- la clé Pexels est stockée avec .NET User Secrets en développement ;
-- aucune clé API n’est présente dans le frontend ;
-- les erreurs techniques sont journalisées côté serveur sans être exposées au client ;
-- les appels vers Pexels disposent d’un délai maximal ;
-- les paramètres reçus par l’API sont validés.
+## Sécurité et confidentialité
 
-## Améliorations envisagées
-
-- compléter le découpage de l’interface en composants Angular ;
-- ajouter des tests de parcours utilisateur ;
-- ajouter une capture d’écran au README ;
-- conteneuriser l’application ;
-- déployer le frontend et le backend.
+- Secrets et clés API conservés côté serveur, hors du dépôt Git.
+- HTTPS en production et vérification TLS entre Cloudflare Tunnel et Caddy.
+- Authentification par cookies et protection antifalsification des requêtes.
+- Validation des paramètres API et limitation des requêtes Pexels.
+- Politique de confidentialité accessible depuis l’application.
