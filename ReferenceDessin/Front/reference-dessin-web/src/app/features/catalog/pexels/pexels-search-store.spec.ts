@@ -103,6 +103,24 @@ describe('PexelsSearchStore', () => {
     expect(store.loading()).toBe(false);
   });
 
+  it('signale une limitation temporaire des recherches', () => {
+    store.search('portrait');
+
+    api.latestResponse.error(
+      new HttpErrorResponse({
+        status: 429,
+      }),
+    );
+
+    expect(store.loading()).toBe(false);
+    expect(store.images()).toEqual([]);
+    expect(store.hasSearched()).toBe(true);
+    expect(store.noResults()).toBe(false);
+    expect(store.error()).toBe(
+      'Trop de recherches en peu de temps. Réessayez dans quelques instants.',
+    );
+  });
+
   function createImage(externalId: string): ReferenceImage {
     return {
       externalId,

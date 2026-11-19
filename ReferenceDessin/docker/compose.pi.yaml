@@ -1,10 +1,14 @@
-# Déploiement de test sur Raspberry Pi, LAN uniquement.
+# Déploiement sur Raspberry Pi avec accès LAN et Cloudflare Tunnel.
 # Utiliser : docker compose --env-file docker/.env.pi -f docker/compose.pi.yaml up -d
 name: referencedessin-pi
+
+x-logging: &default-logging
+  driver: journald
 
 services:
   postgres:
     image: postgres:17-alpine
+    logging: *default-logging
     restart: unless-stopped
     environment:
       POSTGRES_DB: reference_dessin
@@ -22,6 +26,7 @@ services:
 
   init-keys:
     image: ${APP_IMAGE:-ghcr.io/paulbertelli/reference-dessin:latest}
+    logging: *default-logging
     user: "0"
     entrypoint: ["/bin/sh", "-c"]
     command: ["chown -R 1654:1654 /keys && chmod 700 /keys"]
@@ -30,6 +35,7 @@ services:
 
   migrations:
     image: ${MIGRATIONS_IMAGE:-ghcr.io/paulbertelli/reference-dessin-migrations:latest}
+    logging: *default-logging
     restart: "no"
     environment:
       ConnectionStrings__Database: "Host=postgres;Port=5432;Database=reference_dessin;Username=reference_dessin;Password=${POSTGRES_PASSWORD:?Mot de passe requis}"
@@ -41,15 +47,20 @@ services:
 
   reference-dessin-app:
     image: ${APP_IMAGE:-ghcr.io/paulbertelli/reference-dessin:latest}
+    logging: *default-logging
     restart: unless-stopped
-    env_file:
-      - ./.env.pi
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: "8080"
-      ApplicationCliente__Url: https://pi-paul.local:8443
+      ApplicationCliente__Url: https://app.reference-dessin.fr
       ReverseProxy__KnownProxy: 172.30.250.10
       ConnectionStrings__Database: "Host=postgres;Port=5432;Database=reference_dessin;Username=reference_dessin;Password=${POSTGRES_PASSWORD:?Mot de passe requis}"
+      Pexels__ApiKey: ${Pexels__ApiKey:?Clé Pexels requise}
+      Authentication__Google__ClientId: ${Authentication__Google__ClientId:?Client Google requis}
+      Authentication__Google__ClientSecret: ${Authentication__Google__ClientSecret:?Secret Google requis}
+      Pinterest__Enabled: "${Pinterest__Enabled:-false}"
+      Pinterest__AppId: "${Pinterest__AppId:-}"
+      Pinterest__AppSecret: "${Pinterest__AppSecret:-}"
     volumes:
       - data-protection:/home/app/.aspnet/DataProtection-Keys
     depends_on:
@@ -65,9 +76,10 @@ services:
 
   caddy:
     image: caddy:2
+    logging: *default-logging
     restart: unless-stopped
     ports:
-      - "8443:443"
+      - "192.168.1.38:8443:443"
     volumes:
       - ./Caddyfile.pi:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
@@ -77,6 +89,19 @@ services:
     networks:
       proxy:
         ipv4_address: 172.30.250.10
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    logging: *default-logging
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?Jeton Cloudflare requis}
+    networks:
+      proxy:
+        ipv4_address: 172.30.250.11
+    volumes:
+      - ./certificates/caddy-root.crt:/etc/cloudflared/caddy-root.crt:ro
 
 volumes:
   postgres-data:

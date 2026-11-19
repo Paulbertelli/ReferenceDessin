@@ -21,4 +21,11 @@
 appsettings.Development.json
 .env
 .env.*
-caddy-local-root.crt
+
+# Certificats Caddy locaux
+caddy-*-root.crt
+caddy-root.crt
+/ReferenceDessin/docker/certificates/
+
+# Exemple de configuration à versionner
+!.env.pi.example
